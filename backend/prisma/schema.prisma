@@ -14,7 +14,8 @@ model Role {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  users User[]
+  users           User[]
+  rolePermissions RolePermissions?
 }
 
 model User {
@@ -43,6 +44,81 @@ model Employee {
   position     String?
   dob          DateTime?
   status       String    @default("active")
+model Menu {
+  id            Int       @id @default(autoincrement())
+  title         String    @unique
+  icon          String?
+  url           String?
+  isCollapsible Boolean   @default(false)
+
+  subMenus   SubMenu[]
+  roleMenus  RoleMenuAccess[]   // ✅ back relation
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SubMenu {
+  id      Int    @id @default(autoincrement())
+  title   String
+  url     String
+
+  menuId  Int
+  menu    Menu   @relation(fields: [menuId], references: [id])
+
+  roleSubMenus RoleSubMenuAccess[]   // ✅ back relation
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RolePermissions {
+  id     Int   @id @default(autoincrement())
+
+  roleId Int   @unique
+  role   Role  @relation(fields: [roleId], references: [id])
+
+  menus  RoleMenuAccess[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RoleMenuAccess {
+  id                 Int               @id @default(autoincrement())
+
+  rolePermissionsId  Int
+  rolePermissions    RolePermissions   @relation(fields: [rolePermissionsId], references: [id])
+
+  menuId             Int
+  menu               Menu              @relation(fields: [menuId], references: [id])
+
+  subMenus           RoleSubMenuAccess[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([rolePermissionsId, menuId]) // ✅ avoid duplicate menu per role
+}
+
+model RoleSubMenuAccess {
+  id               Int             @id @default(autoincrement())
+
+  roleMenuAccessId Int
+  roleMenuAccess   RoleMenuAccess  @relation(fields: [roleMenuAccessId], references: [id])
+
+  subMenuId        Int
+  subMenu          SubMenu         @relation(fields: [subMenuId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([roleMenuAccessId, subMenuId]) // ✅ avoid duplicate submenu
+}
+
+
+
+
 
   departmentId Int
   department   Department @relation(fields: [departmentId], references: [id])
