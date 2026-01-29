@@ -14,22 +14,49 @@ model Role {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  users       User[]
+  users User[]
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  fullName  String
-  email     String   @unique
-  phone     String?
-  password  String
-  status    String   @default("active")
+  id       Int     @id @default(autoincrement())
+  fullName String
+  email    String  @unique
+  phone    String?
+  password String
+  status   String  @default("active")
 
-  roleId    Int
-  role      Role     @relation(fields: [roleId], references: [id])
+  roleId Int
+  role   Role @relation(fields: [roleId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model Employee {
+  id           Int       @id @default(autoincrement())
+  employeeCode String    @unique
+  fullName     String
+  email        String    @unique
+  phone        String?
+  address      String?
+  gender       String?
+  position     String?
+  dob          DateTime?
+  status       String    @default("active")
 
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Department {
+  id             Int      @id @default(autoincrement())
+  departmentName String   @unique
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  employees Employee[]
+}
