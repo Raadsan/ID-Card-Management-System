@@ -5,18 +5,22 @@ import cors from "cors";
 import { prisma } from "./lib/prisma.js";
 import roleRoutes from "./Routes/roleRoutes.js";
 import userRoutes from "./Routes/userRoutes.js";
+import menuRoutes from "./Routes/menuRoutes.js";
+import rolePermissionsRoutes from "./Routes/rolePermissionsRoutes.js";
 
 const app = express();
 
-/* ================= Middleware ================= */
+
 app.use(cors());
 app.use(express.json());
 
-/* ================= Routes ================= */
+
 app.use("/api/roles", roleRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/menus", menuRoutes);
+app.use("/api/role-permissions", rolePermissionsRoutes);
 
-/* ================= DB Check ================= */
+
 async function startServer() {
   try {
     await prisma.$queryRaw`SELECT 1`;
