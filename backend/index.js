@@ -4,6 +4,7 @@ import cors from "cors";
 
 import { prisma } from "./lib/prisma.js";
 import roleRoutes from "./Routes/roleRoutes.js";
+import userRoutes from "./Routes/userRoutes.js";
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 
 /* ================= Routes ================= */
 app.use("/api/roles", roleRoutes);
+app.use("/api/users", userRoutes);
 
 /* ================= DB Check ================= */
 async function startServer() {
