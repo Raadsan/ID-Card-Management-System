@@ -8,16 +8,39 @@ import { prisma } from "../lib/prisma.js";
 
 export const createEmployee = async (req, res) => {
     try {
-        const { employeeCode, fullName, email, phone, address, gender, dob, status, position, departmentId } = req.body;
+        const {
+            employeeCode,
+            address,
+            dob,
+            status,
+            title,
+            departmentId,
+            userId,
+        } = req.body;
 
-        if (!employeeCode || !fullName || !email || !departmentId || !position || !gender || !dob || !status) {
+        if (!employeeCode || !departmentId || !userId) {
             return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: Number(userId) },
+        });
+        if (!user) {
+            return res.status(400).json({ message: "Invalid userId" });
+        }
+
+        const existingEmployee = await prisma.employee.findUnique({
+            where: { userId: Number(userId) },
+        });
+        if (existingEmployee) {
+            return res.status(409).json({
+                message: "This user is already assigned as an employee",
+            });
         }
 
         const department = await prisma.department.findUnique({
             where: { id: Number(departmentId) },
         });
-
         if (!department) {
             return res.status(400).json({ message: "Invalid departmentId" });
         }
@@ -25,35 +48,39 @@ export const createEmployee = async (req, res) => {
         const employee = await prisma.employee.create({
             data: {
                 employeeCode,
-                fullName,
-                email,
-                phone,
-                gender,
-                dob: new Date(dob),
+                userId: Number(userId),
                 address,
-                position,
+                title,
+                dob: dob ? new Date(dob) : null,
                 status: status || "active",
                 departmentId: Number(departmentId),
             },
             include: {
                 department: true,
+                user: true
             },
         });
 
         res.status(201).json(employee);
     } catch (error) {
-        console.error(error);
         if (error.code === "P2002") {
             return res.status(409).json({ message: "Employee already exists" });
         }
-        res.status(500).json({ message: "Failed to create employee", error: error.message });
+        res.status(500).json({
+            message: "Failed to create employee",
+            error: error.message,
+        });
     }
 };
+
+/* =========================
+   GET ALL EMPLOYEES
+========================= */
 
 export const getAllEmployees = async (req, res) => {
     try {
         const employees = await prisma.employee.findMany({
-            include: { department: true }
+            include: { department: true, user: true }
         });
         res.status(200).json(employees);
     } catch (error) {
@@ -61,12 +88,16 @@ export const getAllEmployees = async (req, res) => {
     }
 };
 
+/* =========================
+   GET EMPLOYEE BY ID
+========================= */
+
 export const getEmployeeById = async (req, res) => {
     try {
         const { id } = req.params;
         const employee = await prisma.employee.findUnique({
             where: { id: Number(id) },
-            include: { department: true }
+            include: { department: true, user: true }
         });
         if (!employee) return res.status(404).json({ message: "Employee not found" });
         res.status(200).json(employee);
@@ -74,6 +105,10 @@ export const getEmployeeById = async (req, res) => {
         res.status(500).json({ message: "Failed to fetch employee", error: error.message });
     }
 };
+
+/* =========================
+   UPDATE EMPLOYEE
+========================= */
 
 export const updateEmployee = async (req, res) => {
     try {
@@ -87,13 +122,17 @@ export const updateEmployee = async (req, res) => {
         const employee = await prisma.employee.update({
             where: { id: Number(id) },
             data,
-            include: { department: true }
+            include: { department: true, user: true }
         });
         res.status(200).json(employee);
     } catch (error) {
         res.status(500).json({ message: "Failed to update employee", error: error.message });
     }
 };
+
+/* =========================
+   DELETE EMPLOYEE
+========================= */
 
 export const deleteEmployee = async (req, res) => {
     try {

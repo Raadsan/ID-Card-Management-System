@@ -6,7 +6,7 @@ import bcrypt from "bcrypt";
 ========================= */
 export const createUser = async (req, res) => {
   try {
-    const { fullName, email, phone, password, roleId, status } = req.body;
+    const { fullName, email, phone, password, roleId, status, gender } = req.body;
 
     if (!fullName || !email || !password || !roleId) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -31,6 +31,7 @@ export const createUser = async (req, res) => {
         password: hashedPassword,
         status: status || "active",
         roleId: Number(roleId),
+        gender,
       },
       include: {
         role: true,
