@@ -12,6 +12,12 @@ const adapter = new PrismaMariaDb({
     connectionLimit: 5,
     connectTimeout: 10000 // Increase timeout to 10s
 });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient({
+    adapter,
+    transactionOptions: {
+        timeout: 30000,   // 30 seconds
+        maxWait: 30000    // 30 seconds
+    }
+});
 
 export { prisma }

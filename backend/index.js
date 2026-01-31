@@ -9,6 +9,8 @@ import departmentRoutes from "./Routes/departmentRoutes.js";
 import employeeRoutes from "./Routes/employeeRoutes.js";
 import menuRoutes from "./Routes/menuRoutes.js";
 import rolePermissionsRoutes from "./Routes/rolePermissionsRoutes.js";
+import departmentTransfareRoutes from "./Routes/departmentTransferRoute.js";
+
 
 const app = express();
 
@@ -24,6 +26,7 @@ app.use("/api/departments", departmentRoutes);
 app.use("/api/employee", employeeRoutes);
 app.use("/api/menus", menuRoutes);
 app.use("/api/role-permissions", rolePermissionsRoutes);
+app.use("/api/department-transfers", departmentTransfareRoutes);
 
 
 async function startServer() {
