@@ -8,130 +8,116 @@ datasource db {
 }
 
 model Role {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  users           User[]
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  description     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   rolePermissions RolePermissions?
+  users           User[]
 }
 
 model Menu {
-  id            Int     @id @default(autoincrement())
-  title         String  @unique
+  id            Int              @id @default(autoincrement())
+  title         String           @unique
   icon          String?
   url           String?
-  isCollapsible Boolean @default(false)
-
-  subMenus  SubMenu[]
-  roleMenus RoleMenuAccess[] // ✅ back relation
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isCollapsible Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  roleMenus     RoleMenuAccess[]
+  subMenus      SubMenu[]
 }
 
 model SubMenu {
-  id    Int    @id @default(autoincrement())
-  title String
-  url   String
+  id           Int                 @id @default(autoincrement())
+  title        String
+  url          String
+  menuId       Int
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  roleSubMenus RoleSubMenuAccess[]
+  menu         Menu                @relation(fields: [menuId], references: [id])
 
-  menuId Int
-  menu   Menu @relation(fields: [menuId], references: [id])
-
-  roleSubMenus RoleSubMenuAccess[] // ✅ back relation
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  @@index([menuId], map: "SubMenu_menuId_fkey")
 }
 
 model RolePermissions {
-  id Int @id @default(autoincrement())
-
-  roleId Int  @unique
-  role   Role @relation(fields: [roleId], references: [id])
-
-  menus RoleMenuAccess[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int              @id @default(autoincrement())
+  roleId    Int              @unique
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  menus     RoleMenuAccess[]
+  role      Role             @relation(fields: [roleId], references: [id])
 }
 
 model RoleMenuAccess {
-  id Int @id @default(autoincrement())
-
+  id                Int                 @id @default(autoincrement())
   rolePermissionsId Int
-  rolePermissions   RolePermissions @relation(fields: [rolePermissionsId], references: [id])
+  menuId            Int
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  menu              Menu                @relation(fields: [menuId], references: [id])
+  rolePermissions   RolePermissions     @relation(fields: [rolePermissionsId], references: [id])
+  subMenus          RoleSubMenuAccess[]
 
-  menuId Int
-  menu   Menu @relation(fields: [menuId], references: [id])
-
-  subMenus RoleSubMenuAccess[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([rolePermissionsId, menuId]) // ✅ avoid duplicate menu per role
+  @@unique([rolePermissionsId, menuId])
+  @@index([menuId], map: "RoleMenuAccess_menuId_fkey")
 }
 
 model RoleSubMenuAccess {
-  id Int @id @default(autoincrement())
-
+  id               Int            @id @default(autoincrement())
   roleMenuAccessId Int
+  subMenuId        Int
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
   roleMenuAccess   RoleMenuAccess @relation(fields: [roleMenuAccessId], references: [id])
-
-  subMenuId Int
-  subMenu   SubMenu @relation(fields: [subMenuId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  subMenu          SubMenu        @relation(fields: [subMenuId], references: [id])
 
   @@unique([roleMenuAccessId, subMenuId])
+  @@index([subMenuId], map: "RoleSubMenuAccess_subMenuId_fkey")
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  fullName String
-  email    String  @unique
-  phone    String?
-  gender   String?
-  password String
-  status   String  @default("active")
+  id        Int       @id @default(autoincrement())
+  fullName  String
+  email     String    @unique
+  phone     String?
+  password  String
+  status    String    @default("active")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  roleId    Int
+  gender    String?
+  photo     String?
+  employee  Employee?
+  role      Role      @relation(fields: [roleId], references: [id])
 
-  employee Employee?
-
-  roleId Int
-  role   Role @relation(fields: [roleId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  @@index([roleId], map: "User_roleId_fkey")
 }
 
 model Employee {
-  id           Int    @id @default(autoincrement())
-  employeeCode String @unique
-
-  userId Int  @unique
-  user   User @relation(fields: [userId], references: [id])
-
+  id           Int        @id @default(autoincrement())
+  employeeCode String     @unique
   address      String?
-  title        String?
   dob          DateTime?
   status       String     @default("active")
   departmentId Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  title        String?
+  userId       Int        @unique
   department   Department @relation(fields: [departmentId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  @@index([departmentId], map: "Employee_departmentId_fkey")
 }
 
 model Department {
-  id             Int      @id @default(autoincrement())
-  departmentName String   @unique
+  id             Int        @id @default(autoincrement())
+  departmentName String     @unique
   description    String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  employees Employee[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  employees      Employee[]
 }

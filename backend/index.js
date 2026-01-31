@@ -9,6 +9,7 @@ import departmentRoutes from "./Routes/departmentRoutes.js";
 import employeeRoutes from "./Routes/employeeRoutes.js";
 import menuRoutes from "./Routes/menuRoutes.js";
 import rolePermissionsRoutes from "./Routes/rolePermissionsRoutes.js";
+import idCardRoutes from "./Routes/idCardRoutes.js";
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/api/departments", departmentRoutes);
 app.use("/api/employee", employeeRoutes);
 app.use("/api/menus", menuRoutes);
 app.use("/api/role-permissions", rolePermissionsRoutes);
+app.use("/api/idcard", idCardRoutes);
 
 
 async function startServer() {
