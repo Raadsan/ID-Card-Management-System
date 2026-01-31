@@ -28,7 +28,6 @@ app.use("/api/menus", menuRoutes);
 app.use("/api/role-permissions", rolePermissionsRoutes);
 app.use("/api/department-transfers", departmentTransfareRoutes);
 
-
 async function startServer() {
   try {
     await prisma.$queryRaw`SELECT 1`;
