@@ -6,13 +6,14 @@ import {
   updateRole,
   deleteRole,
 } from "../Controller/roleController.js";
+import { protect } from "../middleware/authMiddleare.js";
 
 const router = express.Router();
 
-router.post("/", createRole);        // Create
-router.get("/", getRoles);           // Read all
-router.get("/:id", getRoleById);     // Read one
-router.patch("/:id", updateRole);      // Update
-router.delete("/:id", deleteRole);   // Delete
+router.post("/",protect, createRole);        
+router.get("/",protect, getRoles);           
+router.get("/:id",protect, getRoleById);     
+router.patch("/:id",protect, updateRole);      
+router.delete("/:id",protect, deleteRole);   
 
 export default router;

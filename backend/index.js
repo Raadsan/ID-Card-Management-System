@@ -8,6 +8,7 @@ import userRoutes from "./Routes/userRoutes.js";
 import departmentRoutes from "./Routes/departmentRoutes.js";
 import employeeRoutes from "./Routes/employeeRoutes.js";
 import menuRoutes from "./Routes/menuRoutes.js";
+import authRoutes from "./Routes/authRoutes.js";
 import rolePermissionsRoutes from "./Routes/rolePermissionsRoutes.js";
 import departmentTransfareRoutes from "./Routes/departmentTransferRoute.js";
 
@@ -27,6 +28,7 @@ app.use("/api/employee", employeeRoutes);
 app.use("/api/menus", menuRoutes);
 app.use("/api/role-permissions", rolePermissionsRoutes);
 app.use("/api/department-transfers", departmentTransfareRoutes);
+app.use("/api/auth",authRoutes)
 
 async function startServer() {
   try {
