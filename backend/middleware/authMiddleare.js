@@ -12,7 +12,7 @@ export const protect = async (req, res, next) => {
             token = req.headers.authorization.split(" ")[1];
 
             // Verify token
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret");
+            const decoded = jwt.verify(token, process.env.JWT_SECRET );
 
             // Set user from token
             req.user = decoded;
