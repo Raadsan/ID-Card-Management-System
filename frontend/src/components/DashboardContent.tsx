@@ -1,8 +1,87 @@
 "use client";
 
-import { Users, TrendingUp, Activity, Briefcase, FileText, CheckCircle, XCircle, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Users, TrendingUp, Activity, Briefcase, FileText, CheckCircle, XCircle, Clock, Edit2, Trash2, User } from "lucide-react";
+import DataTable from "./DataTable";
+import { getEmployees } from "@/api/employeeApi";
 
 export default function DashboardContent() {
+    const [employees, setEmployees] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchTopEmployees = async () => {
+            try {
+                const data = await getEmployees(5); // Only top 5 for dashboard
+                setEmployees(data);
+            } catch (error) {
+                console.error("Failed to fetch top employees:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchTopEmployees();
+    }, []);
+
+    const employeeColumns = [
+        {
+            label: "ID",
+            key: "id",
+            width: "60px",
+            align: "center",
+        },
+        {
+            label: "FULL NAME",
+            key: "user.fullName",
+            render: (row: any) => (
+                <span className="font-semibold text-gray-900">{row.user?.fullName}</span>
+            )
+        },
+        {
+            label: "TITLE",
+            key: "title",
+            render: (row: any) => (
+                <span className="text-gray-600 font-medium">{row.title || "-"}</span>
+            )
+        },
+        {
+            label: "DEPARTMENT",
+            key: "department.departmentName",
+            render: (row: any) => (
+                <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold border border-gray-200/50">
+                    {row.department?.departmentName || "General"}
+                </span>
+            )
+        },
+        {
+            label: "STATUS",
+            key: "status",
+            align: "center",
+            render: (row: any) => (
+                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${row.status === "active"
+                    ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                    : "bg-rose-50 text-rose-600 border border-rose-100"
+                    }`}>
+                    {row.status}
+                </span>
+            )
+        },
+        {
+            label: "ACTIONS",
+            align: "center",
+            render: (row: any) => (
+                <div className="flex items-center justify-center gap-2">
+                    <button className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
+                        <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                </div>
+            )
+        }
+    ];
+
     // Static stats data
     const stats = [
         {
@@ -56,15 +135,6 @@ export default function DashboardContent() {
         { id: 3, name: "ID-2024-003", amount: 180, status: "completed", date: "2024-01-26", type: "Replacement" },
         { id: 4, name: "ID-2024-004", amount: 150, status: "completed", date: "2024-01-25", type: "New Registration" },
         { id: 5, name: "ID-2024-005", amount: 200, status: "completed", date: "2024-01-24", type: "Urgent Processing" },
-    ];
-
-    // Static top users data
-    const topUsers = [
-        { id: 1, fullname: "Ahmed Hassan", email: "ahmed@example.com", phone: "+252-61-234-5678", role: "User" },
-        { id: 2, fullname: "Fatima Mohamed", email: "fatima@example.com", phone: "+252-61-234-5679", role: "User" },
-        { id: 3, fullname: "Omar Ali", email: "omar@example.com", phone: "+252-61-234-5680", role: "User" },
-        { id: 4, fullname: "Amina Abdi", email: "amina@example.com", phone: "+252-61-234-5681", role: "User" },
-        { id: 5, fullname: "Ibrahim Yusuf", email: "ibrahim@example.com", phone: "+252-61-234-5682", role: "User" },
     ];
 
     return (
@@ -206,40 +276,15 @@ export default function DashboardContent() {
                 </div>
             </div>
 
-            {/* Top Users Table */}
-            <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-900">Recent Applicants</h3>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 border-b border-gray-100">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fullname</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-100">
-                            {topUsers.map((user, index) => (
-                                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.fullname}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.email}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.phone}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                                            {user.role}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            {/* Top Employees Table */}
+            <DataTable
+                title="All Employees"
+                columns={employeeColumns}
+                data={employees}
+                loading={loading}
+                addButtonLabel="Add Employee"
+                onAddClick={() => console.log("Add Employee clicked")}
+            />
         </div>
     );
 }

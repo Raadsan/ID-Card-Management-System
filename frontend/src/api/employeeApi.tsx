@@ -3,8 +3,9 @@ import api from "./axios";
 /**
  * Get all employees
  */
-export const getEmployees = async () => {
-    const response = await api.get("/employee");
+export const getEmployees = async (limit?: number) => {
+    const url = limit ? `/employee?limit=${limit}` : "/employee";
+    const response = await api.get(url);
     return response.data;
 };
 

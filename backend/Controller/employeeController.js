@@ -79,8 +79,16 @@ export const createEmployee = async (req, res) => {
 
 export const getAllEmployees = async (req, res) => {
     try {
+        const { limit } = req.query;
         const employees = await prisma.employee.findMany({
-            include: { department: true, user: true }
+            include: {
+                department: true,
+                user: {
+                    include: { role: true }
+                }
+            },
+            orderBy: { createdAt: "desc" },
+            ...(limit && { take: Number(limit) })
         });
         res.status(200).json(employees);
     } catch (error) {

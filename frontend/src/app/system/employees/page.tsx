@@ -97,34 +97,12 @@ export default function EmployeesPage() {
                 ),
             },
             {
-                label: "Photo",
-                key: "photo",
-                render: (row: Employee) => {
-                    const photoUrl = row.user?.photo
-                        ? `http://localhost:5000/uploads/${row.user.photo}`
-                        : "/placeholder-user.png";
-
-                    return (
-                        <div className="relative h-10 w-10 overflow-hidden rounded-full border border-gray-200">
-                            <img
-                                src={photoUrl}
-                                alt={row.user?.fullName || "Employee"}
-                                className="h-full w-full object-cover"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).src = "/placeholder-user.png";
-                                }}
-                            />
-                        </div>
-                    );
-                },
-            },
-            {
                 label: "Status",
                 key: "status",
                 render: (row: Employee) => (
                     <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${row.status === 'active'
-                            ? 'bg-green-50 text-green-700 ring-green-600/20'
-                            : 'bg-red-50 text-red-700 ring-red-600/20'
+                        ? 'bg-green-50 text-green-700 ring-green-600/20'
+                        : 'bg-red-50 text-red-700 ring-red-600/20'
                         }`}>
                         {row.status}
                     </span>
