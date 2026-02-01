@@ -6,14 +6,15 @@ import {
   updateDepartmentTransfer,
   deleteDepartmentTransfer
 } from "../Controller/departmentTransferController.js";
+import { protect } from "../middleware/authMiddleare.js";
 
 const router = express.Router();
 
-router.post("/", createDepartmentTransfer);
-router.get("/", getDepartmentTransfers);
-router.get("/:id", getDepartmentTransferById);
-router.patch("/:id", updateDepartmentTransfer);
-router.delete("/:id", deleteDepartmentTransfer);
+router.post("/",protect, createDepartmentTransfer);
+router.get("/",protect, getDepartmentTransfers);
+router.get("/:id",protect, getDepartmentTransferById);
+router.patch("/:id",protect, updateDepartmentTransfer);
+router.delete("/:id",protect, deleteDepartmentTransfer);
 
 export default router;
 
