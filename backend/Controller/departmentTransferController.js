@@ -3,16 +3,35 @@ import { prisma } from "../lib/prisma.js";
 // Create a new transfer and automatically update employee department
 export const createDepartmentTransfer = async (req, res) => {
   try {
-    const { employeeId, fromDepartmentId, toDepartmentId, transferDate } = req.body;
+    const { employeeId, fromDepartmentId, toDepartmentId, transferDate, reason } = req.body;
+    // Read authorized user ID from token
+    const authorizedById = req.user?.id;
+
+    if (!authorizedById) {
+      return res.status(401).json({
+        message: "Session context is invalid. Please log out and sign in again to authorize this transfer."
+      });
+    }
 
     const result = await prisma.$transaction(async (tx) => {
+      // 0️⃣ Verify the authorizing administrator exists in the current registry
+      const authorizer = await tx.user.findUnique({
+        where: { id: Number(authorizedById) }
+      });
+
+      if (!authorizer) {
+        throw new Error(`CRITICAL: Your session ID (${authorizedById}) is not recognized by the central system. Authentication refresh required.`);
+      }
+
       // 1️⃣ Create the transfer record
       const transfer = await tx.departmentTransfer.create({
         data: {
           employeeId: Number(employeeId),
           fromDepartmentId: Number(fromDepartmentId),
           toDepartmentId: Number(toDepartmentId),
+          authorizedById: Number(authorizedById),
           transferDate: new Date(transferDate),
+          reason: reason || "",
         },
       });
 
@@ -42,6 +61,7 @@ export const getDepartmentTransfers = async (req, res) => {
         },
         fromDepartment: true,
         toDepartment: true,
+        authorizedBy: true, // 👈 Included Authorizing User
       },
       orderBy: { transferDate: "desc" },
     });
@@ -64,6 +84,7 @@ export const getDepartmentTransferById = async (req, res) => {
         },
         fromDepartment: true,
         toDepartment: true,
+        authorizedBy: true, // 👈 Included Authorizing User
       },
     });
     if (!transfer) return res.status(404).json({ message: "Transfer not found" });
@@ -78,7 +99,7 @@ export const getDepartmentTransferById = async (req, res) => {
 export const updateDepartmentTransfer = async (req, res) => {
   try {
     const { id } = req.params;
-    const { employeeId, fromDepartmentId, toDepartmentId, transferDate } = req.body;
+    const { employeeId, fromDepartmentId, toDepartmentId, transferDate, reason } = req.body;
 
     const result = await prisma.$transaction(async (tx) => {
       // Update transfer
@@ -89,6 +110,7 @@ export const updateDepartmentTransfer = async (req, res) => {
           fromDepartmentId: Number(fromDepartmentId),
           toDepartmentId: Number(toDepartmentId),
           transferDate: new Date(transferDate),
+          reason: reason || "",
         },
       });
 

@@ -1,6 +1,14 @@
 import api from "./axios";
 
 /**
+ * Get current user profile
+ */
+export const getMe = async () => {
+    const response = await api.get("/users/me");
+    return response.data;
+};
+
+/**
  * Get all users
  */
 export const getUsers = async () => {

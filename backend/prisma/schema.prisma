@@ -94,6 +94,8 @@ model User {
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  transfersPerformed DepartmentTransfer[] @relation("TransfersPerformed")
 }
 
 model Employee {
@@ -130,11 +132,15 @@ model DepartmentTransfer {
   employeeId       Int
   fromDepartmentId Int
   toDepartmentId   Int
+  authorizedById   Int?        
   transferDate     DateTime
+  reason           String? 
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 
   employee       Employee   @relation(fields: [employeeId], references: [id])
   fromDepartment Department @relation("FromDepartment", fields: [fromDepartmentId], references: [id])
   toDepartment   Department @relation("ToDepartment", fields: [toDepartmentId], references: [id])
+  authorizedBy   User?       @relation("TransfersPerformed", fields: [authorizedById], references: [id])
 }
+

@@ -61,6 +61,30 @@ export const getUsers = async (req, res) => {
   }
 };
 
+export const getMe = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "User ID missing from token payload" });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: Number(userId) },
+      include: { role: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "Current user profile not found in database" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Profile Fetch Error:", error);
+    res.status(500).json({ message: "Internal server error while fetching profile", error: error.message });
+  }
+};
+
+
 /* =========================
    GET USER BY ID
 ========================= */

@@ -1,25 +1,41 @@
 "use client";
 
-import { useState } from "react";
-import { Bell, Search, Menu, LogOut, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Bell, Search, Menu, LogOut, User, Settings, ShieldCheck } from "lucide-react";
+import { getMe } from "@/api/userApi";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     const [showDropdown, setShowDropdown] = useState(false);
+    const [user, setUser] = useState<any>(null);
+    const router = useRouter();
 
-    // Static user data for design purposes
-    const user = {
-        fullname: "Dahir Ahmed",
-        email: "dahir@example.com",
-        initials: "DA"
+    useEffect(() => {
+        fetchUser();
+    }, []);
+
+    const fetchUser = async () => {
+        try {
+            const data = await getMe();
+            setUser(data);
+        } catch (error) {
+            console.error("Failed to fetch user in header:", error);
+        }
     };
-
-    const portalTitle = "Admin Dashboard";
 
     const handleLogout = () => {
         setShowDropdown(false);
-        // Future: Add logout logic here
-        console.log("Logout clicked");
+        localStorage.removeItem("token"); // Assuming token is stored in localStorage
+        router.push("/login");
     };
+
+    const getInitials = (name: string) => {
+        if (!name) return "U";
+        return name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
+    };
+
+    const portalTitle = "ID Management System";
 
     return (
         <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-gray-200 bg-white px-4 shadow-sm sm:px-6 lg:px-8">
@@ -33,32 +49,51 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                     <Menu className="h-6 w-6" />
                 </button>
                 <div className="hidden md:block">
-                    <h1 className="text-xl font-bold text-primary">{portalTitle}</h1>
+                    <h1 className="text-xl font-bold bg-gradient-to-r from-[#1B1555] to-[#16BCF8] bg-clip-text text-transparent">
+                        {portalTitle}
+                    </h1>
                 </div>
             </div>
 
             <div className="flex items-center gap-4">
                 <div className="relative hidden sm:block">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Search..."
-                        className="h-10 w-64 rounded-full border border-gray-200 bg-gray-50 pl-9 pr-4 text-sm text-gray-900 focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary"
+                        placeholder="Quick Search..."
+                        className="h-10 w-64 rounded-xl border border-gray-100 bg-gray-50/50 pl-9 pr-4 text-sm text-gray-900 transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5"
                     />
                 </div>
 
-                <button className="relative rounded-full p-2 text-gray-500 hover:bg-gray-100">
+                <button className="relative rounded-xl p-2 text-gray-400 hover:bg-gray-50 hover:text-[#1B1555] transition-colors">
                     <Bell className="h-5 w-5" />
-                    <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500"></span>
+                    <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#16BCF8] ring-2 ring-white"></span>
                 </button>
 
                 <div className="relative">
                     <button
                         onClick={() => setShowDropdown(!showDropdown)}
-                        className="h-8 w-8 overflow-hidden rounded-full bg-gray-200 hover:ring-2 hover:ring-secondary transition-all"
+                        className="group flex items-center gap-3 p-1 rounded-xl hover:bg-gray-50 transition-all"
                     >
-                        <div className="flex h-full w-full items-center justify-center bg-primary text-xs font-medium text-white">
-                            {user.initials}
+                        <div className="h-8 w-8 overflow-hidden rounded-full ring-2 ring-white shadow-sm border border-gray-100 relative">
+                            {user?.photo ? (
+                                <img
+                                    src={`http://localhost:5000/uploads/${user.photo}`}
+                                    className="h-full w-full object-cover"
+                                    alt="Avatar"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = "/placeholder-user.png";
+                                    }}
+                                />
+                            ) : (
+                                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1B1555] to-[#2E248C] text-xs font-black text-white">
+                                    {getInitials(user?.fullName || "User")}
+                                </div>
+                            )}
+                        </div>
+                        <div className="hidden lg:flex flex-col items-start leading-none mr-2">
+                            <span className="text-xs font-black text-[#1B1555] uppercase tracking-tight">{user?.fullName || "Loading..."}</span>
+                            <span className="text-[9px] font-bold text-[#16BCF8] uppercase mt-0.5 tracking-widest">{user?.role?.name || "Member"}</span>
                         </div>
                     </button>
 
@@ -68,18 +103,36 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                                 className="fixed inset-0 z-10"
                                 onClick={() => setShowDropdown(false)}
                             />
-                            <div className="absolute right-0 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg z-20">
-                                <div className="p-3 border-b border-gray-100">
-                                    <p className="text-sm font-semibold text-gray-900">{user.fullname}</p>
-                                    <p className="text-xs text-gray-500">{user.email}</p>
+                            <div className="absolute right-0 mt-3 w-64 rounded-2xl border border-gray-100 bg-white shadow-2xl z-20 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="p-5 bg-gradient-to-br from-gray-50 to-white border-b border-gray-50">
+                                    <p className="text-sm font-black text-[#1B1555] truncate">{user?.fullName}</p>
+                                    <p className="text-[10px] font-bold text-gray-400 truncate mt-0.5">{user?.email}</p>
                                 </div>
-                                <button
-                                    onClick={handleLogout}
-                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                                >
-                                    <LogOut className="h-4 w-4" />
-                                    Logout
-                                </button>
+                                <div className="py-2">
+                                    <Link
+                                        href="/system/profile"
+                                        onClick={() => setShowDropdown(false)}
+                                        className="flex items-center gap-3 px-5 py-3 text-xs font-bold text-gray-600 hover:bg-[#16BCF8]/5 hover:text-[#16BCF8] transition-colors"
+                                    >
+                                        <ShieldCheck size={16} />
+                                        Security Credentials
+                                    </Link>
+                                    <button
+                                        className="w-full flex items-center gap-3 px-5 py-3 text-xs font-bold text-gray-600 hover:bg-[#16BCF8]/5 hover:text-[#16BCF8] transition-colors"
+                                    >
+                                        <Settings size={16} />
+                                        System Settings
+                                    </button>
+                                </div>
+                                <div className="p-2 border-t border-gray-50">
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-black text-rose-500 hover:bg-rose-50 transition-colors"
+                                    >
+                                        <LogOut className="h-4 w-4" />
+                                        Sign Out Account
+                                    </button>
+                                </div>
                             </div>
                         </>
                     )}
@@ -88,3 +141,4 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         </header>
     );
 }
+
