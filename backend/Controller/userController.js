@@ -51,7 +51,7 @@ export const createUser = async (req, res) => {
 export const getUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      include: { role: true },
+      include: { role: true, employee: true },
       orderBy: { id: "asc" },
     });
     res.json(users);

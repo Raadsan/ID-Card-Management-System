@@ -138,18 +138,28 @@ export const updateEmployee = async (req, res) => {
     }
 };
 
-/* =========================
+/* ========================= 
    DELETE EMPLOYEE
 ========================= */
 
 export const deleteEmployee = async (req, res) => {
     try {
         const { id } = req.params;
-        await prisma.employee.delete({
-            where: { id: Number(id) }
+        const employeeId = Number(id);
+
+        // 1️⃣ Delete related DepartmentTransfer records first
+        await prisma.departmentTransfer.deleteMany({
+            where: { employeeId: employeeId }
         });
+
+        // 2️⃣ Delete the employee
+        await prisma.employee.delete({
+            where: { id: employeeId }
+        });
+
         res.status(200).json({ message: "Employee deleted successfully" });
     } catch (error) {
+        console.error("Delete Employee Error:", error);
         res.status(500).json({ message: "Failed to delete employee", error: error.message });
     }
 };

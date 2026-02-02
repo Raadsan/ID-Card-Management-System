@@ -110,6 +110,7 @@ model Employee {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  transfers DepartmentTransfer[]
 }
 
 model Department {
@@ -120,4 +121,20 @@ model Department {
   updatedAt      DateTime @updatedAt
 
   employees Employee[]
+  transfersFrom DepartmentTransfer[] @relation("FromDepartment")
+  transfersTo   DepartmentTransfer[] @relation("ToDepartment")
+}
+
+model DepartmentTransfer {
+  id               Int        @id @default(autoincrement())
+  employeeId       Int
+  fromDepartmentId Int
+  toDepartmentId   Int
+  transferDate     DateTime
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  employee       Employee   @relation(fields: [employeeId], references: [id])
+  fromDepartment Department @relation("FromDepartment", fields: [fromDepartmentId], references: [id])
+  toDepartment   Department @relation("ToDepartment", fields: [toDepartmentId], references: [id])
 }

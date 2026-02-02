@@ -4,6 +4,9 @@ import { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/DataTable";
 import { getDepartments, deleteDepartment } from "@/api/departmentApi";
 import { Edit, Trash2 } from "lucide-react";
+import MessageBox, { MessageBoxType } from "@/components/MessageBox";
+import AddDepartmentModal from "@/components/AddDepartmentModal";
+import EditDepartmentModal from "@/components/EditDepartmentModal";
 
 // Define the Department type based on your API response
 interface Department {
@@ -15,6 +18,24 @@ interface Department {
 export default function DepartmentsPage() {
     const [departments, setDepartments] = useState<Department[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+
+    // MessageBox State
+    const [msgBox, setMsgBox] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: MessageBoxType;
+        onConfirm?: () => void;
+        loading?: boolean;
+    }>({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info",
+    });
 
     useEffect(() => {
         fetchDepartments();
@@ -24,17 +45,7 @@ export default function DepartmentsPage() {
         try {
             setLoading(true);
             const response = await getDepartments();
-            console.log("Fetched departments response:", response); // Debug log
-
-            // API returns object with departments array
-            if (response && response.departments) {
-                setDepartments(response.departments);
-            } else if (Array.isArray(response)) {
-                setDepartments(response);
-            } else {
-                console.error("Unexpected API response format:", response);
-                setDepartments([]);
-            }
+            setDepartments(Array.isArray(response) ? response : []);
         } catch (error) {
             console.error("Failed to fetch departments:", error);
         } finally {
@@ -43,25 +54,45 @@ export default function DepartmentsPage() {
     };
 
     const handleEdit = (department: Department) => {
-        console.log("Edit department:", department);
-        alert(`Edit department: ${department.departmentName}`);
+        setSelectedDepartment(department);
+        setIsEditModalOpen(true);
     };
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm("Are you sure you want to delete this department?")) {
-            try {
-                await deleteDepartment(String(id));
-                fetchDepartments();
-            } catch (error) {
-                console.error("Failed to delete department:", error);
-                alert("Failed to delete department");
-            }
+    const handleDelete = (id: number) => {
+        const dept = departments.find(d => d.id === id);
+        setMsgBox({
+            isOpen: true,
+            title: "Delete Department",
+            message: `Are you sure you want to delete the "${dept?.departmentName}" department? This will also remove all associated employees and history history.`,
+            type: "confirm",
+            onConfirm: () => performDelete(id),
+        });
+    };
+
+    const performDelete = async (id: number) => {
+        try {
+            setMsgBox(prev => ({ ...prev, loading: true }));
+            await deleteDepartment(String(id));
+            setMsgBox({
+                isOpen: true,
+                title: "Deleted!",
+                message: "Department and all associated data have been removed.",
+                type: "success",
+            });
+            fetchDepartments();
+        } catch (error: any) {
+            console.error("Failed to delete department:", error);
+            setMsgBox({
+                isOpen: true,
+                title: "Deletion Failed",
+                message: error.response?.data?.message || "Could not delete department.",
+                type: "error",
+            });
         }
     };
 
     const handleAddDepartment = () => {
-        console.log("Add new department clicked");
-        alert("Add New Department functionality needs implementation");
+        setIsAddModalOpen(true);
     };
 
     const columns = useMemo(
@@ -69,26 +100,33 @@ export default function DepartmentsPage() {
             {
                 label: "Department Name",
                 key: "departmentName",
+                render: (row: Department) => (
+                    <span className="font-semibold text-gray-900">{row.departmentName}</span>
+                )
             },
             {
                 label: "Description",
                 key: "description",
+                render: (row: Department) => (
+                    <span className="text-gray-600 text-sm line-clamp-2">{row.description}</span>
+                )
             },
             {
                 label: "Actions",
                 key: "actions",
+                align: "center",
                 render: (row: Department) => (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                         <button
                             onClick={() => handleEdit(row)}
-                            className="rounded p-1 text-blue-600 hover:bg-blue-50"
+                            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Edit Department"
                         >
                             <Edit className="h-4 w-4" />
                         </button>
                         <button
                             onClick={() => handleDelete(row.id)}
-                            className="rounded p-1 text-red-600 hover:bg-red-50"
+                            className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
                             title="Delete Department"
                         >
                             <Trash2 className="h-4 w-4" />
@@ -97,14 +135,11 @@ export default function DepartmentsPage() {
                 ),
             },
         ],
-        []
+        [departments]
     );
 
     return (
         <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between">
-            </div>
-
             <DataTable
                 title="All Departments"
                 columns={columns}
@@ -112,6 +147,48 @@ export default function DepartmentsPage() {
                 loading={loading}
                 onAddClick={handleAddDepartment}
                 addButtonLabel="Add Department"
+            />
+
+            <AddDepartmentModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSuccess={() => {
+                    setMsgBox({
+                        isOpen: true,
+                        title: "Success",
+                        message: "New department has been created successfully.",
+                        type: "success",
+                    });
+                    fetchDepartments();
+                }}
+            />
+
+            <EditDepartmentModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedDepartment(null);
+                }}
+                departmentId={selectedDepartment?.id || null}
+                onSuccess={() => {
+                    setMsgBox({
+                        isOpen: true,
+                        title: "Updated",
+                        message: "Department details have been updated.",
+                        type: "success",
+                    });
+                    fetchDepartments();
+                }}
+            />
+
+            <MessageBox
+                isOpen={msgBox.isOpen}
+                onClose={() => setMsgBox(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={msgBox.onConfirm}
+                title={msgBox.title}
+                message={msgBox.message}
+                type={msgBox.type}
+                loading={msgBox.loading}
             />
         </div>
     );
