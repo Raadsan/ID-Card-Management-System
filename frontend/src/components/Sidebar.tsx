@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard,
     FileText,
@@ -58,6 +58,7 @@ const iconMap: Record<string, any> = {
 
 export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
     const pathname = usePathname();
+    const router = useRouter();
     const [expandedMenuId, setExpandedMenuId] = useState<number | null>(null);
     const [menus, setMenus] = useState<MenuItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -113,6 +114,12 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
             return pathname === absoluteUrl;
         }
         return menu.subMenus.some(sub => pathname === ensureAbsoluteUrl(sub.url));
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.push("/login");
     };
 
     return (
@@ -238,6 +245,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
                     {/* Logout Button */}
                     <div className="mt-auto border-t border-white/10 pt-4">
                         <button
+                            onClick={handleLogout}
                             className="flex w-full items-center rounded-lg px-4 py-3 text-white/80 transition-colors hover:bg-white/10 hover:text-white"
                         >
                             <LogOut className="h-5 w-5 flex-shrink-0" />

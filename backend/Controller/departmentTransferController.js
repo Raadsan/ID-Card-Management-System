@@ -46,8 +46,8 @@ export const createDepartmentTransfer = async (req, res) => {
 
     res.status(201).json(result);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to transfer employee", error });
+    console.error("Create Transfer Error:", error);
+    res.status(500).json({ message: "Failed to transfer employee", error: error.message });
   }
 };
 
@@ -67,8 +67,8 @@ export const getDepartmentTransfers = async (req, res) => {
     });
     res.json(transfers);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to fetch transfers", error });
+    console.error("Fetch Transfers Error:", error);
+    res.status(500).json({ message: "Failed to fetch transfers", error: error.message });
   }
 };
 
@@ -90,8 +90,8 @@ export const getDepartmentTransferById = async (req, res) => {
     if (!transfer) return res.status(404).json({ message: "Transfer not found" });
     res.json(transfer);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to fetch transfer", error });
+    console.error("Fetch Transfer by ID Error:", error);
+    res.status(500).json({ message: "Failed to fetch transfer", error: error.message });
   }
 };
 
@@ -125,8 +125,8 @@ export const updateDepartmentTransfer = async (req, res) => {
 
     res.json(result);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to update transfer", error });
+    console.error("Update Transfer Error:", error);
+    res.status(500).json({ message: "Failed to update transfer", error: error.message });
   }
 };
 
@@ -141,7 +141,7 @@ export const deleteDepartmentTransfer = async (req, res) => {
 
     res.json({ message: "Transfer deleted successfully" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to delete transfer", error });
+    console.error("Delete Transfer Error:", error);
+    res.status(500).json({ message: "Failed to delete transfer", error: error.message });
   }
 };

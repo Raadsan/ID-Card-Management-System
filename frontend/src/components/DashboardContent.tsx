@@ -8,6 +8,11 @@ import { getEmployees } from "@/api/employeeApi";
 export default function DashboardContent() {
     const [employees, setEmployees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [hasMounted, setHasMounted] = useState(false);
+
+    useEffect(() => {
+        setHasMounted(true);
+    }, []);
 
     useEffect(() => {
         const fetchTopEmployees = async () => {
@@ -180,71 +185,77 @@ export default function DashboardContent() {
                         </div>
                     </div>
                     <div className="h-[300px] relative">
-                        <svg viewBox="0 0 600 300" className="w-full h-full">
-                            <defs>
-                                <linearGradient id="revenueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" stopColor="#16BCF8" stopOpacity="0.3" />
-                                    <stop offset="100%" stopColor="#16BCF8" stopOpacity="0.05" />
-                                </linearGradient>
-                                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stopColor="#1B1555" />
-                                    <stop offset="100%" stopColor="#16BCF8" />
-                                </linearGradient>
-                            </defs>
-                            {/* Grid Lines */}
-                            {[0, 1, 2, 3, 4].map((i) => (
-                                <line key={i} x1="50" y1={50 + i * 50} x2="550" y2={50 + i * 50} stroke="#f3f4f6" strokeWidth="1" />
-                            ))}
+                        {!hasMounted ? (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg animate-pulse">
+                                <span className="text-gray-400 text-sm">Loading chart...</span>
+                            </div>
+                        ) : (
+                            <svg viewBox="0 0 600 300" className="w-full h-full">
+                                <defs>
+                                    <linearGradient id="revenueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stopColor="#16BCF8" stopOpacity="0.3" />
+                                        <stop offset="100%" stopColor="#16BCF8" stopOpacity="0.05" />
+                                    </linearGradient>
+                                    <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#1B1555" />
+                                        <stop offset="100%" stopColor="#16BCF8" />
+                                    </linearGradient>
+                                </defs>
+                                {/* Grid Lines */}
+                                {[0, 1, 2, 3, 4].map((i) => (
+                                    <line key={i} x1="50" y1={50 + i * 50} x2="550" y2={50 + i * 50} stroke="#f3f4f6" strokeWidth="1" />
+                                ))}
 
-                            {(() => {
-                                const maxRevenue = Math.max(...revenueData.map(d => d.revenue), 100);
-                                const yMax = maxRevenue * 1.2;
+                                {(() => {
+                                    const maxRevenue = Math.max(...revenueData.map(d => d.revenue), 100);
+                                    const yMax = maxRevenue * 1.2;
 
-                                const points = revenueData.map((d, i) => {
-                                    const x = 50 + (i * 100);
-                                    const y = 250 - ((d.revenue / yMax) * 200);
-                                    return { x, y, val: d.revenue, label: d.label };
-                                });
+                                    const points = revenueData.map((d, i) => {
+                                        const x = 50 + (i * 100);
+                                        const y = 250 - ((d.revenue / yMax) * 200);
+                                        return { x, y, val: d.revenue, label: d.label };
+                                    });
 
-                                let pathD = `M ${points[0].x},${points[0].y}`;
-                                points.slice(1).forEach(p => {
-                                    pathD += ` L ${p.x},${p.y}`;
-                                });
-                                const areaD = `${pathD} L ${points[points.length - 1].x},250 L ${points[0].x},250 Z`;
+                                    let pathD = `M ${points[0].x},${points[0].y}`;
+                                    points.slice(1).forEach(p => {
+                                        pathD += ` L ${p.x},${p.y}`;
+                                    });
+                                    const areaD = `${pathD} L ${points[points.length - 1].x},250 L ${points[0].x},250 Z`;
 
-                                const yLabels = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax].map(v =>
-                                    v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${Math.round(v)}`
-                                );
+                                    const yLabels = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax].map(v =>
+                                        v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${Math.round(v)}`
+                                    );
 
-                                return (
-                                    <>
-                                        {/* Y-axis Labels */}
-                                        {yLabels.map((label, i) => (
-                                            <text key={i} x="40" y={250 - i * 50} textAnchor="end" className="text-xs fill-gray-500" fontSize="12">{label}</text>
-                                        ))}
+                                    return (
+                                        <>
+                                            {/* Y-axis Labels */}
+                                            {yLabels.map((label, i) => (
+                                                <text key={i} x="40" y={250 - i * 50} textAnchor="end" className="text-xs fill-gray-500" fontSize="12">{label}</text>
+                                            ))}
 
-                                        {/* Area Fill */}
-                                        <path d={areaD} fill="url(#revenueGradient)" />
+                                            {/* Area Fill */}
+                                            <path d={areaD} fill="url(#revenueGradient)" />
 
-                                        {/* Line Stroke */}
-                                        <path d={pathD} fill="none" stroke="url(#lineGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                                            {/* Line Stroke */}
+                                            <path d={pathD} fill="none" stroke="url(#lineGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
 
-                                        {/* Data Points */}
-                                        {points.map((p, i) => (
-                                            <g key={i}>
-                                                <circle cx={p.x} cy={p.y} r="5" fill="#16BCF8" stroke="white" strokeWidth="2" />
-                                                <title>{p.val} IDs</title>
-                                            </g>
-                                        ))}
+                                            {/* Data Points */}
+                                            {points.map((p, i) => (
+                                                <g key={i}>
+                                                    <circle cx={p.x} cy={p.y} r="5" fill="#16BCF8" stroke="white" strokeWidth="2" />
+                                                    <title>{p.val} IDs</title>
+                                                </g>
+                                            ))}
 
-                                        {/* X-axis Labels */}
-                                        {points.map((p, i) => (
-                                            <text key={i} x={p.x} y={280} textAnchor="middle" className="text-xs fill-gray-500" fontSize="12">{p.label}</text>
-                                        ))}
-                                    </>
-                                );
-                            })()}
-                        </svg>
+                                            {/* X-axis Labels */}
+                                            {points.map((p, i) => (
+                                                <text key={i} x={p.x} y={280} textAnchor="middle" className="text-xs fill-gray-500" fontSize="12">{p.label}</text>
+                                            ))}
+                                        </>
+                                    );
+                                })()}
+                            </svg>
+                        )}
                     </div>
                 </div>
 
@@ -263,7 +274,9 @@ export default function DashboardContent() {
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-sm font-semibold text-gray-900 truncate">{t.name}</p>
-                                        <p className="text-xs text-gray-500" suppressHydrationWarning>{new Date(t.date).toLocaleDateString()}</p>
+                                        <p className="text-xs text-gray-500">
+                                            {hasMounted ? new Date(t.date).toLocaleDateString() : '...'}
+                                        </p>
                                     </div>
                                 </div>
                                 <div className="text-right">

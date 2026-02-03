@@ -99,7 +99,7 @@ export default function MenuPage() {
     const columns = useMemo(
         () => [
             {
-                label: "Identification",
+                label: "ID",
                 key: "id",
                 render: (row: Menu) => (
                     <span className="text-[10px] font-black tracking-widest text-[#1B1555]/40 tabular-nums">
@@ -108,7 +108,7 @@ export default function MenuPage() {
                 )
             },
             {
-                label: "Display Title",
+                label: "Title",
                 key: "title",
                 render: (row: Menu) => (
                     <div className="flex items-center gap-3">
@@ -136,7 +136,7 @@ export default function MenuPage() {
                 ),
             },
             {
-                label: "Icon Glyph",
+                label: "Icon",
                 key: "icon",
                 render: (row: Menu) => (
                     <div className="flex items-center gap-2">
@@ -150,7 +150,7 @@ export default function MenuPage() {
                 ),
             },
             {
-                label: "Hierarchical",
+                label: "isCollapsible",
                 key: "isCollapsible",
                 render: (row: Menu) => (
                     <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest ${row.isCollapsible
@@ -158,30 +158,30 @@ export default function MenuPage() {
                         : 'bg-gray-50 text-gray-400 border border-gray-100'
                         }`}>
                         <div className={`h-1 w-1 rounded-full ${row.isCollapsible ? 'bg-emerald-500' : 'bg-gray-300'}`} />
-                        {row.isCollapsible ? "Parent" : "Leaf"}
+                        {row.isCollapsible ? "Yes" : "No"}
                     </div>
                 ),
             },
             {
-                label: "Management",
+                label: "Actions",
                 key: "actions",
                 align: "center",
                 render: (row: Menu) => (
                     <div className="flex items-center justify-center gap-1.5">
                         <button
-                            onClick={() => handleEdit(row)}
-                            className="p-2 text-gray-400 hover:text-[#16BCF8] hover:bg-[#16BCF8]/5 rounded-xl transition-all"
-                            title="Edit Node"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={() => handleDelete(row.id)}
-                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                            title="Purge Node"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
+                                                               onClick={() => handleEdit(row)}
+                                                               className="rounded p-1 text-blue-600 hover:bg-blue-50"
+                                                               title="Edit Menu"
+                                                           >
+                                                               <Edit className="h-4 w-4" />
+                                                           </button>
+                                                           <button
+                                                               onClick={() => handleDelete(row.id)}
+                                                               className="rounded p-1 text-red-600 hover:bg-red-50"
+                                                               title="Delete Menu"
+                                                           >
+                                                   <Trash2 className="h-4 w-4" />
+                                               </button>
                     </div>
                 ),
             },
