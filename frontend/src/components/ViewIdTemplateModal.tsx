@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Modal from "@/components/layout/Modal";
+import Modal from "./layout/Modal";
 import { IdCardTemplate } from "@/api/idTemplateApi";
 import { X, Layout, FileText, Ruler, CheckCircle2, Calendar, Image as ImageIcon } from "lucide-react";
 

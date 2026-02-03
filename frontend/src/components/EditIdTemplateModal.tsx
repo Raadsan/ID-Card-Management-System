@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Modal from "@/components/layout/Modal";
+import Modal from "./layout/Modal";
 import { updateTemplate, IdCardTemplate } from "@/api/idTemplateApi";
 import { Loader2, Layout, Image as ImageIcon, CheckCircle2, Shield, FileText, Ruler } from "lucide-react";
 

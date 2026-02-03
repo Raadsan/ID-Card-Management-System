@@ -48,14 +48,14 @@ export default function IdTemplatesPage() {
         }
     };
 
-    const handleEdit = (template: IdCardTemplate) => {
-        setSelectedTemplate(template);
-        setIsEditModalOpen(true);
-    };
-
     const handleView = (template: IdCardTemplate) => {
         setSelectedTemplate(template);
         setIsViewModalOpen(true);
+    };
+
+    const handleEdit = (template: IdCardTemplate) => {
+        setSelectedTemplate(template);
+        setIsEditModalOpen(true);
     };
 
     const handleDelete = (id: number) => {
@@ -98,6 +98,13 @@ export default function IdTemplatesPage() {
     const columns = useMemo(
         () => [
             {
+                label: "ID",
+                key: "id",
+                render: (row: IdCardTemplate) => (
+                    <span className="font-bold text-gray-900">{row.id}</span>
+                )
+            },
+            {
                 label: "Template Name",
                 key: "name",
                 render: (row: IdCardTemplate) => (
@@ -108,8 +115,8 @@ export default function IdTemplatesPage() {
                 label: "Description",
                 key: "description",
                 render: (row: IdCardTemplate) => (
-                    <span className="text-sm text-gray-500 truncate max-w-xs block" title={row.description}>
-                        {row.description || "-"}
+                    <span className="text-sm text-gray-600">
+                        {row.description || <span className="italic text-gray-400">No description</span>}
                     </span>
                 )
             },
@@ -132,6 +139,7 @@ export default function IdTemplatesPage() {
                     </span>
                 )
             },
+
             {
                 label: "Actions",
                 key: "actions",
@@ -140,8 +148,8 @@ export default function IdTemplatesPage() {
                     <div className="flex items-center justify-center gap-2">
                         <button
                             onClick={() => handleView(row)}
-                            className="p-1.5 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors"
-                            title="View Details"
+                            className="p-1.5 text-purple-500 hover:bg-purple-50 rounded-lg transition-colors"
+                            title="View Template"
                         >
                             <Eye className="h-4 w-4" />
                         </button>
