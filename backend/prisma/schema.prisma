@@ -92,8 +92,8 @@ model User {
   roleId   Int
   role     Role      @relation(fields: [roleId], references: [id])
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   transfersPerformed DepartmentTransfer[] @relation("TransfersPerformed")
 }
@@ -109,37 +109,53 @@ model Employee {
   department   Department @relation(fields: [departmentId], references: [id])
   user         User       @relation(fields: [userId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
   transfers DepartmentTransfer[]
 }
 
 model Department {
-  id             Int        @id @default(autoincrement())
-  departmentName String     @unique
+  id             Int      @id @default(autoincrement())
+  departmentName String   @unique
   description    String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  employees Employee[]
+  employees     Employee[]
   transfersFrom DepartmentTransfer[] @relation("FromDepartment")
   transfersTo   DepartmentTransfer[] @relation("ToDepartment")
 }
 
 model DepartmentTransfer {
-  id               Int        @id @default(autoincrement())
+  id               Int      @id @default(autoincrement())
   employeeId       Int
   fromDepartmentId Int
   toDepartmentId   Int
-  authorizedById   Int?        
+  authorizedById   Int?
   transferDate     DateTime
-  reason           String? 
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  reason           String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   employee       Employee   @relation(fields: [employeeId], references: [id])
   fromDepartment Department @relation("FromDepartment", fields: [fromDepartmentId], references: [id])
   toDepartment   Department @relation("ToDepartment", fields: [toDepartmentId], references: [id])
-  authorizedBy   User?       @relation("TransfersPerformed", fields: [authorizedById], references: [id])
+  authorizedBy   User?      @relation("TransfersPerformed", fields: [authorizedById], references: [id])
 }
 
+model IdCardTemplate {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+
+  width  Int
+  height Int
+
+  frontBackground String
+  backBackground  String?
+
+  status String @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
