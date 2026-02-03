@@ -37,7 +37,7 @@ model SubMenu {
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
   roleSubMenus RoleSubMenuAccess[]
-  menu         Menu                @relation(fields: [menuId], references: [id])
+  menu         Menu                @relation(fields: [menuId], references: [id], onDelete: Cascade)
 
   @@index([menuId], map: "SubMenu_menuId_fkey")
 }
