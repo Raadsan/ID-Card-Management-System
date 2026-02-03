@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Modal from "./Modal";
+import Modal from "./layout/Modal";
 import { AlertTriangle, CheckCircle, Info, XCircle, Loader2 } from "lucide-react";
 
 export type MessageBoxType = "confirm" | "success" | "error" | "info" | "warning";

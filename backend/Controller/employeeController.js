@@ -9,7 +9,6 @@ import { prisma } from "../lib/prisma.js";
 export const createEmployee = async (req, res) => {
     try {
         const {
-            employeeCode,
             address,
             dob,
             status,
@@ -18,7 +17,7 @@ export const createEmployee = async (req, res) => {
             userId,
         } = req.body;
 
-        if (!employeeCode || !departmentId || !userId) {
+        if (!departmentId || !userId) {
             return res.status(400).json({ message: "Missing required fields" });
         }
 
@@ -47,7 +46,6 @@ export const createEmployee = async (req, res) => {
 
         const employee = await prisma.employee.create({
             data: {
-                employeeCode,
                 userId: Number(userId),
                 address,
                 title,
