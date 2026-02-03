@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import DataTable from "@/components/DataTable";
+import DataTable from "@/components/layout/DataTable";
 import { getAllTemplates, deleteTemplate, IdCardTemplate } from "@/api/idTemplateApi";
 import { Edit, Trash2, Eye } from "lucide-react";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
