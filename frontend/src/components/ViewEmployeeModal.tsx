@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Modal from "./Modal";
+import Modal from "./layout/Modal";
 import { User, Briefcase, Calendar, MapPin, Mail, Phone, Shield, Hash, Activity } from "lucide-react";
 
 interface ViewEmployeeModalProps {
@@ -51,7 +51,7 @@ const ViewEmployeeModal: React.FC<ViewEmployeeModalProps> = ({ isOpen, onClose, 
     );
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={`Employee Profile: ${employee.user?.fullName}`} maxWidth="max-w-4xl">
+        <Modal isOpen={isOpen} onClose={onClose} title="View Employee Profile" maxWidth="max-w-4xl">
             <div className="space-y-6">
 
                 {/* Personal Information Section */}
@@ -71,7 +71,6 @@ const ViewEmployeeModal: React.FC<ViewEmployeeModalProps> = ({ isOpen, onClose, 
                 <div className="bg-[#fff9fc] rounded-xl p-5 border border-pink-50">
                     <SectionHeader icon={Briefcase} title="Professional Information" />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <InfoCard label="Employee Code" value={employee.employeeCode} />
                         <InfoCard label="Job Title" value={employee.title} highlight={true} />
                         <InfoCard label="Department" value={employee.department?.departmentName} />
                         <InfoCard label="System Role" value={employee.user?.role?.name} />
@@ -100,7 +99,7 @@ const ViewEmployeeModal: React.FC<ViewEmployeeModalProps> = ({ isOpen, onClose, 
                         onClick={onClose}
                         className="rounded-xl border border-gray-200 bg-white px-8 py-2.5 text-sm font-bold text-gray-700 transition-all hover:bg-gray-50 active:scale-95 shadow-sm"
                     >
-                        Close Profile
+                        Close profile
                     </button>
                 </div>
             </div>

@@ -100,7 +100,6 @@ model User {
 
 model Employee {
   id           Int        @id @default(autoincrement())
-  employeeCode String     @unique
   address      String?
   dob          DateTime?
   status       String     @default("active")

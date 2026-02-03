@@ -1,18 +1,19 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import DataTable from "@/components/DataTable";
-import { getEmployees, deleteEmployee } from "@/api/employeeApi";
-import { Edit, Trash2, Eye } from "lucide-react";
-import AddEmployeeModal from "@/components/AddEmployeeModal";
+import DataTable from "@/components/layout/DataTable";
+import { getEmployees, deleteEmployee, createEmployee, updateEmployee, getEmployeeById } from "@/api/employeeApi";
+import { getUsers } from "@/api/userApi";
+import { getDepartments } from "@/api/departmentApi";
+import { Edit, Trash2, Eye, UserCircle, Briefcase, Hash, MapPin, Calendar, Activity, ChevronDown, Loader2, Plus, Save, CheckCircle2 } from "lucide-react";
+import Modal from "@/components/layout/Modal";
 import ViewEmployeeModal from "@/components/ViewEmployeeModal";
-import EditEmployeeModal from "@/components/EditEmployeeModal";
+import DeleteConfirmModal from "@/components/layout/ConfirmDeleteModel";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
 
 // Define the Employee type based on your API response
 interface Employee {
     id: number;
-    employeeCode: string;
     title: string;
     status: string;
     department?: {
@@ -39,10 +40,29 @@ interface Employee {
 export default function EmployeesPage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isFetching, setIsFetching] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+    const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
+
+    // Dropdown Data
+    const [users, setUsers] = useState<any[]>([]);
+    const [departments, setDepartments] = useState<any[]>([]);
+
+    // Form State
+    const [formData, setFormData] = useState({
+        userId: "",
+        departmentId: "",
+        title: "",
+        address: "",
+        dob: "",
+        status: "active",
+    });
 
     // MessageBox State
     const [msgBox, setMsgBox] = useState<{
@@ -63,6 +83,18 @@ export default function EmployeesPage() {
         fetchEmployees();
     }, []);
 
+    useEffect(() => {
+        if (isAddModalOpen) {
+            fetchDropdownData();
+        }
+    }, [isAddModalOpen]);
+
+    useEffect(() => {
+        if (isEditModalOpen && selectedEmployeeId) {
+            fetchEditData();
+        }
+    }, [isEditModalOpen, selectedEmployeeId]);
+
     const fetchEmployees = async () => {
         try {
             setLoading(true);
@@ -79,9 +111,133 @@ export default function EmployeesPage() {
         }
     };
 
+    const fetchDropdownData = async () => {
+        try {
+            setIsFetching(true);
+            const [usersData, departmentsData] = await Promise.all([
+                getUsers(),
+                getDepartments(),
+            ]);
+
+            const availableUsers = Array.isArray(usersData)
+                ? usersData.filter((u: any) => !u.employee)
+                : [];
+
+            setUsers(availableUsers);
+            setDepartments(departmentsData);
+        } catch (err) {
+            console.error("Failed to fetch dropdown data:", err);
+        } finally {
+            setIsFetching(false);
+        }
+    };
+
+    const fetchEditData = async () => {
+        if (!selectedEmployeeId) return;
+        try {
+            setIsFetching(true);
+            const [departmentsData, employeeData] = await Promise.all([
+                getDepartments(),
+                getEmployeeById(String(selectedEmployeeId))
+            ]);
+
+            setDepartments(departmentsData);
+
+            if (employeeData) {
+                setFormData({
+                    userId: employeeData.userId?.toString() || "",
+                    departmentId: employeeData.departmentId?.toString() || "",
+                    title: employeeData.title || "",
+                    address: employeeData.address || "",
+                    dob: employeeData.dob ? new Date(employeeData.dob).toISOString().split('T')[0] : "",
+                    status: employeeData.status || "active",
+                });
+            }
+        } catch (err: any) {
+            console.error("Failed to fetch edit data:", err);
+        } finally {
+            setIsFetching(false);
+        }
+    };
+
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleAddEmployee = () => {
+        setFormData({
+            userId: "",
+            departmentId: "",
+            title: "",
+            address: "",
+            dob: "",
+            status: "active",
+        });
+        setIsAddModalOpen(true);
+    };
+
     const handleEdit = (employee: Employee) => {
-        setSelectedEmployee(employee);
+        setSelectedEmployeeId(employee.id);
         setIsEditModalOpen(true);
+    };
+
+    const handleAddSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            setIsSubmitting(true);
+            await createEmployee({
+                ...formData,
+                userId: Number(formData.userId),
+                departmentId: Number(formData.departmentId),
+            });
+            setIsAddModalOpen(false);
+            setMsgBox({
+                isOpen: true,
+                title: "Success",
+                message: "New employee record has been established.",
+                type: "success",
+            });
+            fetchEmployees();
+        } catch (error: any) {
+            setMsgBox({
+                isOpen: true,
+                title: "Error",
+                message: error.response?.data?.message || "Failed to add employee.",
+                type: "error",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleEditSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedEmployeeId) return;
+        try {
+            setIsSubmitting(true);
+            await updateEmployee(String(selectedEmployeeId), {
+                ...formData,
+                departmentId: Number(formData.departmentId),
+            });
+            setIsEditModalOpen(false);
+            setMsgBox({
+                isOpen: true,
+                title: "Success",
+                message: "Employee profile synchronized successfully.",
+                type: "success",
+            });
+            fetchEmployees();
+        } catch (error: any) {
+            setMsgBox({
+                isOpen: true,
+                title: "Error",
+                message: error.response?.data?.message || "Failed to update record.",
+                type: "error",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleView = (employee: Employee) => {
@@ -89,15 +245,34 @@ export default function EmployeesPage() {
         setIsViewModalOpen(true);
     };
 
-    const handleDelete = (id: number) => {
-        const employee = employees.find(e => e.id === id);
-        setMsgBox({
-            isOpen: true,
-            title: "Delete Employee",
-            message: `Are you sure you want to delete ${employee?.user?.fullName || "this record"}? This action cannot be undone.`,
-            type: "confirm",
-            onConfirm: () => performDelete(id),
-        });
+    const handleDelete = (employee: Employee) => {
+        setEmployeeToDelete(employee);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!employeeToDelete) return;
+        try {
+            setLoading(true);
+            await deleteEmployee(String(employeeToDelete.id));
+            setMsgBox({
+                isOpen: true,
+                title: "Success",
+                message: `Employee record for "${employeeToDelete.user?.fullName}" has been deleted.`,
+                type: "success",
+            });
+            fetchEmployees();
+        } catch (error: any) {
+            setMsgBox({
+                isOpen: true,
+                title: "Error",
+                message: error.response?.data?.message || "Failed to delete employee record.",
+                type: "error",
+            });
+        } finally {
+            setLoading(false);
+            setEmployeeToDelete(null);
+        }
     };
 
     const performDelete = async (id: number) => {
@@ -121,9 +296,6 @@ export default function EmployeesPage() {
         }
     };
 
-    const handleAddEmployee = () => {
-        setIsAddModalOpen(true);
-    };
 
     const columns = useMemo(
         () => [
@@ -202,7 +374,7 @@ export default function EmployeesPage() {
                             <Edit className="h-4 w-4" />
                         </button>
                         <button
-                            onClick={() => handleDelete(row.id)}
+                            onClick={() => handleDelete(row)}
                             className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
                             title="Delete Employee"
                         >
@@ -226,19 +398,147 @@ export default function EmployeesPage() {
                 addButtonLabel="Add Employee"
             />
 
-            <AddEmployeeModal
-                isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
-                onSuccess={() => {
-                    setMsgBox({
-                        isOpen: true,
-                        title: "Success",
-                        message: "New employee has been added successfully.",
-                        type: "success",
-                    });
-                    fetchEmployees();
-                }}
-            />
+
+            {/* Add Employee Modal */}
+            <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Add New Employee" maxWidth="max-w-5xl">
+                <form onSubmit={handleAddSubmit} className="px-2 py-4">
+                    <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                <UserCircle size={12} className="text-[#16BCF8]" />  User Name
+                            </label>
+                            <div className="relative group">
+                                <select
+                                    name="userId"
+                                    value={formData.userId}
+                                    onChange={handleFormChange}
+                                    disabled={isFetching}
+                                    className="w-full appearance-none rounded-xl border border-gray-200 p-3.5 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 pr-10 disabled:opacity-50"
+                                    required
+                                >
+                                    <option value="">Choose system user...</option>
+                                    {users.map((user) => (
+                                        <option key={user.id} value={user.id}>
+                                            {user.fullName} ({user.email})
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                    {isFetching ? <Loader2 size={16} className="animate-spin" /> : <ChevronDown size={18} />}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                <Briefcase size={12} className="text-[#16BCF8]" /> Department
+                            </label>
+                            <div className="relative group">
+                                <select
+                                    name="departmentId"
+                                    value={formData.departmentId}
+                                    onChange={handleFormChange}
+                                    disabled={isFetching}
+                                    className="w-full appearance-none rounded-xl border border-gray-200 p-3.5 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 pr-10"
+                                    required
+                                >
+                                    <option value="">Choose department...</option>
+                                    {departments.map((dept) => (
+                                        <option key={dept.id} value={dept.id}>
+                                            {dept.departmentName}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                    {isFetching ? <Loader2 size={16} className="animate-spin" /> : <ChevronDown size={18} />}
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                <Briefcase size={12} className="text-[#16BCF8]" /> Title
+                            </label>
+                            <input
+                                type="text"
+                                name="title"
+                                value={formData.title}
+                                onChange={handleFormChange}
+                                placeholder="Ex: Senior Analyst"
+                                className="w-full rounded-xl border border-gray-200 p-3.5 text-sm font-semibold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30"
+                                required
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                <Calendar size={12} className="text-[#16BCF8]" /> Date of Birth
+                            </label>
+                            <input
+                                type="date"
+                                name="dob"
+                                value={formData.dob}
+                                onChange={handleFormChange}
+                                className="w-full rounded-xl border border-gray-200 p-3.5 text-sm font-semibold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                <Activity size={12} className="text-[#16BCF8]" /> Employment Status
+                            </label>
+                            <div className="relative group">
+                                <select
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleFormChange}
+                                    className="w-full appearance-none rounded-xl border border-gray-200 p-3.5 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 pr-10"
+                                >
+                                    <option value="active">Active Service</option>
+                                    <option value="inactive">Inactive / On-Hold</option>
+                                    <option value="suspended">Contract Suspended</option>
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-[#16BCF8] transition-all">
+                                    <ChevronDown size={18} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                            <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                <MapPin size={12} className="text-[#16BCF8]" /> Employee Address
+                            </label>
+                            <textarea
+                                name="address"
+                                value={formData.address}
+                                onChange={handleFormChange}
+                                rows={2}
+                                placeholder="Enter full residential details..."
+                                className="w-full rounded-xl border border-gray-200 p-3.5 text-sm font-semibold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 resize-none"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="mt-8 flex items-center justify-end gap-3 border-t border-gray-100 pt-6 px-2">
+                        <button
+                            type="button"
+                            onClick={() => setIsAddModalOpen(false)}
+                            className="rounded-xl px-8 py-3 text-sm font-black text-gray-400 uppercase tracking-widest transition-all hover:bg-gray-100 active:scale-95"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={isSubmitting || isFetching}
+                            className="flex items-center gap-3 rounded-xl bg-[#1B1555] px-12 py-3 text-sm font-black text-white uppercase tracking-[0.15em] shadow-lg shadow-[#1B1555]/20 transition-all hover:bg-[#1B1555]/90 hover:shadow-[#1B1555]/40 hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:pointer-events-none"
+                        >
+                            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus size={16} />}
+                            Save Employee
+                        </button>
+                    </div>
+                </form>
+            </Modal>
 
             <ViewEmployeeModal
                 isOpen={isViewModalOpen}
@@ -249,22 +549,132 @@ export default function EmployeesPage() {
                 employee={selectedEmployee}
             />
 
-            <EditEmployeeModal
-                isOpen={isEditModalOpen}
-                onClose={() => {
-                    setIsEditModalOpen(false);
-                    setSelectedEmployee(null);
-                }}
-                employeeId={selectedEmployee?.id || null}
-                onSuccess={() => {
-                    setMsgBox({
-                        isOpen: true,
-                        title: "Updated",
-                        message: "Employee profile has been updated.",
-                        type: "success",
-                    });
-                    fetchEmployees();
-                }}
+            {/* Edit Employee Modal */}
+            <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Employee" maxWidth="max-w-5xl">
+                {isFetching ? (
+                    <div className="flex flex-col items-center justify-center py-16 gap-4">
+                        <Loader2 className="h-10 w-10 animate-spin text-[#1B1555] opacity-20" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Syncing Data...</span>
+                    </div>
+                ) : (
+                    <form onSubmit={handleEditSubmit} className="px-2 py-4">
+                        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                    <Briefcase size={12} className="text-[#16BCF8]" />  Title
+                                </label>
+                                <input
+                                    type="text"
+                                    name="title"
+                                    value={formData.title}
+                                    onChange={handleFormChange}
+                                    className="w-full rounded-xl border border-gray-200 p-3.5 text-sm font-semibold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30"
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                    <Briefcase size={12} className="text-[#16BCF8]" /> Department
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        name="departmentId"
+                                        value={formData.departmentId}
+                                        onChange={handleFormChange}
+                                        className="w-full appearance-none rounded-xl border border-gray-200 p-3.5 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 pr-10"
+                                        required
+                                    >
+                                        <option value="">Choose department...</option>
+                                        {departments.map((dept) => (
+                                            <option key={dept.id} value={dept.id}>
+                                                {dept.departmentName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                        <ChevronDown size={18} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                    <Calendar size={12} className="text-[#16BCF8]" /> Date of Birth
+                                </label>
+                                <input
+                                    type="date"
+                                    name="dob"
+                                    value={formData.dob}
+                                    onChange={handleFormChange}
+                                    className="w-full rounded-xl border border-gray-200 p-3.5 text-sm font-semibold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                    <Activity size={12} className="text-[#16BCF8]" /> Employment Status
+                                </label>
+                                <div className="relative">
+                                    <select
+                                        name="status"
+                                        value={formData.status}
+                                        onChange={handleFormChange}
+                                        className="w-full appearance-none rounded-xl border border-gray-200 p-3.5 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 pr-10"
+                                    >
+                                        <option value="active">Active Service</option>
+                                        <option value="inactive">Inactive / On-Hold</option>
+                                        <option value="suspended">Contract Suspended</option>
+                                    </select>
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                        <ChevronDown size={18} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                    <MapPin size={12} className="text-[#16BCF8]" /> Employee Address
+                                </label>
+                                <textarea
+                                    name="address"
+                                    value={formData.address}
+                                    onChange={handleFormChange}
+                                    rows={2}
+                                    className="w-full rounded-xl border border-gray-200 p-3.5 text-sm font-semibold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 resize-none"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="mt-8 flex items-center justify-end gap-3 border-t border-gray-100 pt-6 px-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="rounded-xl px-8 py-3 text-sm font-black text-gray-400 uppercase tracking-widest transition-all hover:bg-gray-100 active:scale-95"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting || isFetching}
+                                className="flex items-center gap-3 rounded-xl bg-[#1B1555] px-12 py-3 text-sm font-black text-white uppercase tracking-[0.15em] shadow-lg shadow-[#1B1555]/20 transition-all hover:bg-[#1B1555]/90 hover:shadow-[#1B1555]/40 hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:pointer-events-none"
+                            >
+                                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save size={16} />}
+                                Update Changes
+                            </button>
+                        </div>
+                    </form >
+                )
+                }
+            </Modal >
+
+            <DeleteConfirmModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                itemName={employeeToDelete?.user?.fullName}
+                message={`Are you sure you want to delete the employee record for "${employeeToDelete?.user?.fullName}"? This action cannot be undone.`}
             />
 
             <MessageBox
@@ -276,7 +686,7 @@ export default function EmployeesPage() {
                 type={msgBox.type}
                 loading={msgBox.loading}
             />
-        </div>
+        </div >
     );
 }
 

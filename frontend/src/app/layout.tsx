@@ -3,8 +3,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
+import Sidebar from "@/components/layout/Sidebar";
+import React, { useState } from "react";
+import Header from "@/components/layout/Header";
 import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
