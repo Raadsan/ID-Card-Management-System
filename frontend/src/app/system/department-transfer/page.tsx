@@ -217,12 +217,12 @@ export default function DepartmentTransferPage() {
     return (
         <div className="p-6 space-y-6 bg-gray-50/30 min-h-screen">
             <DataTable
-                title="Department Transfer Log"
+                title="Department Transfer"
                 columns={columns}
                 data={transfers}
                 loading={loading}
                 onAddClick={handleAddTransfer}
-                addButtonLabel="Execute Migration"
+                addButtonLabel="Transfer user department"
             />
 
             <AddTransferModal

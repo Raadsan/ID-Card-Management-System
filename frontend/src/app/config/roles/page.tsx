@@ -102,7 +102,7 @@ export default function RolesPage() {
     const columns = useMemo(
         () => [
             {
-                label: "Identification",
+                label: "ID",
                 key: "id",
                 render: (row: Role) => (
                     <span className="text-[10px] font-black tracking-widest text-[#1B1555]/40 tabular-nums">
@@ -111,7 +111,7 @@ export default function RolesPage() {
                 )
             },
             {
-                label: "Authority Name",
+                label: "Name",
                 key: "name",
                 render: (row: Role) => (
                     <div className="flex items-center gap-3">
@@ -123,36 +123,56 @@ export default function RolesPage() {
                 )
             },
             {
-                label: "Mandate & Description",
+                label: "Description",
                 key: "description",
                 render: (row: Role) => (
                     <div className="flex flex-col gap-0.5 max-w-md">
                         <span className="text-xs font-semibold text-gray-600 line-clamp-1">{row.description || "No specific mandate defined."}</span>
-                        <div className="flex items-center gap-1 opacity-40">
-                            <Info size={10} />
-                            <span className="text-[9px] font-bold uppercase tracking-tighter">Official System Designation</span>
-                        </div>
+                       
                     </div>
                 )
             },
+            
+            //  {
+            //                 label: "Actions",
+            //                 key: "actions",
+            //                 render: (row: User) => (
+            //                     <div className="flex items-center gap-2">
+            //                         <button
+            //                             onClick={() => handleEdit(row)}
+            //                             className="rounded p-1 text-blue-600 hover:bg-blue-50"
+            //                             title="Edit User"
+            //                         >
+            //                             <Edit className="h-4 w-4" />
+            //                         </button>
+            //                         <button
+            //                             onClick={() => handleDelete(row.id)}
+            //                             className="rounded p-1 text-red-600 hover:bg-red-50"
+            //                             title="Delete User"
+            //                         >
+            //                             <Trash2 className="h-4 w-4" />
+            //                         </button>
+            //                     </div>
+            //                 ),
+            //             },
             {
-                label: "Management Actions",
+                label: "Actions",
                 key: "actions",
                 align: "center",
                 render: (row: Role) => (
                     <div className="flex items-center justify-center gap-1.5">
-                        <button
-                            onClick={() => handleEdit(row)}
-                            className="p-2 text-gray-400 hover:text-[#16BCF8] hover:bg-[#16BCF8]/5 rounded-xl transition-all"
-                            title="Edit Authority"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={() => handleDelete(row.id)}
-                            className="p-2 text-gray-400 hover:text-rose-500 hover:bg-rose-500/5 rounded-xl transition-all"
-                            title="Revoke Authority"
-                        >
+                         <button
+                                        onClick={() => handleEdit(row)}
+                                        className="rounded p-1 text-blue-600 hover:bg-blue-50"
+                                        title="Edit Role"
+                                    >
+                                        <Edit className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(row.id)}
+                                        className="rounded p-1 text-red-600 hover:bg-red-50"
+                                        title="Delete Role"
+                                    >
                             <Trash2 className="h-4 w-4" />
                         </button>
                     </div>

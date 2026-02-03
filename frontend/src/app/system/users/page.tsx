@@ -3,10 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/DataTable";
 import { getUsers, deleteUser } from "@/api/userApi";
-import { Edit, Trash2, Mail, Phone, ShieldCheck } from "lucide-react";
-import AddUserModal from "@/components/AddUserModal";
-import EditUserModal from "@/components/EditUserModal";
-import MessageBox, { MessageBoxType } from "@/components/MessageBox";
+import { Edit, Trash2 } from "lucide-react";
 
 // Define the User type based on your API response
 interface User {
@@ -15,8 +12,6 @@ interface User {
     email: string;
     phone: string;
     photo?: string;
-    gender?: string;
-    status: string;
     role: { id: number; name: string };
     createdAt: string;
 }
@@ -24,24 +19,6 @@ interface User {
 export default function UsersPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-
-    // MessageBox State
-    const [msgBox, setMsgBox] = useState<{
-        isOpen: boolean;
-        title: string;
-        message: string;
-        type: MessageBoxType;
-        onConfirm?: () => void;
-        loading?: boolean;
-    }>({
-        isOpen: false,
-        title: "",
-        message: "",
-        type: "info",
-    });
 
     useEffect(() => {
         fetchUsers();
@@ -51,7 +28,8 @@ export default function UsersPage() {
         try {
             setLoading(true);
             const data = await getUsers();
-            setUsers(Array.isArray(data) ? data : []);
+            console.log("Fetched users data:", data);
+            setUsers(data);
         } catch (error) {
             console.error("Failed to fetch users:", error);
         } finally {
@@ -60,138 +38,74 @@ export default function UsersPage() {
     };
 
     const handleEdit = (user: User) => {
-        setSelectedUserId(user.id);
-        setIsEditModalOpen(true);
+        console.log("Edit user:", user);
+        // alert(`Edit user: ${user.fullName}`);
     };
 
-    const handleDelete = (id: number) => {
-        const user = users.find(u => u.id === id);
-        setMsgBox({
-            isOpen: true,
-            title: "Security Verification",
-            message: `Are you sure you want to permanently delete user "${user?.fullName}"? This will terminate all their system access.`,
-            type: "confirm",
-            onConfirm: () => performDelete(id),
-        });
-    };
-
-    const performDelete = async (id: number) => {
-        try {
-            setMsgBox(prev => ({ ...prev, loading: true }));
-            await deleteUser(String(id));
-            setMsgBox({
-                isOpen: true,
-                title: "Action Complete",
-                message: "User account has been successfully purged from the system.",
-                type: "success",
-            });
-            fetchUsers();
-        } catch (error: any) {
-            setMsgBox({
-                isOpen: true,
-                title: "Operation Failed",
-                message: error.response?.data?.message || "Critical error occurred during deletion.",
-                type: "error",
-            });
+    const handleDelete = async (id: number) => {
+        if (window.confirm("Are you sure you want to delete this user?")) {
+            try {
+                await deleteUser(String(id));
+                fetchUsers();
+            } catch (error) {
+                console.error("Failed to delete user:", error);
+                alert("Failed to delete user");
+            }
         }
     };
 
     const handleAddUser = () => {
-        setIsAddModalOpen(true);
+        console.log("Add new user clicked");
+        alert("Add New User functionality needs implementation");
     };
 
     const columns = useMemo(
         () => [
             {
-                label: "Account Information",
-                key: "account",
-                render: (row: User) => (
-                    <div className="flex items-center gap-4 py-1">
-                        <div className="relative h-11 w-11 flex-shrink-0 group">
-                            <div className="absolute -inset-0.5 rounded-full bg-gradient-to-tr from-[#16BCF8] to-[#1B1555] opacity-20 blur group-hover:opacity-40 transition-opacity"></div>
-                            <div className="relative h-full w-full overflow-hidden rounded-full border-2 border-white shadow-sm">
-                                <img
-                                    src={row.photo ? `http://localhost:5000/uploads/${row.photo}` : "/placeholder-user.png"}
-                                    alt={row.fullName}
-                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = "/placeholder-user.png";
-                                    }}
-                                />
-                            </div>
-                            <div className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white shadow-sm ${row.status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="font-bold text-[#1B1555] tracking-tight leading-tight">{row.fullName}</span>
-                            <div className="flex items-center gap-1.5 text-gray-400">
-                                <Mail size={12} className="opacity-70" />
-                                <span className="text-[11px] font-medium tracking-tight uppercase">{row.email}</span>
-                            </div>
-                        </div>
-                    </div>
-                ),
+                label: "ID",
+                key: "id",
+             
             },
             {
-                label: "System Authority",
+                label: "Full Name",
+                key: "fullName",
+            },
+            {
+                label: "Email",
+                key: "email",
+            },
+            {
+                label: "Phone",
+                key: "phone",
+            },
+            {
+                label: "Role",
                 key: "role",
-                render: (row: User) => (
-                    <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-1.5">
-                            <ShieldCheck size={14} className="text-[#16BCF8]" />
-                            <span className="text-[11px] font-bold uppercase tracking-widest text-[#1B1555]">
-                                {row.role?.name || "Member"}
-                            </span>
-                        </div>
-                        <span className="text-[10px] text-gray-400 font-medium">Global Permissions Attached</span>
-                    </div>
-                ),
+                render: (row: User) => {
+                    const roleName = row.role?.name || "N/A";
+                    return (
+                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                            {roleName}
+                        </span>
+                    );
+                },
             },
             {
-                label: "Connectivity",
-                key: "contact",
-                render: (row: User) => (
-                    <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1 rounded bg-gray-50">
-                                <Phone size={11} className="text-gray-400" />
-                            </div>
-                            <span className="text-xs font-semibold text-gray-600 tracking-tighter">
-                                {row.phone || "No Registry"}
-                            </span>
-                        </div>
-                    </div>
-                ),
-            },
-            {
-                label: "Account Status",
-                key: "status",
-                align: "center",
-                render: (row: User) => (
-                    <span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.1em] shadow-sm border ${row.status === 'active'
-                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                        : 'bg-rose-50 text-rose-600 border-rose-100'
-                        }`}>
-                        {row.status || 'Active'}
-                    </span>
-                ),
-            },
-            {
-                label: "Management",
+                label: "Actions",
                 key: "actions",
-                align: "center",
                 render: (row: User) => (
-                    <div className="flex items-center justify-center gap-1.5">
+                    <div className="flex items-center gap-2">
                         <button
                             onClick={() => handleEdit(row)}
-                            className="p-2 text-gray-400 hover:text-[#16BCF8] hover:bg-[#16BCF8]/5 rounded-xl transition-all"
-                            title="Edit Account"
+                            className="rounded p-1 text-blue-600 hover:bg-blue-50"
+                            title="Edit User"
                         >
                             <Edit className="h-4 w-4" />
                         </button>
                         <button
                             onClick={() => handleDelete(row.id)}
-                            className="p-2 text-gray-400 hover:text-rose-500 hover:bg-rose-500/5 rounded-xl transition-all"
-                            title="Purge Account"
+                            className="rounded p-1 text-red-600 hover:bg-red-50"
+                            title="Delete User"
                         >
                             <Trash2 className="h-4 w-4" />
                         </button>
@@ -199,60 +113,21 @@ export default function UsersPage() {
                 ),
             },
         ],
-        [users]
+        []
     );
 
     return (
-        <div className="p-6 space-y-6 bg-gray-50/30 min-h-screen">
+        <div className="p-6 space-y-6">
+            <div className="flex items-center justify-between">
+            </div>
+
             <DataTable
-                title="System User Directory"
+                title="All Users"
                 columns={columns}
                 data={users}
                 loading={loading}
                 onAddClick={handleAddUser}
-                addButtonLabel="Register User"
-            />
-
-            <AddUserModal
-                isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
-                onSuccess={() => {
-                    setMsgBox({
-                        isOpen: true,
-                        title: "Security Clearance",
-                        message: "New user account created successfully. Credentials have been registered.",
-                        type: "success",
-                    });
-                    fetchUsers();
-                }}
-            />
-
-            <EditUserModal
-                isOpen={isEditModalOpen}
-                userId={selectedUserId}
-                onClose={() => {
-                    setIsEditModalOpen(false);
-                    setSelectedUserId(null);
-                }}
-                onSuccess={() => {
-                    setMsgBox({
-                        isOpen: true,
-                        title: "Registry Updated",
-                        message: "User profile modifications have been successfully committed to the database.",
-                        type: "success",
-                    });
-                    fetchUsers();
-                }}
-            />
-
-            <MessageBox
-                isOpen={msgBox.isOpen}
-                onClose={() => setMsgBox(prev => ({ ...prev, isOpen: false }))}
-                onConfirm={msgBox.onConfirm}
-                title={msgBox.title}
-                message={msgBox.message}
-                type={msgBox.type}
-                loading={msgBox.loading}
+                addButtonLabel="Add User"
             />
         </div>
     );
