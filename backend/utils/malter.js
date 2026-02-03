@@ -19,7 +19,7 @@ const fileFilter = (req, file, cb) => {
 
   const isExtensionValid = allowedExtensions.test(path.extname(file.originalname).toLowerCase());
   const isMimetypeValid = allowedMimetypes.test(file.mimetype);
-
+  
   if (isExtensionValid || isMimetypeValid) {
     cb(null, true);
   } else {
