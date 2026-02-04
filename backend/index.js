@@ -12,6 +12,7 @@ import authRoutes from "./Routes/authRoutes.js";
 import rolePermissionsRoutes from "./Routes/rolePermissionsRoutes.js";
 import departmentTransfareRoutes from "./Routes/departmentTransferRoute.js";
 import idTemplateRoutes from "./Routes/idTemplateRoutes.js"; // Import new routes
+import idGenerateRoutes from "./Routes/idGenerateRoutes.js";
 
 
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/role-permissions", rolePermissionsRoutes);
 app.use("/api/department-transfers", departmentTransfareRoutes);
 app.use("/api/id-templates", idTemplateRoutes);
 app.use("/api/auth", authRoutes)
+app.use("/api/id-generates", idGenerateRoutes);
 
 async function startServer() {
   try {

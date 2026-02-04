@@ -79,85 +79,121 @@ model RoleSubMenuAccess {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  fullName String
-  email    String  @unique
-  phone    String?
-  gender   String?
-  password String
-  status   String  @default("active")
-  photo    String? // 👈 New field for profile photo
-
-  employee Employee?
-  roleId   Int
-  role     Role      @relation(fields: [roleId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id                 Int                  @id @default(autoincrement())
+  fullName           String
+  email              String               @unique
+  phone              String?
+  password           String
+  status             String               @default("active")
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  roleId             Int
+  gender             String?
+  photo              String?
   transfersPerformed DepartmentTransfer[] @relation("TransfersPerformed")
+  employee           Employee?
+  role               Role                 @relation(fields: [roleId], references: [id])
+
+  // 👇 ADD THESE
+  idsCreated IdGenerate[] @relation("IdCreatedBy")
+  idsPrinted IdGenerate[] @relation("IdPrintedBy")
+
+  @@index([roleId], map: "User_roleId_fkey")
 }
 
 model Employee {
-  id           Int        @id @default(autoincrement())
+  id           Int                  @id @default(autoincrement())
   address      String?
   dob          DateTime?
-  status       String     @default("active")
+  status       String               @default("active")
   departmentId Int
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
   title        String?
-  userId       Int        @unique
-  department   Department @relation(fields: [departmentId], references: [id])
-  user         User       @relation(fields: [userId], references: [id])
+  userId       Int                  @unique
+  transfers    DepartmentTransfer[]
+  department   Department           @relation(fields: [departmentId], references: [id])
+  user         User                 @relation(fields: [userId], references: [id])
+  // 👇 ADD THIS
+  idGenerates  IdGenerate[]
 
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
-  transfers DepartmentTransfer[]
+  @@index([departmentId], map: "Employee_departmentId_fkey")
 }
 
 model Department {
-  id             Int      @id @default(autoincrement())
-  departmentName String   @unique
+  id             Int                  @id @default(autoincrement())
+  departmentName String               @unique
   description    String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  employees     Employee[]
-  transfersFrom DepartmentTransfer[] @relation("FromDepartment")
-  transfersTo   DepartmentTransfer[] @relation("ToDepartment")
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  transfersFrom  DepartmentTransfer[] @relation("FromDepartment")
+  transfersTo    DepartmentTransfer[] @relation("ToDepartment")
+  employees      Employee[]
 }
 
 model DepartmentTransfer {
-  id               Int      @id @default(autoincrement())
+  id               Int        @id @default(autoincrement())
   employeeId       Int
   fromDepartmentId Int
   toDepartmentId   Int
-  authorizedById   Int?
   transferDate     DateTime
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  authorizedById   Int?
   reason           String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  authorizedBy     User?      @relation("TransfersPerformed", fields: [authorizedById], references: [id])
+  employee         Employee   @relation(fields: [employeeId], references: [id])
+  fromDepartment   Department @relation("FromDepartment", fields: [fromDepartmentId], references: [id])
+  toDepartment     Department @relation("ToDepartment", fields: [toDepartmentId], references: [id])
 
-  employee       Employee   @relation(fields: [employeeId], references: [id])
-  fromDepartment Department @relation("FromDepartment", fields: [fromDepartmentId], references: [id])
-  toDepartment   Department @relation("ToDepartment", fields: [toDepartmentId], references: [id])
-  authorizedBy   User?      @relation("TransfersPerformed", fields: [authorizedById], references: [id])
+  @@index([authorizedById], map: "DepartmentTransfer_authorizedById_fkey")
+  @@index([employeeId], map: "DepartmentTransfer_employeeId_fkey")
+  @@index([fromDepartmentId], map: "DepartmentTransfer_fromDepartmentId_fkey")
+  @@index([toDepartmentId], map: "DepartmentTransfer_toDepartmentId_fkey")
 }
 
 model IdCardTemplate {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique
-  description String?
-
-  width  Int
-  height Int
-
-  frontBackground String
+  id              Int      @id @default(autoincrement())
+  name            String   @unique
+  description     String?
+  width           Int
+  height          Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   backBackground  String?
+  frontBackground String
+  status          String   @default("active")
+  layout          Json?
 
-  layout Json?
+  // 👇 ADD THIS
+  idGenerates IdGenerate[]
+}
 
-  status String @default("active")
+enum IdGenerateStatus {
+  created
+  ready_to_print
+  printed
+}
+
+model IdGenerate {
+  id Int @id @default(autoincrement())
+
+  employeeId  Int
+  templateId  Int
+  createdById Int
+  printedById Int?
+
+  employee  Employee       @relation(fields: [employeeId], references: [id])
+  template  IdCardTemplate @relation(fields: [templateId], references: [id])
+  createdBy User           @relation("IdCreatedBy", fields: [createdById], references: [id])
+  printedBy User?          @relation("IdPrintedBy", fields: [printedById], references: [id])
+
+  qrCode String @unique
+
+  status IdGenerateStatus @default(created)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("id_generate")
 }
