@@ -5,7 +5,7 @@ import fs from "fs";
 // Create a new ID Card Template
 export const createTemplate = async (req, res) => {
     try {
-        const { name, description, width, height, status } = req.body;
+        const { name, description, width, height, status, layout } = req.body;
 
         // Check if files are uploaded
         if (!req.files || !req.files.frontBackground) {
@@ -23,6 +23,16 @@ export const createTemplate = async (req, res) => {
             return res.status(400).json({ error: "Width and Height must be numbers" });
         }
 
+        let parsedLayout = null;
+        if (layout) {
+            try {
+                parsedLayout = JSON.parse(layout);
+            } catch (e) {
+                console.error("Invalid layout JSON:", e);
+                // defaulting to null or handling error? Let's proceed with null but maybe warn?
+            }
+        }
+
         const template = await prisma.idCardTemplate.create({
             data: {
                 name,
@@ -32,6 +42,7 @@ export const createTemplate = async (req, res) => {
                 frontBackground: frontBackground.replace(/\\/g, "/"), // Ensure forward slashes for URLs
                 backBackground: backBackground ? backBackground.replace(/\\/g, "/") : null,
                 status: status || "active",
+                layout: parsedLayout,
             },
         });
 
@@ -81,7 +92,7 @@ export const getTemplateById = async (req, res) => {
 export const updateTemplate = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, width, height, status } = req.body;
+        const { name, description, width, height, status, layout } = req.body;
 
         // Find existing template first to handle file replacement
         const existingTemplate = await prisma.idCardTemplate.findUnique({
@@ -100,6 +111,14 @@ export const updateTemplate = async (req, res) => {
 
         if (width) updateData.width = parseInt(width);
         if (height) updateData.height = parseInt(height);
+
+        if (layout) {
+            try {
+                updateData.layout = JSON.parse(layout);
+            } catch (e) {
+                console.error("Invalid layout JSON:", e);
+            }
+        }
 
         // Handle Image Updates
         if (req.files) {

@@ -10,6 +10,7 @@ export interface IdCardTemplate {
     height: number;
     frontBackground: string;
     backBackground?: string;
+    layout?: any;
     status: string;
     createdAt: string;
     updatedAt: string;

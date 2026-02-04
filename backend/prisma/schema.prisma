@@ -154,6 +154,8 @@ model IdCardTemplate {
   frontBackground String
   backBackground  String?
 
+  layout Json?
+
   status String @default("active")
 
   createdAt DateTime @default(now())

@@ -76,24 +76,62 @@ export const getMenuById = async (req, res) => {
 export const updateMenu = async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const { title, icon, url, isCollapsible } = req.body;
+    const { title, icon, url, isCollapsible, subMenus } = req.body;
 
+    // If subMenus array is provided, we need to replace existing submenus
+    if (subMenus !== undefined) {
+      // First, get all existing submenus for this menu
+      const existingSubMenus = await prisma.subMenu.findMany({
+        where: { menuId: id },
+        select: { id: true },
+      });
+
+      const subMenuIds = existingSubMenus.map((sm) => sm.id);
+
+      // Delete role-submenu access records first (to avoid foreign key constraint)
+      if (subMenuIds.length > 0) {
+        await prisma.roleSubMenuAccess.deleteMany({
+          where: { subMenuId: { in: subMenuIds } },
+        });
+      }
+
+      // Now delete the submenus
+      await prisma.subMenu.deleteMany({
+        where: { menuId: id },
+      });
+    }
+
+    // Update the menu and create new submenus
     const menu = await prisma.menu.update({
       where: { id },
-      data: { title, icon, url, isCollapsible },
+      data: {
+        title,
+        icon,
+        url,
+        isCollapsible,
+        ...(subMenus !== undefined && subMenus.length > 0 && {
+          subMenus: {
+            create: subMenus.map((sm) => ({
+              title: sm.title,
+              url: sm.url,
+              // Only extract title and url, ignore id, menuId, createdAt, updatedAt
+            })),
+          },
+        }),
+      },
       include: { subMenus: true },
     });
 
     res.json(menu);
   } catch (error) {
-    console.error(error);
+    console.error("Update menu error:", error);
     if (error.code === "P2002") {
       return res.status(409).json({ message: "Menu title already exists" });
     }
     if (error.code === "P2025") {
       return res.status(404).json({ message: "Menu not found" });
     }
-    res.status(500).json({ message: "Failed to update menu" });
+    res.status(500).json({ message: "Failed to update menu", error: error.message });
   }
 };
 
