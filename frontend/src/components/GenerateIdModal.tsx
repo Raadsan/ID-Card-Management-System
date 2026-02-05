@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, ChevronRight, ChevronLeft, User, FileText, MapPin, CreditCard, RefreshCw, LayoutTemplate, Users, Download, Loader2, Calendar } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, User, FileText, MapPin, CreditCard, RefreshCw, LayoutTemplate, Users, Download, Loader2, Calendar, QrCode } from "lucide-react";
 import { getEmployees } from "@/api/employeeApi";
 import { getAllTemplates, IdCardTemplate } from "@/api/idTemplateApi";
 import { createIdGenerate, getAllIdGenerates, IdGenerate } from "@/api/generateIdApi";
@@ -49,8 +49,11 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
     const [positions, setPositions] = useState({
         photo: { x: 100, y: 100, width: 150, height: 150 },
         fullName: { x: 175, y: 280, fontSize: 24, color: "#000000" },
+        title: { x: 175, y: 300, fontSize: 18, color: "#000000" },
         department: { x: 175, y: 320, fontSize: 18, color: "#666666" },
-        idNumber: { x: 175, y: 360, fontSize: 16, color: "#000000" }
+        idNumber: { x: 175, y: 360, fontSize: 16, color: "#000000" },
+        expiryDate: { x: 175, y: 380, fontSize: 16, color: "#000000" },
+        qrCode: { x: 100, y: 100, width: 100, height: 100 }
     });
 
     // Zoom State
@@ -75,7 +78,11 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
         if (selectedTemplate && selectedTemplate.layout) {
             try {
                 const layoutData = typeof selectedTemplate.layout === 'string' ? JSON.parse(selectedTemplate.layout) : selectedTemplate.layout;
-                setPositions(prev => ({ ...prev, ...layoutData }));
+                setPositions(prev => ({
+                    ...prev,
+                    ...layoutData,
+                    qrCode: layoutData.qrCode || layoutData.barcode || prev.qrCode
+                }));
             } catch (e) {
                 console.error("Error parsing template layout", e);
             }
@@ -165,18 +172,42 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                 }`}>
                 {/* Header */}
                 <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-white">
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Create ID Card</h2>
-                        <p className="text-sm text-gray-500 mt-1 font-medium">Step {currentStep} of 2 • {
-                            currentStep === 1 ? 'Select Info' : 'Preview & Generate'
-                        }</p>
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
+                            <CreditCard className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-900 tracking-tight">Create ID Card</h2>
+                            <p className="text-[10px] text-gray-500 mt-0.5 font-bold uppercase tracking-widest">
+                                Step {currentStep} of 2 • {currentStep === 1 ? 'Primary Information' : 'Final Preview & Security Check'}
+                            </p>
+                        </div>
                     </div>
-                    <button
-                        onClick={handleClose}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
-                    >
-                        <X className="h-6 w-6" />
-                    </button>
+
+                    <div className="flex items-center gap-4">
+                        {currentStep === 2 && (
+                            <div className="flex bg-gray-100 rounded-lg p-1 mr-2">
+                                <button
+                                    onClick={() => setShowFront(true)}
+                                    className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${showFront ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                                >
+                                    Front
+                                </button>
+                                <button
+                                    onClick={() => setShowFront(false)}
+                                    className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${!showFront ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                                >
+                                    Back
+                                </button>
+                            </div>
+                        )}
+                        <button
+                            onClick={handleClose}
+                            className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100 group"
+                        >
+                            <X className="h-5 w-5 group-hover:rotate-90 transition-transform duration-300" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Progress Bar */}
@@ -290,39 +321,25 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                     {/* STEP 2: Preview Only */}
                     {currentStep === 2 && (
                         <div className="flex-1 flex flex-col h-full">
-                            {/* Toolbar (Zoom & Toggle) */}
-                            <div className="px-6 py-3 bg-white border-b border-gray-200 flex justify-between items-center z-10 shadow-sm">
+                            {/* Toolbar (Zoom Area) */}
+                            <div className="px-6 py-4 bg-white border-b border-gray-100 flex justify-between items-center z-10 shadow-sm">
                                 <div className="flex items-center gap-4">
-                                    <h3 className="font-bold text-gray-800 text-sm hidden md:block">Live Preview</h3>
-                                    <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
-                                        <span className="text-xs font-bold text-gray-500 uppercase">Zoom</span>
+                                    <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Adjust View</span>
                                         <input
                                             type="range"
                                             min="0.3"
                                             max="1.5"
-                                            step="0.1"
+                                            step="0.05"
                                             value={scale}
                                             onChange={(e) => setScale(parseFloat(e.target.value))}
-                                            className="w-24 md:w-32 h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                            className="w-32 md:w-48 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                                         />
-                                        <span className="text-xs font-mono text-gray-600 w-8">{Math.round(scale * 100)}%</span>
+                                        <span className="text-xs font-black text-blue-600 w-10 text-right">{Math.round(scale * 100)}%</span>
                                     </div>
                                 </div>
-                                <div className="flex bg-gray-100 rounded-lg p-1">
-                                    <button
-                                        onClick={() => setShowFront(true)}
-                                        className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${showFront ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                                            }`}
-                                    >
-                                        Front
-                                    </button>
-                                    <button
-                                        onClick={() => setShowFront(false)}
-                                        className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${!showFront ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                                            }`}
-                                    >
-                                        Back
-                                    </button>
+                                <div className="hidden md:flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                    <RefreshCw className="w-3 h-3 animate-spin-slow" /> Real-time Rendering Active
                                 </div>
                             </div>
 
@@ -368,44 +385,94 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                                 )}
                                             </div>
                                             <div
-                                                className="absolute whitespace-nowrap"
+                                                className="absolute whitespace-nowrap overflow-hidden"
                                                 style={{
                                                     left: `${positions.fullName.x}px`,
                                                     top: `${positions.fullName.y}px`,
                                                     fontSize: `${positions.fullName.fontSize}px`,
                                                     color: positions.fullName.color,
                                                     fontFamily: 'Arial, sans-serif',
-                                                    fontWeight: 'bold'
+                                                    fontWeight: 'bold',
+                                                    maxWidth: `${(selectedTemplate?.width || 350) - positions.fullName.x - 20}px`,
+                                                    textOverflow: 'ellipsis'
                                                 }}
                                             >
                                                 {selectedEmployee?.user.fullName}
                                             </div>
                                             <div
-                                                className="absolute whitespace-nowrap"
+                                                className="absolute whitespace-nowrap overflow-hidden"
+                                                style={{
+                                                    left: `${positions.title.x}px`,
+                                                    top: `${positions.title.y}px`,
+                                                    fontSize: `${(positions.title as any).fontSize || 18}px`,
+                                                    color: (positions.title as any).color || '#000000',
+                                                    fontFamily: 'Arial, sans-serif',
+                                                    fontWeight: (positions.title as any).fontWeight || 'normal',
+                                                    maxWidth: `${(selectedTemplate?.width || 350) - positions.title.x - 20}px`,
+                                                    textOverflow: 'ellipsis'
+                                                }}
+                                            >
+                                                {selectedEmployee?.title || 'Staff'}
+                                            </div>
+                                            <div
+                                                className="absolute whitespace-nowrap overflow-hidden"
                                                 style={{
                                                     left: `${positions.department.x}px`,
                                                     top: `${positions.department.y}px`,
                                                     fontSize: `${positions.department.fontSize}px`,
                                                     color: positions.department.color,
-                                                    fontFamily: 'Arial, sans-serif'
+                                                    fontFamily: 'Arial, sans-serif',
+                                                    maxWidth: `${(selectedTemplate?.width || 350) - positions.department.x - 20}px`,
+                                                    textOverflow: 'ellipsis'
                                                 }}
                                             >
                                                 {selectedEmployee?.department.departmentName}
                                             </div>
                                             <div
-                                                className="absolute whitespace-nowrap"
+                                                className="absolute whitespace-nowrap overflow-hidden"
+                                                style={{
+                                                    left: `${positions.expiryDate.x}px`,
+                                                    top: `${positions.expiryDate.y}px`,
+                                                    fontSize: `${(positions.expiryDate as any).fontSize || 16}px`,
+                                                    color: (positions.expiryDate as any).color || '#000000',
+                                                    fontFamily: 'Arial, sans-serif',
+                                                    maxWidth: `${(selectedTemplate?.width || 350) - positions.expiryDate.x - 20}px`,
+                                                    textOverflow: 'ellipsis'
+                                                }}
+                                            >
+                                                EXP: {expiryDate ? new Date(expiryDate).toLocaleDateString() : '31/12/2026'}
+                                            </div>
+                                            <div
+                                                className="absolute whitespace-nowrap overflow-hidden"
                                                 style={{
                                                     left: `${positions.idNumber.x}px`,
                                                     top: `${positions.idNumber.y}px`,
                                                     fontSize: `${positions.idNumber.fontSize}px`,
                                                     color: positions.idNumber.color,
                                                     fontFamily: 'Courier New, monospace',
-                                                    letterSpacing: '1px'
+                                                    letterSpacing: '1px',
+                                                    maxWidth: `${(selectedTemplate?.width || 350) - positions.idNumber.x - 20}px`,
+                                                    textOverflow: 'ellipsis'
                                                 }}
                                             >
                                                 EMP-{selectedEmployee?.id.toString().padStart(4, '0')}
                                             </div>
                                         </>
+                                    )}
+
+                                    {!showFront && positions.qrCode && (
+                                        <div
+                                            className="absolute overflow-hidden flex flex-col items-center justify-center p-2 bg-white rounded-lg shadow-sm"
+                                            style={{
+                                                left: `${positions.qrCode.x}px`,
+                                                top: `${positions.qrCode.y}px`,
+                                                width: `${positions.qrCode.width}px`,
+                                                height: `${positions.qrCode.height}px`,
+                                            }}
+                                        >
+                                            <QrCode size={Math.min(positions.qrCode.width, positions.qrCode.height) * 0.7} className="text-gray-800" />
+                                            <p className="text-[8px] font-bold text-gray-400 mt-1 uppercase tracking-tight">QR CODE</p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -415,39 +482,59 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
 
                 {/* Footer Buttons */}
                 <div className="p-6 border-t border-gray-200 flex justify-end gap-3 bg-white">
-                    {currentStep === 2 && (
-                        <button
-                            onClick={handleBack}
-                            className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2"
-                        >
-                            <ChevronLeft className="w-4 h-4" /> Back to Selection
-                        </button>
+                    {currentStep === 2 ? (
+                        <div className="flex gap-3 mr-auto">
+                            <button
+                                onClick={handleBack}
+                                className="px-6 py-2.5 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2"
+                            >
+                                <ChevronLeft className="w-4 h-4" /> Go Back
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="mr-auto">
+                            <button
+                                onClick={handleClose}
+                                className="px-6 py-2.5 text-gray-400 font-bold hover:text-gray-600 transition-all"
+                            >
+                                Cancel
+                            </button>
+                        </div>
                     )}
 
-                    {currentStep === 1 ? (
+                    <div className="flex gap-3">
                         <button
-                            onClick={handleNext}
-                            className="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/30 flex items-center gap-2"
+                            onClick={handleClose}
+                            className="px-6 py-3 bg-gray-100 text-gray-500 font-bold rounded-xl hover:bg-gray-200 transition-all border border-gray-200 shadow-sm"
                         >
-                            Next Step <ChevronRight className="w-4 h-4" />
+                            Close
                         </button>
-                    ) : (
-                        <button
-                            onClick={handleGenerate}
-                            disabled={submitting}
-                            className="px-8 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {submitting ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 animate-spin" /> Generating...
-                                </>
-                            ) : (
-                                <>
-                                    <Download className="w-4 h-4" /> Create ID Card
-                                </>
-                            )}
-                        </button>
-                    )}
+
+                        {currentStep === 1 ? (
+                            <button
+                                onClick={handleNext}
+                                className="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/30 flex items-center gap-2"
+                            >
+                                Next Step <ChevronRight className="w-4 h-4" />
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleGenerate}
+                                disabled={submitting}
+                                className="px-8 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {submitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" /> Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="w-4 h-4" /> Create ID Card
+                                    </>
+                                )}
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

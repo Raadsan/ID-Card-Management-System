@@ -22,6 +22,14 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
+// Legacy redirect for old QR codes pointing to backend root
+app.get("/verify/:qrCode", (req, res) => {
+  const { qrCode } = req.params;
+  // Use environment variable for frontend URL if available, else default to localhost:3000
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+  res.redirect(`${frontendUrl}/verify/${qrCode}`);
+});
+
 
 app.use("/api/roles", roleRoutes);
 app.use("/api/users", userRoutes);

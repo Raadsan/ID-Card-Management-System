@@ -306,8 +306,11 @@ export default function PrintIdPage() {
                                     const pos = {
                                         photo: layout.photo || { x: 100, y: 100, width: 150, height: 150 },
                                         fullName: layout.fullName || { x: 175, y: 280, fontSize: 24, color: "#000000" },
+                                        title: layout.title || { x: 175, y: 300, fontSize: 18, color: "#000000" },
                                         department: layout.department || { x: 175, y: 320, fontSize: 18, color: "#666666" },
-                                        idNumber: layout.idNumber || { x: 175, y: 360, fontSize: 16, color: "#000000" }
+                                        idNumber: layout.idNumber || { x: 175, y: 360, fontSize: 16, color: "#000000" },
+                                        expiryDate: layout.expiryDate || { x: 175, y: 380, fontSize: 16, color: "#000000" },
+                                        qrCode: layout.qrCode || layout.barcode || { x: 100, y: 100, width: 100, height: 100 }
                                     };
 
                                     return (
@@ -324,30 +327,53 @@ export default function PrintIdPage() {
                                                     className="w-full h-full object-cover"
                                                 />
                                             </div>
-                                            <div className="absolute font-bold whitespace-nowrap"
+                                            <div className="absolute whitespace-nowrap"
                                                 style={{
                                                     left: `${pos.fullName.x}px`,
                                                     top: `${pos.fullName.y}px`,
                                                     fontSize: `${pos.fullName.fontSize}px`,
-                                                    color: pos.fullName.color
+                                                    color: pos.fullName.color,
+                                                    fontWeight: (pos.fullName as any).fontWeight || 'bold'
                                                 }}>
                                                 {cardToPrint.employee?.user?.fullName}
+                                            </div>
+                                            <div className="absolute whitespace-nowrap"
+                                                style={{
+                                                    left: `${pos.title.x}px`,
+                                                    top: `${pos.title.y}px`,
+                                                    fontSize: `${pos.title.fontSize || 18}px`,
+                                                    color: pos.title.color || '#000000',
+                                                    fontWeight: (pos.title as any).fontWeight || 'normal'
+                                                }}>
+                                                {cardToPrint.employee?.title || 'Staff'}
                                             </div>
                                             <div className="absolute whitespace-nowrap"
                                                 style={{
                                                     left: `${pos.department.x}px`,
                                                     top: `${pos.department.y}px`,
                                                     fontSize: `${pos.department.fontSize}px`,
-                                                    color: pos.department.color
+                                                    color: pos.department.color,
+                                                    fontWeight: (pos.department as any).fontWeight || 'normal'
                                                 }}>
                                                 {cardToPrint.employee?.department?.departmentName || 'N/A'}
+                                            </div>
+                                            <div className="absolute whitespace-nowrap"
+                                                style={{
+                                                    left: `${pos.expiryDate.x}px`,
+                                                    top: `${pos.expiryDate.y}px`,
+                                                    fontSize: `${pos.expiryDate.fontSize || 16}px`,
+                                                    color: pos.expiryDate.color || '#000000',
+                                                    fontWeight: (pos.expiryDate as any).fontWeight || 'normal'
+                                                }}>
+                                                EXP: {cardToPrint.expiryDate ? new Date(cardToPrint.expiryDate).toLocaleDateString() : '31/12/2026'}
                                             </div>
                                             <div className="absolute font-mono whitespace-nowrap"
                                                 style={{
                                                     left: `${pos.idNumber.x}px`,
                                                     top: `${pos.idNumber.y}px`,
                                                     fontSize: `${pos.idNumber.fontSize}px`,
-                                                    color: pos.idNumber.color
+                                                    color: pos.idNumber.color,
+                                                    fontWeight: (pos.idNumber as any).fontWeight || 'bold'
                                                 }}>
                                                 EMP-{cardToPrint.employee?.id?.toString().padStart(4, '0') || '0000'}
                                             </div>
@@ -370,13 +396,33 @@ export default function PrintIdPage() {
                                 backgroundSize: '100% 100%',
                             }}
                         >
-                            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-2 rounded-lg">
-                                <QRCodeSVG
-                                    value={`${window.location.origin}/verify/${cardToPrint.qrCode}`}
-                                    size={120}
-                                    level="H"
-                                />
-                            </div>
+                            {(() => {
+                                try {
+                                    const rawLayout = cardToPrint.template?.layout;
+                                    const layout = typeof rawLayout === 'string'
+                                        ? JSON.parse(rawLayout)
+                                        : (rawLayout || {});
+                                    const qrPos = layout.qrCode || layout.barcode || { x: 100, y: 100, width: 100, height: 100 };
+
+                                    return (
+                                        <div className="absolute bg-white p-1"
+                                            style={{
+                                                left: `${qrPos.x}px`,
+                                                top: `${qrPos.y}px`,
+                                                width: `${qrPos.width}px`,
+                                                height: `${qrPos.height}px`
+                                            }}>
+                                            <QRCodeSVG
+                                                value={`${window.location.origin}/verify/${cardToPrint.qrCode}`}
+                                                size={Math.min(qrPos.width, qrPos.height) - 10}
+                                                level="H"
+                                            />
+                                        </div>
+                                    );
+                                } catch (e) {
+                                    return null;
+                                }
+                            })()}
                         </div>
                     </div>
                 )}

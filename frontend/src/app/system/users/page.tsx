@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/layout/DataTable";
 import { getUsers, deleteUser, createUser, updateUser } from "@/api/userApi";
 import { getRoles } from "@/api/roleApi";
-import { Edit, Trash2, UserPlus, Mail, Phone, Shield, Lock, X, Save } from "lucide-react";
+import { Edit, Trash2, UserPlus, Mail, Phone, Shield, Lock, X, Save, Image as ImageIcon, UserCircle } from "lucide-react";
 import Modal from "@/components/layout/Modal";
 import DeleteConfirmModal from "@/components/layout/ConfirmDeleteModel";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
@@ -38,6 +38,8 @@ export default function UsersPage() {
         roleId: "",
         password: ""
     });
+    const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
     // MessageBox State
     const [msgBox, setMsgBox] = useState<{
@@ -94,6 +96,8 @@ export default function UsersPage() {
             password: ""
         });
         setUserToEdit(user);
+        setSelectedPhoto(null);
+        setPhotoPreview(user.photo ? `http://localhost:5000/uploads/${user.photo}` : null);
         setShowEditModal(true);
     };
 
@@ -138,6 +142,20 @@ export default function UsersPage() {
             password: ""
         });
         setShowAddModal(true);
+        setSelectedPhoto(null);
+        setPhotoPreview(null);
+    };
+
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setSelectedPhoto(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPhotoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -148,10 +166,17 @@ export default function UsersPage() {
     const handleAddUserSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await createUser({
-                ...formData,
-                roleId: Number(formData.roleId)
-            });
+            const data = new FormData();
+            data.append("fullName", formData.fullName);
+            data.append("email", formData.email);
+            data.append("phone", formData.phone);
+            data.append("roleId", formData.roleId);
+            data.append("password", formData.password);
+            if (selectedPhoto) {
+                data.append("photo", selectedPhoto);
+            }
+
+            await createUser(data);
             setShowAddModal(false);
             setMsgBox({
                 isOpen: true,
@@ -176,19 +201,19 @@ export default function UsersPage() {
 
         try {
             setLoading(true);
-            const updateData: any = {
-                fullName: formData.fullName,
-                email: formData.email,
-                phone: formData.phone,
-                roleId: Number(formData.roleId)
-            };
-
-            // Only include password if it's provided
+            const data = new FormData();
+            data.append("fullName", formData.fullName);
+            data.append("email", formData.email);
+            data.append("phone", formData.phone);
+            data.append("roleId", formData.roleId);
             if (formData.password) {
-                updateData.password = formData.password;
+                data.append("password", formData.password);
+            }
+            if (selectedPhoto) {
+                data.append("photo", selectedPhoto);
             }
 
-            await updateUser(String(userToEdit.id), updateData);
+            await updateUser(String(userToEdit.id), data);
             setShowEditModal(false);
             setMsgBox({
                 isOpen: true,
@@ -215,6 +240,23 @@ export default function UsersPage() {
                 label: "ID",
                 key: "id",
 
+            },
+            {
+                label: "Photo",
+                key: "photo",
+                render: (row: User) => (
+                    <div className="h-10 w-10 rounded-full overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
+                        {row.photo ? (
+                            <img
+                                src={`http://localhost:5000/uploads/${row.photo}`}
+                                alt=""
+                                className="h-full w-full object-cover"
+                            />
+                        ) : (
+                            <UserPlus size={16} className="text-gray-400" />
+                        )}
+                    </div>
+                )
             },
             {
                 label: "Full Name",
@@ -388,6 +430,35 @@ export default function UsersPage() {
                                 minLength={6}
                             />
                         </div>
+
+                        {/* Photo Upload */}
+                        <div className="space-y-4 md:col-span-2 p-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <ImageIcon size={12} className="text-secondary" />
+                                Profile Photo
+                            </label>
+                            <div className="flex flex-col md:flex-row items-center gap-6">
+                                <div className="h-24 w-24 rounded-2xl overflow-hidden border-2 border-white shadow-xl bg-gray-100 flex items-center justify-center relative group">
+                                    {photoPreview ? (
+                                        <img src={photoPreview} alt="Preview" className="h-full w-full object-cover" />
+                                    ) : (
+                                        <UserCircle size={32} className="text-gray-300" />
+                                    )}
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <ImageIcon className="text-white w-6 h-6" />
+                                    </div>
+                                </div>
+                                <div className="flex-1 space-y-3">
+                                    <p className="text-[10px] text-gray-500 font-medium">Upload a professional portrait photo. Formats: JPG, PNG. Max size: 2MB.</p>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handlePhotoChange}
+                                        className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-secondary file:text-white hover:file:bg-secondary/90 cursor-pointer"
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="pt-6 flex justify-end items-center gap-4">
@@ -509,6 +580,49 @@ export default function UsersPage() {
                                 className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-700 outline-none focus:bg-white focus:ring-2 focus:ring-secondary/20 transition-all shadow-sm"
                                 minLength={6}
                             />
+                        </div>
+
+                        {/* Photo Upload */}
+                        <div className="space-y-4 md:col-span-2 p-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <ImageIcon size={12} className="text-secondary" />
+                                Profile Photo
+                            </label>
+                            <div className="flex flex-col md:flex-row items-center gap-6">
+                                <div className="h-24 w-24 rounded-2xl overflow-hidden border-2 border-white shadow-xl bg-gray-100 flex items-center justify-center relative group">
+                                    {photoPreview ? (
+                                        <img src={photoPreview} alt="Preview" className="h-full w-full object-cover" />
+                                    ) : (
+                                        <UserCircle size={32} className="text-gray-300" />
+                                    )}
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <ImageIcon className="text-white w-6 h-6" />
+                                    </div>
+                                </div>
+                                <div className="flex-1 space-y-3">
+                                    <p className="text-[10px] text-gray-500 font-medium whitespace-pre-wrap">Upload a professional portrait photo. Formats: JPG, PNG. Max size: 2MB.</p>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handlePhotoChange}
+                                            className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-secondary file:text-white hover:file:bg-secondary/90 cursor-pointer"
+                                        />
+                                        {photoPreview && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setPhotoPreview(null);
+                                                    setSelectedPhoto(null);
+                                                }}
+                                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

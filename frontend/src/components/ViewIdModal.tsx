@@ -20,8 +20,11 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
     const [positions, setPositions] = useState({
         photo: { x: 100, y: 100, width: 150, height: 150 },
         fullName: { x: 175, y: 280, fontSize: 24, color: "#000000" },
+        title: { x: 175, y: 300, fontSize: 18, color: "#000000" },
         department: { x: 175, y: 320, fontSize: 18, color: "#666666" },
-        idNumber: { x: 175, y: 360, fontSize: 16, color: "#000000" }
+        idNumber: { x: 175, y: 360, fontSize: 16, color: "#000000" },
+        expiryDate: { x: 175, y: 380, fontSize: 16, color: "#000000" },
+        qrCode: { x: 100, y: 100, width: 100, height: 100 }
     });
 
     useEffect(() => {
@@ -30,7 +33,11 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                 const layoutData = typeof idCard.template.layout === 'string'
                     ? JSON.parse(idCard.template.layout)
                     : idCard.template.layout;
-                setPositions(prev => ({ ...prev, ...layoutData }));
+                setPositions(prev => ({
+                    ...prev,
+                    ...layoutData,
+                    qrCode: layoutData.qrCode || layoutData.barcode || prev.qrCode
+                }));
             } catch (e) {
                 console.error("Error parsing template layout", e);
             }
@@ -42,7 +49,11 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
     const getImageUrl = (path: string | null) => {
         if (!path) return null;
         if (path.startsWith('http')) return path;
-        return `${SERVER_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+        const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+        if (!cleanPath.includes('/') && !cleanPath.includes('\\')) {
+            return `${SERVER_URL}/uploads/${cleanPath}`;
+        }
+        return `${SERVER_URL}/${cleanPath}`;
     };
 
     const statusColors = {
@@ -53,25 +64,34 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300">
-            <div className="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
+            <div className="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] relative animate-in fade-in zoom-in-95 duration-200">
+                {/* Close Button Overlay */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-6 right-6 z-50 p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-gray-100 hover:border-red-100 group shadow-sm bg-white"
+                >
+                    <X className="h-5 w-5 group-hover:rotate-90 transition-transform duration-300" />
+                </button>
 
                 {/* Left Side: Preview Area */}
                 <div className="flex-1 bg-gray-50 flex flex-col border-r border-gray-100">
-                    <div className="p-4 border-b border-gray-200 bg-white flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                            <CreditCard className="w-5 h-5 text-blue-600" />
-                            <h3 className="font-bold text-gray-800 text-sm">ID Card Preview</h3>
+                    <div className="p-5 border-b border-gray-100 bg-white flex justify-between items-center pr-20">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+                                <CreditCard className="w-4 h-4" />
+                            </div>
+                            <h3 className="font-bold text-gray-800 text-sm">Design Preview</h3>
                         </div>
                         <div className="flex bg-gray-100 rounded-lg p-1">
                             <button
                                 onClick={() => setShowFront(true)}
-                                className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${showFront ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                                className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${showFront ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
                             >
                                 Front
                             </button>
                             <button
                                 onClick={() => setShowFront(false)}
-                                className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${!showFront ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                                className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${!showFront ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
                             >
                                 Back
                             </button>
@@ -125,44 +145,97 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                             />
                                         </div>
                                         <div
-                                            className="absolute whitespace-nowrap"
+                                            className="absolute whitespace-nowrap overflow-hidden"
                                             style={{
                                                 left: `${positions.fullName.x}px`,
                                                 top: `${positions.fullName.y}px`,
                                                 fontSize: `${positions.fullName.fontSize}px`,
                                                 color: positions.fullName.color,
                                                 fontFamily: 'Arial, sans-serif',
-                                                fontWeight: 'bold'
+                                                fontWeight: 'bold',
+                                                maxWidth: `${(idCard.template?.width || 350) - positions.fullName.x - 20}px`,
+                                                textOverflow: 'ellipsis'
                                             }}
                                         >
                                             {idCard.employee?.user.fullName}
                                         </div>
                                         <div
-                                            className="absolute whitespace-nowrap"
+                                            className="absolute whitespace-nowrap overflow-hidden"
+                                            style={{
+                                                left: `${positions.title.x}px`,
+                                                top: `${positions.title.y}px`,
+                                                fontSize: `${(positions.title as any).fontSize || 18}px`,
+                                                color: (positions.title as any).color || '#000000',
+                                                fontFamily: 'Arial, sans-serif',
+                                                fontWeight: (positions.title as any).fontWeight || 'normal',
+                                                maxWidth: `${(idCard.template?.width || 350) - positions.title.x - 20}px`,
+                                                textOverflow: 'ellipsis'
+                                            }}
+                                        >
+                                            {idCard.employee?.title || 'Staff'}
+                                        </div>
+                                        <div
+                                            className="absolute whitespace-nowrap overflow-hidden"
                                             style={{
                                                 left: `${positions.department.x}px`,
                                                 top: `${positions.department.y}px`,
                                                 fontSize: `${positions.department.fontSize}px`,
                                                 color: positions.department.color,
-                                                fontFamily: 'Arial, sans-serif'
+                                                fontFamily: 'Arial, sans-serif',
+                                                maxWidth: `${(idCard.template?.width || 350) - positions.department.x - 20}px`,
+                                                textOverflow: 'ellipsis'
                                             }}
                                         >
                                             {idCard.employee?.department?.departmentName || 'N/A'}
                                         </div>
                                         <div
-                                            className="absolute whitespace-nowrap"
+                                            className="absolute whitespace-nowrap overflow-hidden"
+                                            style={{
+                                                left: `${positions.expiryDate.x}px`,
+                                                top: `${positions.expiryDate.y}px`,
+                                                fontSize: `${(positions.expiryDate as any).fontSize || 16}px`,
+                                                color: (positions.expiryDate as any).color || '#000000',
+                                                fontFamily: 'Arial, sans-serif',
+                                                maxWidth: `${(idCard.template?.width || 350) - positions.expiryDate.x - 20}px`,
+                                                textOverflow: 'ellipsis'
+                                            }}
+                                        >
+                                            EXP: {idCard.expiryDate ? new Date(idCard.expiryDate).toLocaleDateString() : '31/12/2026'}
+                                        </div>
+                                        <div
+                                            className="absolute whitespace-nowrap overflow-hidden"
                                             style={{
                                                 left: `${positions.idNumber.x}px`,
                                                 top: `${positions.idNumber.y}px`,
                                                 fontSize: `${positions.idNumber.fontSize}px`,
                                                 color: positions.idNumber.color,
                                                 fontFamily: 'Courier New, monospace',
-                                                letterSpacing: '1px'
+                                                letterSpacing: '1px',
+                                                maxWidth: `${(idCard.template?.width || 350) - positions.idNumber.x - 20}px`,
+                                                textOverflow: 'ellipsis'
                                             }}
                                         >
                                             EMP-{idCard.employee?.id?.toString().padStart(4, '0') || '0000'}
                                         </div>
                                     </>
+                                )}
+
+                                {!showFront && positions.qrCode && (
+                                    <div
+                                        className="absolute overflow-hidden flex items-center justify-center p-1 bg-white"
+                                        style={{
+                                            left: `${positions.qrCode.x}px`,
+                                            top: `${positions.qrCode.y}px`,
+                                            width: `${positions.qrCode.width}px`,
+                                            height: `${positions.qrCode.height}px`,
+                                        }}
+                                    >
+                                        <QRCodeSVG
+                                            value={`${window.location.origin}/verify/${idCard.qrCode}`}
+                                            width="100%"
+                                            height="100%"
+                                        />
+                                    </div>
                                 )}
                             </div>
                         </div>
