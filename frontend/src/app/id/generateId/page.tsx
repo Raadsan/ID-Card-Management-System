@@ -122,6 +122,8 @@ export default function GenerateIdPage() {
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Employee</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Template</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Issue Date</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Expiry Date</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Generated Date</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Created By</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider text-right">Actions</th>
@@ -155,6 +157,18 @@ export default function GenerateIdPage() {
                                                 }`}>
                                                 {card.status.replace('_', ' ')}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                <Calendar className="h-4 w-4 text-gray-400" />
+                                                {card.issueDate ? new Date(card.issueDate).toLocaleDateString() : 'N/A'}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                <Calendar className="h-4 w-4 text-gray-400" />
+                                                {card.expiryDate ? new Date(card.expiryDate).toLocaleDateString() : 'N/A'}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2 text-sm text-gray-600">

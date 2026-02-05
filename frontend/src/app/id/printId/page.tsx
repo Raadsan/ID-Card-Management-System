@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { Printer, Loader2, Calendar, User, CheckCircle2 } from "lucide-react";
 import ViewIdModal from "../../../components/ViewIdModal";
 import { getAllIdGenerates, IdGenerate, printIdGenerate } from "../../../api/generateIdApi";
+import { QRCodeSVG } from "qrcode.react";
+
+const SERVER_URL = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:5000';
 
 export default function PrintIdPage() {
     const [idCards, setIdCards] = useState<IdGenerate[]>([]);
@@ -11,13 +14,25 @@ export default function PrintIdPage() {
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [cardToPrint, setCardToPrint] = useState<IdGenerate | null>(null);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [pendingPrintId, setPendingPrintId] = useState<number | null>(null);
+
+    const getImageUrl = (path: string | null) => {
+        if (!path) return "";
+        if (path.startsWith('http')) return path;
+        const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+        return `${SERVER_URL}/${cleanPath}`;
+    };
 
     const fetchReadyToPrintIds = async () => {
         try {
             setIsLoading(true);
             const data = await getAllIdGenerates();
-            // Filter only ready_to_print status
-            const filteredData = data.filter((card: IdGenerate) => card.status === 'ready_to_print');
+            // Filter both ready_to_print and printed status for this page
+            const filteredData = data.filter((card: IdGenerate) =>
+                card.status === 'ready_to_print' || card.status === 'printed'
+            );
             setIdCards(filteredData);
             setError(null);
         } catch (err: any) {
@@ -28,11 +43,38 @@ export default function PrintIdPage() {
         }
     };
 
-    const handlePrint = async (id: number) => {
+    const handlePrintRequest = (id: number) => {
+        setPendingPrintId(id);
+        setIsConfirmModalOpen(true);
+    };
+
+    const handlePrint = async () => {
+        if (!pendingPrintId) return;
+        const id = pendingPrintId;
+
         try {
-            await printIdGenerate(id);
-            alert("ID card marked as printed successfully!");
-            fetchReadyToPrintIds(); // Refresh the list
+            const card = idCards.find((c: IdGenerate) => c.id === id);
+            if (!card) return;
+
+            setCardToPrint(card);
+            setIsConfirmModalOpen(false);
+            setPendingPrintId(null);
+
+            const response = await printIdGenerate(id);
+            const updatedCard = response.data;
+
+            // Optimistically update the list with the fresh data from backend
+            setIdCards(prev => prev.map(c => c.id === id ? updatedCard : c));
+
+            // If the view modal is open with this card, update its data too
+            if (selectedIdCard?.id === id) {
+                setSelectedIdCard(updatedCard);
+            }
+
+            // Wait for state to update and render before printing
+            setTimeout(() => {
+                window.print();
+            }, 300);
         } catch (err: any) {
             console.error("Failed to mark ID as printed:", err);
             alert(err.response?.data?.message || "Failed to mark as printed");
@@ -57,8 +99,8 @@ export default function PrintIdPage() {
                         <Printer className="h-6 w-6 text-green-600" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Ready to Print</h1>
-                        <p className="text-sm text-gray-500">Manage and print approved employee ID cards</p>
+                        <h1 className="text-2xl font-bold text-gray-900">ID Printing & Logs</h1>
+                        <p className="text-sm text-gray-500">Manage approved cards and view printing history</p>
                     </div>
                 </div>
             </div>
@@ -95,7 +137,10 @@ export default function PrintIdPage() {
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Employee</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Template</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Ready Since</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Issue Date</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Expiry Date</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Approved By</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Printed By</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider text-right">Actions</th>
                                 </tr>
                             </thead>
@@ -121,31 +166,67 @@ export default function PrintIdPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide bg-blue-100 text-blue-700">
-                                                Ready to Print
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide ${card.status === 'printed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                                }`}>
+                                                {card.status === 'printed' ? 'Printed' : 'Ready to Print'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2 text-sm text-gray-600">
                                                 <Calendar className="h-4 w-4 text-gray-400" />
+                                                {card.issueDate ? new Date(card.issueDate).toLocaleDateString() : 'N/A'}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                <Calendar className="h-4 w-4 text-gray-400" />
+                                                {card.expiryDate ? new Date(card.expiryDate).toLocaleDateString() : 'N/A'}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-sm font-medium text-gray-900">
+                                                {card.createdBy?.fullName || "Admin"}
+                                            </div>
+                                            <div className="text-[10px] text-gray-400 mt-0.5">
                                                 {new Date(card.updatedAt).toLocaleDateString()}
                                             </div>
                                         </td>
+                                        <td className="px-6 py-4">
+                                            {card.status === 'printed' ? (
+                                                <>
+                                                    <div className="text-sm font-medium text-blue-600">
+                                                        {card.printedBy?.fullName || "Admin"}
+                                                    </div>
+                                                    <div className="text-[10px] text-gray-400 mt-0.5 whitespace-nowrap">
+                                                        {new Date(card.updatedAt).toLocaleDateString()}
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <span className="text-xs text-gray-400 font-medium italic">Pending</span>
+                                            )}
+                                        </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex items-center justify-end gap-2">
+                                            <div className="flex items-center justify-end gap-2 text-right">
                                                 <button
                                                     onClick={() => handleView(card)}
-                                                    className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+                                                    className="px-4 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2"
                                                 >
                                                     View
                                                 </button>
-                                                <button
-                                                    onClick={() => handlePrint(card.id)}
-                                                    className="px-4 py-1.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2"
-                                                >
-                                                    <Printer className="h-4 w-4" />
-                                                    Print Now
-                                                </button>
+                                                {card.status === 'ready_to_print' ? (
+                                                    <button
+                                                        onClick={() => handlePrintRequest(card.id)}
+                                                        className="px-4 py-2 text-xs font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all shadow-md shadow-green-100 flex items-center gap-2"
+                                                    >
+                                                        <Printer className="h-4 w-4" />
+                                                        Print Now
+                                                    </button>
+                                                ) : (
+                                                    <div className="px-4 py-2 text-xs font-bold text-green-600 bg-green-50 rounded-lg flex items-center gap-2 border border-green-100 italic">
+                                                        <CheckCircle2 className="h-4 w-4" />
+                                                        Archived
+                                                    </div>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -160,7 +241,146 @@ export default function PrintIdPage() {
                 isOpen={isViewModalOpen}
                 onClose={() => setIsViewModalOpen(false)}
                 idCard={selectedIdCard}
+                onPrint={handlePrintRequest}
             />
+
+            {/* Confirmation Modal */}
+            {isConfirmModalOpen && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center">
+                        <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Printer className="w-8 h-8" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Print ID Card?</h3>
+                        <p className="text-gray-500 mb-8">This will mark the card as printed and record your name in the audit logs.</p>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => setIsConfirmModalOpen(false)}
+                                className="flex-1 py-3 text-gray-600 font-bold bg-gray-100 rounded-2xl hover:bg-gray-200 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handlePrint}
+                                className="flex-1 py-3 text-white font-bold bg-blue-600 rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
+                            >
+                                Print Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Printable Area - Hidden by default, visible during window.print() */}
+            <div className="print-area hidden print:block pt-10">
+                <style dangerouslySetInnerHTML={{
+                    __html: `
+                    @media print {
+                        body * { visibility: hidden; }
+                        .print-area, .print-area * { visibility: visible; }
+                        .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+                        @page { size: auto; margin: 0; }
+                    }
+                `}} />
+
+                {cardToPrint && (
+                    <div className="flex flex-col items-center gap-10">
+                        {/* Front Side */}
+                        <div
+                            className="relative bg-white shadow-none border border-gray-100"
+                            style={{
+                                width: `${cardToPrint.template?.width || 350}px`,
+                                height: `${cardToPrint.template?.height || 500}px`,
+                                backgroundImage: `url(${getImageUrl(cardToPrint.template?.frontBackground)})`,
+                                backgroundSize: '100% 100%',
+                            }}
+                        >
+                            {/* Safe Layout Parsing with Default Fallbacks */}
+                            {(() => {
+                                try {
+                                    const rawLayout = cardToPrint.template?.layout;
+                                    const layout = typeof rawLayout === 'string'
+                                        ? JSON.parse(rawLayout)
+                                        : (rawLayout || {});
+
+                                    // Default positions if layout is empty or missing properties
+                                    const pos = {
+                                        photo: layout.photo || { x: 100, y: 100, width: 150, height: 150 },
+                                        fullName: layout.fullName || { x: 175, y: 280, fontSize: 24, color: "#000000" },
+                                        department: layout.department || { x: 175, y: 320, fontSize: 18, color: "#666666" },
+                                        idNumber: layout.idNumber || { x: 175, y: 360, fontSize: 16, color: "#000000" }
+                                    };
+
+                                    return (
+                                        <>
+                                            <div className="absolute overflow-hidden"
+                                                style={{
+                                                    left: `${pos.photo.x}px`,
+                                                    top: `${pos.photo.y}px`,
+                                                    width: `${pos.photo.width}px`,
+                                                    height: `${pos.photo.height}px`
+                                                }}>
+                                                <img
+                                                    src={getImageUrl(cardToPrint.employee?.user?.photo)}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <div className="absolute font-bold whitespace-nowrap"
+                                                style={{
+                                                    left: `${pos.fullName.x}px`,
+                                                    top: `${pos.fullName.y}px`,
+                                                    fontSize: `${pos.fullName.fontSize}px`,
+                                                    color: pos.fullName.color
+                                                }}>
+                                                {cardToPrint.employee?.user?.fullName}
+                                            </div>
+                                            <div className="absolute whitespace-nowrap"
+                                                style={{
+                                                    left: `${pos.department.x}px`,
+                                                    top: `${pos.department.y}px`,
+                                                    fontSize: `${pos.department.fontSize}px`,
+                                                    color: pos.department.color
+                                                }}>
+                                                {cardToPrint.employee?.department?.departmentName || 'N/A'}
+                                            </div>
+                                            <div className="absolute font-mono whitespace-nowrap"
+                                                style={{
+                                                    left: `${pos.idNumber.x}px`,
+                                                    top: `${pos.idNumber.y}px`,
+                                                    fontSize: `${pos.idNumber.fontSize}px`,
+                                                    color: pos.idNumber.color
+                                                }}>
+                                                EMP-{cardToPrint.employee?.id?.toString().padStart(4, '0') || '0000'}
+                                            </div>
+                                        </>
+                                    );
+                                } catch (e) {
+                                    console.error("Layout Error:", e);
+                                    return <div className="p-4 text-red-500 bg-white/80">Layout Parsing Failed</div>;
+                                }
+                            })()}
+                        </div>
+
+                        {/* Back Side */}
+                        <div
+                            className="relative bg-white shadow-none border border-gray-100"
+                            style={{
+                                width: `${cardToPrint.template?.width || 350}px`,
+                                height: `${cardToPrint.template?.height || 500}px`,
+                                backgroundImage: `url(${getImageUrl(cardToPrint.template?.backBackground)})`,
+                                backgroundSize: '100% 100%',
+                            }}
+                        >
+                            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-2 rounded-lg">
+                                <QRCodeSVG
+                                    value={`${window.location.origin}/verify/${cardToPrint.qrCode}`}
+                                    size={120}
+                                    level="H"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

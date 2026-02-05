@@ -12,6 +12,8 @@ export interface IdGenerate {
     printedById?: number;
     qrCode: string;
     status: IdGenerateStatus;
+    issueDate?: string;
+    expiryDate?: string;
     createdAt: string;
     updatedAt: string;
     employee?: any; // Expanding this based on backend include
@@ -39,7 +41,12 @@ export const getIdGenerateById = async (id: number): Promise<IdGenerate> => {
 /**
  * CREATE ID
  */
-export const createIdGenerate = async (data: { employeeId: number; templateId: number }): Promise<any> => {
+export const createIdGenerate = async (data: {
+    employeeId: number;
+    templateId: number;
+    issueDate?: string;
+    expiryDate?: string;
+}): Promise<any> => {
     const response = await api.post(BASE_PATH, data);
     return response.data;
 };

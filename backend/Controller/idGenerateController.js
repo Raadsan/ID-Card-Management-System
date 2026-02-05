@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
  */
 export const createIdGenerate = async (req, res) => {
     try {
-        const { employeeId, templateId } = req.body;
+        const { employeeId, templateId, issueDate, expiryDate } = req.body;
         const createdById = req.user.id; // from auth middleware
 
         const idGenerate = await prisma.idGenerate.create({
@@ -15,6 +15,8 @@ export const createIdGenerate = async (req, res) => {
                 templateId: Number(templateId),
                 createdById: Number(createdById),
                 qrCode: uuidv4(),
+                issueDate: issueDate ? new Date(issueDate) : null,
+                expiryDate: expiryDate ? new Date(expiryDate) : null,
             },
         });
 
@@ -107,6 +109,17 @@ export const printIdGenerate = async (req, res) => {
                 status: "printed",
                 printedById: Number(printedById),
             },
+            include: {
+                createdBy: true,
+                printedBy: true,
+                employee: {
+                    include: {
+                        user: true,
+                        department: true
+                    }
+                },
+                template: true
+            }
         });
 
         res.json({

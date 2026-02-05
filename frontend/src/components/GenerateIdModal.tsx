@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, ChevronRight, ChevronLeft, User, FileText, MapPin, CreditCard, RefreshCw, LayoutTemplate, Users, Download, Loader2 } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, User, FileText, MapPin, CreditCard, RefreshCw, LayoutTemplate, Users, Download, Loader2, Calendar } from "lucide-react";
 import { getEmployees } from "@/api/employeeApi";
 import { getAllTemplates, IdCardTemplate } from "@/api/idTemplateApi";
 import { createIdGenerate, getAllIdGenerates, IdGenerate } from "@/api/generateIdApi";
@@ -42,6 +42,8 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
     // Form Data
     const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("");
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+    const [issueDate, setIssueDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const [expiryDate, setExpiryDate] = useState<string>("");
 
     // Positions State (Loaded from Template, Read-Only here)
     const [positions, setPositions] = useState({
@@ -130,7 +132,9 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
             setSubmitting(true);
             await createIdGenerate({
                 employeeId: Number(selectedEmployeeId),
-                templateId: Number(selectedTemplateId)
+                templateId: Number(selectedTemplateId),
+                issueDate,
+                expiryDate
             });
             handleClose();
         } catch (error: any) {
@@ -237,6 +241,32 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
                                         <ChevronRight className="w-5 h-5 rotate-90" />
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* Date Inputs */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+                                <div className="space-y-3">
+                                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                                        <Calendar className="w-4 h-4 text-amber-500" /> Issue Date
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={issueDate}
+                                        onChange={(e) => setIssueDate(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-gray-700 shadow-sm"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                                        <Calendar className="w-4 h-4 text-red-500" /> Expiry Date
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={expiryDate}
+                                        onChange={(e) => setExpiryDate(e.target.value)}
+                                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-red-500/10 focus:border-red-500 outline-none transition-all text-gray-700 shadow-sm font-medium"
+                                    />
                                 </div>
                             </div>
 

@@ -9,11 +9,12 @@ interface ViewIdModalProps {
     isOpen: boolean;
     onClose: () => void;
     idCard: IdGenerate | null;
+    onPrint?: (id: number) => void;
 }
 
 const SERVER_URL = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:5000';
 
-export default function ViewIdModal({ isOpen, onClose, idCard }: ViewIdModalProps) {
+export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewIdModalProps) {
     const [showFront, setShowFront] = useState(true);
     const [scale, setScale] = useState(0.8);
     const [positions, setPositions] = useState({
@@ -241,6 +242,30 @@ export default function ViewIdModal({ isOpen, onClose, idCard }: ViewIdModalProp
                             </div>
 
                             <div className="flex items-start gap-3">
+                                <div className="p-2 bg-amber-50 rounded-lg">
+                                    <Calendar className="w-4 h-4 text-amber-600" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Issue Date</p>
+                                    <p className="text-sm font-semibold text-gray-900">
+                                        {idCard.issueDate ? new Date(idCard.issueDate).toLocaleDateString() : 'N/A'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 bg-red-50 rounded-lg">
+                                    <Calendar className="w-4 h-4 text-red-600" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Expiry Date</p>
+                                    <p className="text-sm font-semibold text-gray-900 italic">
+                                        {idCard.expiryDate ? new Date(idCard.expiryDate).toLocaleDateString() : 'N/A'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3">
                                 <div className="p-2 bg-green-50 rounded-lg">
                                     <UserCheck className="w-4 h-4 text-green-600" />
                                 </div>
@@ -261,9 +286,10 @@ export default function ViewIdModal({ isOpen, onClose, idCard }: ViewIdModalProp
                         </button>
                         {idCard.status === 'ready_to_print' && (
                             <button
-                                className="flex-1 py-3 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-200 flex items-center justify-center gap-2"
+                                onClick={() => onPrint?.(idCard.id)}
+                                className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex items-center justify-center gap-2"
                             >
-                                <Printer className="w-4 h-4" /> Print
+                                <Printer className="w-4 h-4" /> Print Now
                             </button>
                         )}
                     </div>

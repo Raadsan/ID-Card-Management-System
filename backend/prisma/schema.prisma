@@ -192,6 +192,9 @@ model IdGenerate {
 
   status IdGenerateStatus @default(created)
 
+  issueDate  DateTime?
+  expiryDate DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

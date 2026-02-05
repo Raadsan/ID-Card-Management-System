@@ -146,11 +146,28 @@ export default function VerificationPage() {
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-[#1B1555]">
-                                            <Calendar className="h-6 w-6 text-[#16BCF8]" />
+                                            <Calendar className="h-6 w-6 text-amber-500" />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Issue Date</p>
-                                            <p className="text-lg font-bold text-gray-900">{new Date(data.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">ID Issue Date</p>
+                                            <p className="text-lg font-bold text-gray-900">
+                                                {data.issueDate
+                                                    ? new Date(data.issueDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+                                                    : new Date(data.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-[#1B1555]">
+                                            <Calendar className="h-6 w-6 text-red-500" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">ID Expiry Date</p>
+                                            <p className="text-lg font-bold text-gray-900">
+                                                {data.expiryDate
+                                                    ? new Date(data.expiryDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+                                                    : 'Perpetual / Valid'}
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-4">
