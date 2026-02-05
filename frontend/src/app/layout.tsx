@@ -25,6 +25,8 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const isLoginPage = pathname === "/login";
+  const isVerifyPage = pathname?.startsWith("/verify");
+  const isPublicPage = isLoginPage || isVerifyPage;
 
   return (
     <html lang="en">
@@ -32,15 +34,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex min-h-screen bg-background text-foreground`}
         suppressHydrationWarning
       >
-        {/* Sidebar Component - Hidden on login page */}
-        {!isLoginPage && <Sidebar />}
+        {/* Sidebar Component - Hidden on public pages */}
+        {!isPublicPage && <Sidebar />}
 
         {/* Content Area */}
-        <main className={`flex-1 min-h-screen bg-background ${!isLoginPage ? "ml-64" : ""}`}>
-          {/* Header Component - Hidden on login page */}
-          {!isLoginPage && <Header />}
+        <main className={`flex-1 min-h-screen bg-background ${!isPublicPage ? "ml-64" : ""}`}>
+          {/* Header Component - Hidden on public pages */}
+          {!isPublicPage && <Header />}
 
-          <div className={`${!isLoginPage ? "px-8 pb-8 pt-8" : "w-full"}`}>
+          <div className={`${!isPublicPage ? "px-8 pb-8 pt-8" : "w-full"}`}>
             {children}
           </div>
         </main>

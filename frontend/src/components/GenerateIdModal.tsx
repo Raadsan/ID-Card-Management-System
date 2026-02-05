@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { X, ChevronRight, ChevronLeft, User, FileText, MapPin, CreditCard, RefreshCw, LayoutTemplate, Users, Download, Loader2 } from "lucide-react";
 import { getEmployees } from "@/api/employeeApi";
 import { getAllTemplates, IdCardTemplate } from "@/api/idTemplateApi";
+import { createIdGenerate, getAllIdGenerates, IdGenerate } from "@/api/generateIdApi";
 
 interface Employee {
     id: number;
@@ -32,8 +33,10 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
 
     const [currentStep, setCurrentStep] = useState(1);
     const [employees, setEmployees] = useState<Employee[]>([]);
+    const [generatedIds, setGeneratedIds] = useState<IdGenerate[]>([]);
     const [templates, setTemplates] = useState<IdCardTemplate[]>([]);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [showFront, setShowFront] = useState(true);
 
     // Form Data
@@ -52,6 +55,10 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
     const [scale, setScale] = useState(0.8);
 
     // Derived State
+    const filteredEmployees = employees.filter(emp =>
+        !generatedIds.some(gen => gen.employeeId === emp.id)
+    );
+
     const selectedEmployee = employees.find(e => e.id.toString() === selectedEmployeeId) || null;
     const selectedTemplate = templates.find(t => t.id.toString() === selectedTemplateId) || null;
 
@@ -76,12 +83,14 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [employeesData, templatesData] = await Promise.all([
+            const [employeesData, templatesData, generatedData] = await Promise.all([
                 getEmployees(),
-                getAllTemplates()
+                getAllTemplates(),
+                getAllIdGenerates()
             ]);
             setEmployees(Array.isArray(employeesData) ? employeesData : []);
             setTemplates(Array.isArray(templatesData) ? templatesData.filter((t: IdCardTemplate) => t.status === 'active') : []);
+            setGeneratedIds(Array.isArray(generatedData) ? generatedData : []);
         } catch (error) {
             console.error("Failed to fetch data:", error);
         } finally {
@@ -109,8 +118,27 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
         setCurrentStep(1);
         setSelectedEmployeeId("");
         setSelectedTemplateId("");
+        setSubmitting(false);
         setShowFront(true);
         onClose();
+    };
+
+    const handleGenerate = async () => {
+        if (!selectedEmployeeId || !selectedTemplateId) return;
+
+        try {
+            setSubmitting(true);
+            await createIdGenerate({
+                employeeId: Number(selectedEmployeeId),
+                templateId: Number(selectedTemplateId)
+            });
+            handleClose();
+        } catch (error: any) {
+            console.error("Failed to generate ID:", error);
+            alert(error.response?.data?.message || "Failed to generate ID card");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const getImageUrl = (path?: string) => {
@@ -173,7 +201,7 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                         className="w-full pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm hover:border-gray-400"
                                     >
                                         <option value="">-- Choose Employee --</option>
-                                        {employees.map(emp => (
+                                        {filteredEmployees.map(emp => (
                                             <option key={emp.id} value={emp.id}>
                                                 {emp.user.fullName} — {emp.department.departmentName}
                                             </option>
@@ -183,6 +211,9 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                         <ChevronRight className="w-5 h-5 rotate-90" />
                                     </div>
                                 </div>
+                                {filteredEmployees.length === 0 && !loading && (
+                                    <p className="text-xs text-amber-600 font-medium">All employees already have generated ID cards.</p>
+                                )}
                             </div>
 
                             {/* Template Select */}
@@ -372,10 +403,19 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                         </button>
                     ) : (
                         <button
-                            onClick={() => alert('Generate API call here')}
-                            className="px-8 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2"
+                            onClick={handleGenerate}
+                            disabled={submitting}
+                            className="px-8 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <Download className="w-4 h-4" /> Create ID Card
+                            {submitting ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" /> Generating...
+                                </>
+                            ) : (
+                                <>
+                                    <Download className="w-4 h-4" /> Create ID Card
+                                </>
+                            )}
                         </button>
                     )}
                 </div>
