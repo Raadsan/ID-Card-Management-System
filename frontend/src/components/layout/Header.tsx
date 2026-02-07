@@ -36,7 +36,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         return name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
     };
 
-    const portalTitle = "ID Management System";
+    const portalTitle = "Welcome " + user?.fullName + " !";
 
     return (
         <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-gray-200 bg-white px-4 shadow-sm sm:px-6 lg:px-8">
@@ -57,19 +57,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             </div>
 
             <div className="flex items-center gap-4">
-                <div className="relative hidden sm:block">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Quick Search..."
-                        className="h-10 w-64 rounded-xl border border-gray-100 bg-gray-50/50 pl-9 pr-4 text-sm text-gray-900 transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5"
-                    />
-                </div>
 
-                <button className="relative rounded-xl p-2 text-gray-400 hover:bg-gray-50 hover:text-[#1B1555] transition-colors">
-                    <Bell className="h-5 w-5" />
-                    <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#16BCF8] ring-2 ring-white"></span>
-                </button>
 
                 <div className="relative">
                     <button

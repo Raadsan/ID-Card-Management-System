@@ -16,6 +16,11 @@ export default function DashboardContent() {
         totalEmployees: 0,
         totalDepartments: 0
     });
+    const [genderStats, setGenderStats] = useState({
+        male: 0,
+        female: 0,
+        other: 0
+    });
     const [transactions, setTransactions] = useState<any[]>([]);
     const [chartData, setChartData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -48,6 +53,17 @@ export default function DashboardContent() {
                 };
 
                 setIdStats(stats);
+
+                // Calculate gender distribution
+                const genderCounts = {
+                    male: employeesData.filter((emp: any) => emp.user?.gender?.toLowerCase() === 'male').length,
+                    female: employeesData.filter((emp: any) => emp.user?.gender?.toLowerCase() === 'female').length,
+                    other: employeesData.filter((emp: any) => {
+                        const gender = emp.user?.gender?.toLowerCase();
+                        return gender && gender !== 'male' && gender !== 'female';
+                    }).length
+                };
+                setGenderStats(genderCounts);
 
                 // Set recent activities (transactions)
                 const recentActivities = idCardsData
@@ -119,7 +135,7 @@ export default function DashboardContent() {
             label: "DEPARTMENT",
             key: "department.departmentName",
             render: (row: any) => (
-                <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold border border-gray-200/50">
+                <span className="text-gray-600 font-medium text-sm">
                     {row.department?.departmentName || "General"}
                 </span>
             )
@@ -207,89 +223,155 @@ export default function DashboardContent() {
                 })}
             </div>
 
-            {/* Revenue Overview & Recent Transactions */}
+            {/* Employee Gender Distribution & Recent Transactions */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-                {/* Revenue Chart */}
+                {/* Gender Distribution Pie Chart */}
                 <div className="col-span-4 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-                    <div className="mb-4 flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-gray-900">ID Processing Overview</h3>
-                        <div className="flex items-center gap-2 text-sm text-green-600 font-medium">
-                            <TrendingUp className="h-4 w-4" />
-                            <span>+12.5%</span>
+                    <div className="mb-6 flex items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900">Employee Gender Distribution</h3>
+                            <p className="text-xs text-gray-500 mt-1">Total workforce composition</p>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-blue-600 font-medium">
+                            <User className="h-4 w-4" />
+                            <span>{idStats.totalEmployees} Total</span>
                         </div>
                     </div>
-                    <div className="h-[300px] relative">
-                        {!hasMounted || chartData.length === 0 ? (
+                    <div className="h-[300px] relative flex items-center justify-center">
+                        {!hasMounted ? (
                             <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg animate-pulse">
                                 <span className="text-gray-400 text-sm">Loading chart...</span>
                             </div>
-                        ) : (
-                            <svg viewBox="0 0 600 300" className="w-full h-full">
-                                <defs>
-                                    <linearGradient id="revenueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                        <stop offset="0%" stopColor="#16BCF8" stopOpacity="0.3" />
-                                        <stop offset="100%" stopColor="#16BCF8" stopOpacity="0.05" />
-                                    </linearGradient>
-                                    <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#1B1555" />
-                                        <stop offset="100%" stopColor="#16BCF8" />
-                                    </linearGradient>
-                                </defs>
-                                {/* Grid Lines */}
-                                {[0, 1, 2, 3, 4].map((i) => (
-                                    <line key={i} x1="50" y1={50 + i * 50} x2="550" y2={50 + i * 50} stroke="#f3f4f6" strokeWidth="1" />
-                                ))}
+                        ) : (() => {
+                            const total = genderStats.male + genderStats.female + genderStats.other;
+                            if (total === 0) {
+                                return (
+                                    <div className="text-center">
+                                        <User className="h-16 w-16 text-gray-200 mx-auto mb-3" />
+                                        <p className="text-gray-400 text-sm">No employee data available</p>
+                                    </div>
+                                );
+                            }
 
-                                {(() => {
-                                    const maxVal = Math.max(...chartData.map(d => d.revenue), 5);
-                                    const yMax = Math.ceil(maxVal * 1.2);
+                            const malePercent = (genderStats.male / total) * 100;
+                            const femalePercent = (genderStats.female / total) * 100;
+                            const otherPercent = (genderStats.other / total) * 100;
 
-                                    const points = chartData.map((d, i) => {
-                                        const x = 50 + (i * 100);
-                                        const y = 250 - ((d.revenue / yMax) * 200);
-                                        return { x, y, val: d.revenue, label: d.label };
-                                    });
+                            // Calculate pie slices with explosion effect
+                            const radius = 90;
+                            const centerX = 150;
+                            const centerY = 150;
+                            const explodeDistance = 10;
 
-                                    let pathD = `M ${points[0].x},${points[0].y}`;
-                                    points.slice(1).forEach(p => {
-                                        pathD += ` L ${p.x},${p.y}`;
-                                    });
-                                    const areaD = `${pathD} L ${points[points.length - 1].x},250 L ${points[0].x},250 Z`;
+                            let currentAngle = -90; // Start from top
 
-                                    const yLabels = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax].map(v =>
-                                        Math.round(v).toString()
-                                    );
+                            const createArc = (percentage: number, offsetX: number = 0, offsetY: number = 0) => {
+                                const angle = (percentage / 100) * 360;
+                                const startAngle = currentAngle;
+                                const endAngle = currentAngle + angle;
 
-                                    return (
-                                        <>
-                                            {/* Y-axis Labels */}
-                                            {yLabels.map((label, i) => (
-                                                <text key={i} x="40" y={250 - i * 50} textAnchor="end" className="text-xs fill-gray-500" fontSize="12">{label}</text>
-                                            ))}
+                                const startRad = (startAngle * Math.PI) / 180;
+                                const endRad = (endAngle * Math.PI) / 180;
 
-                                            {/* Area Fill */}
-                                            <path d={areaD} fill="url(#revenueGradient)" />
+                                const x1 = centerX + offsetX + radius * Math.cos(startRad);
+                                const y1 = centerY + offsetY + radius * Math.sin(startRad);
+                                const x2 = centerX + offsetX + radius * Math.cos(endRad);
+                                const y2 = centerY + offsetY + radius * Math.sin(endRad);
 
-                                            {/* Line Stroke */}
-                                            <path d={pathD} fill="none" stroke="url(#lineGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                                const largeArc = angle > 180 ? 1 : 0;
 
-                                            {/* Data Points */}
-                                            {points.map((p, i) => (
-                                                <g key={i}>
-                                                    <circle cx={p.x} cy={p.y} r="5" fill="#16BCF8" stroke="white" strokeWidth="2" />
-                                                    <title>{p.val} IDs</title>
+                                currentAngle = endAngle;
+
+                                return {
+                                    path: `M ${centerX + offsetX} ${centerY + offsetY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`,
+                                    midAngle: startAngle + angle / 2,
+                                    labelX: centerX + offsetX + (radius * 0.65) * Math.cos((startAngle + angle / 2) * Math.PI / 180),
+                                    labelY: centerY + offsetY + (radius * 0.65) * Math.sin((startAngle + angle / 2) * Math.PI / 180)
+                                };
+                            };
+
+                            const segments = [
+                                { label: 'Male', value: genderStats.male, percent: malePercent, color: '#1B1555', gradient: 'maleGradient' },
+                                { label: 'Female', value: genderStats.female, percent: femalePercent, color: '#16BCF8', gradient: 'femaleGradient' },
+                                { label: 'Other', value: genderStats.other, percent: otherPercent, color: '#8B5CF6', gradient: 'otherGradient' }
+                            ].filter(s => s.value > 0);
+
+                            // Reset angle for rendering
+                            currentAngle = -90;
+
+                            return (
+                                <div className="w-full flex items-center justify-center">
+                                    <svg viewBox="0 0 400 300" className="w-full max-w-md">
+                                        <defs>
+                                            <linearGradient id="maleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stopColor="#2D2270" />
+                                                <stop offset="100%" stopColor="#1B1555" />
+                                            </linearGradient>
+                                            <linearGradient id="femaleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stopColor="#4DD4FF" />
+                                                <stop offset="100%" stopColor="#16BCF8" />
+                                            </linearGradient>
+                                            <linearGradient id="otherGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stopColor="#A78BFA" />
+                                                <stop offset="100%" stopColor="#8B5CF6" />
+                                            </linearGradient>
+                                            <filter id="shadow">
+                                                <feDropShadow dx="0" dy="2" stdDeviation="4" floodOpacity="0.25" />
+                                            </filter>
+                                        </defs>
+
+                                        {/* Pie segments */}
+                                        {segments.map((segment, idx) => {
+                                            const midAngle = currentAngle + (segment.percent / 100) * 360 / 2;
+                                            const offsetX = explodeDistance * Math.cos((midAngle) * Math.PI / 180);
+                                            const offsetY = explodeDistance * Math.sin((midAngle) * Math.PI / 180);
+
+                                            if (segment.percent >= 99.9) {
+                                                const labelX = centerX + (radius * 0.65);
+                                                const labelY = centerY;
+
+                                                return (
+                                                    <g key={idx}>
+                                                        <circle
+                                                            cx={centerX}
+                                                            cy={centerY}
+                                                            r={radius}
+                                                            fill={`url(#${segment.gradient})`}
+                                                            filter="url(#shadow)"
+                                                            className="transition-all duration-300 hover:opacity-90 cursor-pointer"
+                                                        />
+                                                        <g>
+                                                            <rect x={labelX - 35} y={labelY - 18} width="70" height="36" rx="6" fill="white" opacity="0.95" filter="url(#shadow)" />
+                                                            <text x={labelX} y={labelY - 4} textAnchor="middle" className="text-xs font-semibold" fill={segment.color} fontSize="11">{segment.label}</text>
+                                                            <text x={labelX} y={labelY + 10} textAnchor="middle" className="text-xs font-bold" fill={segment.color} fontSize="13">{segment.percent.toFixed(1)}%</text>
+                                                        </g>
+                                                    </g>
+                                                );
+                                            }
+
+                                            const arcData = createArc(segment.percent, offsetX, offsetY);
+
+                                            return (
+                                                <g key={idx}>
+                                                    <path d={arcData.path} fill={`url(#${segment.gradient})`} filter="url(#shadow)" className="transition-all duration-300 hover:opacity-90 cursor-pointer" />
+                                                    <g>
+                                                        <rect x={arcData.labelX - 35} y={arcData.labelY - 18} width="70" height="36" rx="6" fill="white" opacity="0.95" filter="url(#shadow)" />
+                                                        <text x={arcData.labelX} y={arcData.labelY - 4} textAnchor="middle" className="text-xs font-semibold" fill={segment.color} fontSize="11">{segment.label}</text>
+                                                        <text x={arcData.labelX} y={arcData.labelY + 10} textAnchor="middle" className="text-xs font-bold" fill={segment.color} fontSize="13">{segment.percent.toFixed(1)}%</text>
+                                                    </g>
                                                 </g>
-                                            ))}
+                                            );
+                                        })}
 
-                                            {/* X-axis Labels */}
-                                            {points.map((p, i) => (
-                                                <text key={i} x={p.x} y={280} textAnchor="middle" className="text-xs fill-gray-500" fontSize="12">{p.label}</text>
-                                            ))}
-                                        </>
-                                    );
-                                })()}
-                            </svg>
-                        )}
+                                        {/* Center info */}
+                                        <circle cx={centerX} cy={centerY} r="45" fill="white" filter="url(#shadow)" />
+                                        <text x={centerX} y={centerY - 8} textAnchor="middle" className="text-3xl font-bold fill-gray-900" fontSize="28">{total}</text>
+                                        <text x={centerX} y={centerY + 12} textAnchor="middle" className="text-xs fill-gray-500" fontSize="11">Employees</text>
+                                    </svg>
+                                </div>
+
+                            );
+                        })()}
                     </div>
                 </div>
 
