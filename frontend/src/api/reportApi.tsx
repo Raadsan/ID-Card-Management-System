@@ -30,3 +30,19 @@ export const getDepartmentTransferReport = async (filters?: {
     const response = await api.get(`/department-transfer-report?${params.toString()}`);
     return response.data;
 };
+
+export const getIdCardReport = async (filters?: {
+    startDate?: string;
+    endDate?: string;
+    status?: string;
+    period?: string;
+}) => {
+    const params = new URLSearchParams();
+    if (filters?.startDate) params.append("startDate", filters.startDate);
+    if (filters?.endDate) params.append("endDate", filters.endDate);
+    if (filters?.status && filters.status !== "all") params.append("status", filters.status);
+    if (filters?.period) params.append("period", filters.period);
+
+    const response = await api.get(`/id-card-report/id-report?${params.toString()}`);
+    return response.data;
+};

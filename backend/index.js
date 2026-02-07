@@ -16,6 +16,7 @@ import idGenerateRoutes from "./Routes/idGenerateRoutes.js";
 import employeeReportRoutes from "./Routes/report/employeeReportRoutes.js";
 import departmentReportRoutes from "./Routes/report/departmentReportRoutes.js";
 import departmentTransferReportRoutes from "./Routes/report/departmentTransferReportRoutes.js";
+import idCardReportRoutes from "./Routes/report/idCardReportRoutes.js";
 
 
 const app = express();
@@ -47,6 +48,7 @@ app.use("/api/id-generates", idGenerateRoutes);
 app.use("/api/employee-report", employeeReportRoutes);
 app.use("/api/department-report", departmentReportRoutes);
 app.use("/api/department-transfer-report", departmentTransferReportRoutes);
+app.use("/api/id-card-report", idCardReportRoutes);
 
 async function startServer() {
   try {
