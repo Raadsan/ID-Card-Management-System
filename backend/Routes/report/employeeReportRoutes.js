@@ -1,5 +1,5 @@
 import express from "express";
-import { getEmployeeReport } from "../../Controller/Report/employeeReportController.js";
+import { getEmployeeReport } from "../../Controller/report/employeeReportController.js";
 import { protect } from "../../middleware/authMiddleare.js";
 
 const router = express.Router();
