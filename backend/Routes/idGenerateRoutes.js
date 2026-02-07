@@ -7,7 +7,7 @@ import {
     printIdGenerate,
     verifyQrCode,
 } from "../Controller/idGenerateController.js";
-import { protect } from "../Middleware/authMiddleare.js";
+import { protect } from "../middleware/authMiddleare.js";
 
 
 
