@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 // Removed ThemeContext dependency for now as it wasn't requested/verified to exist in this context,
 // and we want to enforce brand colors.
 
-const DataTable = ({ title, columns, data = [], onAddClick, onRefresh, showAddButton = true, loading = false, addButtonLabel = "Add New" }: any) => {
+const DataTable = ({ title, columns, data = [], onAddClick, onRefresh, showAddButton = true, loading = false, addButtonLabel = "Add New", showSearch = true }: any) => {
   const [search, setSearch] = useState("");
   const [filteredData, setFilteredData] = useState<any[]>(data);
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -83,8 +83,8 @@ const DataTable = ({ title, columns, data = [], onAddClick, onRefresh, showAddBu
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 max-w-full mx-auto overflow-hidden">
-      <div className="p-6 pb-0">
-        <div className="flex justify-between items-center mb-6">
+      <div className="p-4 pb-0">
+        <div className="flex justify-between items-center mb-4">
           <div className="header">
             <h2 className="text-xl font-bold text-[#1B1555]">{title}</h2>
           </div>
@@ -104,7 +104,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, onRefresh, showAddBu
           </div>
         </div>
 
-        <div className="flex justify-between items-center mb-4 gap-4 flex-wrap">
+        <div className="flex justify-between items-center mb-3 gap-4 flex-wrap">
           <div className="flex items-center">
             <label className="text-sm text-gray-600">Show&nbsp;</label>
             <select
@@ -123,19 +123,21 @@ const DataTable = ({ title, columns, data = [], onAddClick, onRefresh, showAddBu
             </select>
             <span className="text-sm text-gray-600 ml-1"> entries</span>
           </div>
-          <div className="relative w-full sm:w-64">
-            {/* Search Icon */}
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search details..."
-              className="border border-gray-200 pl-9 pr-4 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#16BCF8] focus:border-transparent transition-all"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+          {showSearch && (
+            <div className="relative w-full sm:w-64">
+              {/* Search Icon */}
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search details..."
+                className="border border-gray-200 pl-9 pr-4 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#16BCF8] focus:border-transparent transition-all"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -194,7 +196,7 @@ const DataTable = ({ title, columns, data = [], onAddClick, onRefresh, showAddBu
                       return (
                         <td
                           key={col.key || i}
-                          className={`px-6 py-4 text-gray-600 font-medium ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left'
+                          className={`px-4 py-3 text-gray-600 font-medium ${col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left'
                             }`}
                           style={col.width ? { width: col.width, minWidth: col.width } : {}}
                         >

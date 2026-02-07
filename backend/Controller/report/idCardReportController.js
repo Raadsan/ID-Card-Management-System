@@ -77,12 +77,20 @@ export const getIdCardReport = async (req, res) => {
                             select: {
                                 fullName: true,
                                 email: true,
-                                photo: true
+                                phone: true,
+                                photo: true,
+                                gender: true,
+                                role: {
+                                    select: {
+                                        name: true
+                                    }
+                                }
                             }
                         },
                         department: {
                             select: {
-                                departmentName: true
+                                departmentName: true,
+                                description: true
                             }
                         }
                     }
@@ -122,9 +130,25 @@ export const getIdCardReport = async (req, res) => {
 
         const formattedData = idCards.map(card => ({
             id: card.id,
-            employeeName: card.employee.user.fullName,
+            // Employee Basic Info
             employeeId: card.employee.userId,
+            employeeName: card.employee.user.fullName,
+            employeeEmail: card.employee.user.email,
+            employeePhoto: card.employee.user.photo,
+
+            // Employee Details for View
+            employeePhone: card.employee.user.phone,
+            employeeGender: card.employee.user.gender,
+            employeeRole: card.employee.user.role.name,
+            employeeTitle: card.employee.title,
+            employeeAddress: card.employee.address,
+            employeeDob: card.employee.dob,
+            employeeStatus: card.employee.status,
+            employeeJoinDate: card.employee.createdAt,
+
             department: card.employee.department.departmentName,
+            departmentDesc: card.employee.department.description,
+
             templateName: card.template.name,
             status: card.status,
             issueDate: card.issueDate,
