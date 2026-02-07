@@ -4,9 +4,20 @@ import { useState, useEffect } from "react";
 import { Users, TrendingUp, Activity, Briefcase, FileText, CheckCircle, XCircle, Clock, Edit2, Trash2, User } from "lucide-react";
 import DataTable from "./DataTable";
 import { getEmployees } from "@/api/employeeApi";
+import { getAllIdGenerates } from "@/api/generateIdApi";
+import { getDepartments } from "@/api/departmentApi";
 
 export default function DashboardContent() {
     const [employees, setEmployees] = useState<any[]>([]);
+    const [idStats, setIdStats] = useState({
+        created: 0,
+        ready: 0,
+        printed: 0,
+        totalEmployees: 0,
+        totalDepartments: 0
+    });
+    const [transactions, setTransactions] = useState<any[]>([]);
+    const [chartData, setChartData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [hasMounted, setHasMounted] = useState(false);
 
@@ -15,17 +26,72 @@ export default function DashboardContent() {
     }, []);
 
     useEffect(() => {
-        const fetchTopEmployees = async () => {
+        const fetchDashboardData = async () => {
             try {
-                const data = await getEmployees(5); // Only top 5 for dashboard
-                setEmployees(data);
+                setLoading(true);
+                const [employeesData, idCardsData, departmentsData] = await Promise.all([
+                    getEmployees(),
+                    getAllIdGenerates(),
+                    getDepartments()
+                ]);
+
+                // Set top 5 employees for the table
+                setEmployees(employeesData.slice(0, 5));
+
+                // Calculate stats based on status
+                const stats = {
+                    created: idCardsData.filter((id: any) => id.status === "created").length,
+                    ready: idCardsData.filter((id: any) => id.status === "ready_to_print").length,
+                    printed: idCardsData.filter((id: any) => id.status === "printed").length,
+                    totalEmployees: employeesData.length,
+                    totalDepartments: departmentsData.length
+                };
+
+                setIdStats(stats);
+
+                // Set recent activities (transactions)
+                const recentActivities = idCardsData
+                    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .slice(0, 5)
+                    .map((id: any) => ({
+                        id: id.id,
+                        name: `${id.employee?.user?.fullName || "ID Request"}`,
+                        employeeId: `EMP-${id.employee?.id?.toString().padStart(4, '0')}`,
+                        status: id.status,
+                        date: id.createdAt,
+                    }));
+                setTransactions(recentActivities);
+
+                // Process chart data for last 6 months
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const now = new Date();
+                const last6Months: { label: string; month: number; year: number; revenue: number }[] = [];
+                for (let i = 5; i >= 0; i--) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    last6Months.push({
+                        label: months[d.getMonth()],
+                        month: d.getMonth(),
+                        year: d.getFullYear(),
+                        revenue: 0
+                    });
+                }
+
+                idCardsData.forEach((id: any) => {
+                    const d = new Date(id.createdAt);
+                    const monthLabel = months[d.getMonth()];
+                    const chartMonth = last6Months.find(m => m.label === monthLabel && m.year === d.getFullYear());
+                    if (chartMonth) {
+                        chartMonth.revenue += 1;
+                    }
+                });
+                setChartData(last6Months);
             } catch (error) {
-                console.error("Failed to fetch top employees:", error);
+                console.error("Failed to fetch dashboard data:", error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchTopEmployees();
+        fetchDashboardData();
     }, []);
 
     const employeeColumns = [
@@ -71,76 +137,44 @@ export default function DashboardContent() {
                 </span>
             )
         },
-        {
-            label: "ACTIONS",
-            align: "center",
-            render: (row: any) => (
-                <div className="flex items-center justify-center gap-2">
-                    <button className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
-                        <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                    </button>
-                </div>
-            )
-        }
     ];
 
-    // Static stats data
+    // Dynamic stats data
     const stats = [
         {
-            title: "Active IDs",
-            value: "11",
+            title: "ID Cards Created",
+            value: idStats.created.toString(),
             change: "+12% vs last month",
             icon: FileText,
             color: "bg-blue-100 text-blue-700",
-            percentage: 11,
+            percentage: idStats.created,
         },
         {
-            title: "Pending IDs",
-            value: "27",
-            change: "-8% vs last month",
-            icon: Clock,
-            color: "bg-yellow-100 text-yellow-700",
-            percentage: 27,
-        },
-        {
-            title: "Completed IDs",
-            value: "3",
+            title: "Printed IDs",
+            value: idStats.printed.toString(),
             change: "+15% vs last month",
             icon: CheckCircle,
             color: "bg-green-100 text-green-700",
-            percentage: 3,
+            percentage: idStats.printed,
         },
         {
-            title: "Rejected IDs",
-            value: "4",
+            title: "Total Employees",
+            value: idStats.totalEmployees.toString(),
             change: "+5% vs last month",
-            icon: XCircle,
-            color: "bg-red-100 text-red-700",
-            percentage: 4,
+            icon: Users,
+            color: "bg-purple-100 text-purple-700",
+            percentage: idStats.totalEmployees,
+        },
+        {
+            title: "Total Departments",
+            value: idStats.totalDepartments.toString(),
+            change: "+2% vs last month",
+            icon: Briefcase,
+            color: "bg-emerald-100 text-emerald-700",
+            percentage: idStats.totalDepartments,
         },
     ];
 
-    // Static revenue data for chart (6 months)
-    const revenueData = [
-        { label: "Jan", revenue: 4200 },
-        { label: "Feb", revenue: 3800 },
-        { label: "Mar", revenue: 5100 },
-        { label: "Apr", revenue: 4600 },
-        { label: "May", revenue: 6200 },
-        { label: "Jun", revenue: 7400 },
-    ];
-
-    // Static recent transactions
-    const transactions = [
-        { id: 1, name: "ID-2024-001", amount: 150, status: "completed", date: "2024-01-28", type: "New Registration" },
-        { id: 2, name: "ID-2024-002", amount: 120, status: "completed", date: "2024-01-27", type: "Renewal" },
-        { id: 3, name: "ID-2024-003", amount: 180, status: "completed", date: "2024-01-26", type: "Replacement" },
-        { id: 4, name: "ID-2024-004", amount: 150, status: "completed", date: "2024-01-25", type: "New Registration" },
-        { id: 5, name: "ID-2024-005", amount: 200, status: "completed", date: "2024-01-24", type: "Urgent Processing" },
-    ];
 
     return (
         <div className="space-y-6">
@@ -185,7 +219,7 @@ export default function DashboardContent() {
                         </div>
                     </div>
                     <div className="h-[300px] relative">
-                        {!hasMounted ? (
+                        {!hasMounted || chartData.length === 0 ? (
                             <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg animate-pulse">
                                 <span className="text-gray-400 text-sm">Loading chart...</span>
                             </div>
@@ -207,10 +241,10 @@ export default function DashboardContent() {
                                 ))}
 
                                 {(() => {
-                                    const maxRevenue = Math.max(...revenueData.map(d => d.revenue), 100);
-                                    const yMax = maxRevenue * 1.2;
+                                    const maxVal = Math.max(...chartData.map(d => d.revenue), 5);
+                                    const yMax = Math.ceil(maxVal * 1.2);
 
-                                    const points = revenueData.map((d, i) => {
+                                    const points = chartData.map((d, i) => {
                                         const x = 50 + (i * 100);
                                         const y = 250 - ((d.revenue / yMax) * 200);
                                         return { x, y, val: d.revenue, label: d.label };
@@ -223,7 +257,7 @@ export default function DashboardContent() {
                                     const areaD = `${pathD} L ${points[points.length - 1].x},250 L ${points[0].x},250 Z`;
 
                                     const yLabels = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax].map(v =>
-                                        v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${Math.round(v)}`
+                                        Math.round(v).toString()
                                     );
 
                                     return (
@@ -259,44 +293,53 @@ export default function DashboardContent() {
                     </div>
                 </div>
 
-                {/* Recent Transactions */}
+                {/* Recent Activity */}
                 <div className="col-span-3 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
                     <div className="mb-4 flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">Recent ID Activity</h3>
                         <Activity className="h-5 w-5 text-secondary" />
                     </div>
                     <div className="space-y-4">
-                        {transactions.map((t, i) => (
-                            <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-lg bg-green-100 text-green-600">
-                                        <TrendingUp className="h-4 w-4" />
+                        {transactions.length === 0 ? (
+                            <div className="text-center py-10">
+                                <FileText className="h-10 w-10 text-gray-200 mx-auto mb-2" />
+                                <p className="text-gray-400 text-sm">No recent activity</p>
+                            </div>
+                        ) : (
+                            transactions.map((t, i) => (
+                                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-2 rounded-lg ${t.status === 'printed' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+                                            }`}>
+                                            <FileText className="h-4 w-4" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-semibold text-gray-900 truncate">{t.name}</p>
+                                            <p className="text-[10px] text-gray-500 font-mono">
+                                                {t.employeeId}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-semibold text-gray-900 truncate">{t.name}</p>
-                                        <p className="text-xs text-gray-500">
+                                    <div className="text-right">
+                                        <p className="text-[10px] text-gray-400">
                                             {hasMounted ? new Date(t.date).toLocaleDateString() : '...'}
                                         </p>
+                                        <p className={`text-[10px] uppercase font-bold ${t.status === 'printed' ? 'text-green-600' : 'text-blue-600'
+                                            }`}>{t.status.replace(/_/g, ' ')}</p>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-sm font-bold text-gray-900">${t.amount}</p>
-                                    <p className="text-[10px] uppercase font-bold text-green-600">{t.status}</p>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
 
             {/* Top Employees Table */}
             <DataTable
-                title="All Employees"
+                title="Recent Employees"
                 columns={employeeColumns}
                 data={employees}
                 loading={loading}
-                addButtonLabel="Add Employee"
-                onAddClick={() => console.log("Add Employee clicked")}
             />
         </div>
     );

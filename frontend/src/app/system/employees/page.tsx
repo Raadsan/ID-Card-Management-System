@@ -10,6 +10,7 @@ import Modal from "@/components/layout/Modal";
 import ViewEmployeeModal from "@/components/ViewEmployeeModal";
 import DeleteConfirmModal from "@/components/layout/ConfirmDeleteModel";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
+import { UPLOAD_URL } from "@/api/axios";
 
 // Define the Employee type based on your API response
 interface Employee {
@@ -312,7 +313,7 @@ export default function EmployeesPage() {
                     <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200">
                             <img
-                                src={row.user?.photo ? `http://localhost:5000/uploads/${row.user.photo}` : "/placeholder-user.png"}
+                                src={row.user?.photo ? `${UPLOAD_URL}/${row.user.photo}` : "/placeholder-user.png"}
                                 alt={row.user?.fullName || "User"}
                                 className="h-full w-full object-cover"
                                 onError={(e) => {

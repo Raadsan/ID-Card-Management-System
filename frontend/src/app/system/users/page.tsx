@@ -8,6 +8,7 @@ import { Edit, Trash2, UserPlus, Mail, Phone, Shield, Lock, X, Save, Image as Im
 import Modal from "@/components/layout/Modal";
 import DeleteConfirmModal from "@/components/layout/ConfirmDeleteModel";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
+import { UPLOAD_URL } from "@/api/axios";
 
 // Define the User type based on your API response
 interface User {
@@ -97,7 +98,7 @@ export default function UsersPage() {
         });
         setUserToEdit(user);
         setSelectedPhoto(null);
-        setPhotoPreview(user.photo ? `http://localhost:5000/uploads/${user.photo}` : null);
+        setPhotoPreview(user.photo ? `${UPLOAD_URL}/${user.photo}` : null);
         setShowEditModal(true);
     };
 
@@ -248,7 +249,7 @@ export default function UsersPage() {
                     <div className="h-10 w-10 rounded-full overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
                         {row.photo ? (
                             <img
-                                src={`http://localhost:5000/uploads/${row.photo}`}
+                                src={`${UPLOAD_URL}/${row.photo}`}
                                 alt=""
                                 className="h-full w-full object-cover"
                             />

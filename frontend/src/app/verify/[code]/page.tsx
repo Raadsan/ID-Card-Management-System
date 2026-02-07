@@ -6,6 +6,7 @@ import { CheckCircle2, XCircle, ShieldCheck, Loader2, MapPin, Calendar, User, Fi
 import { verifyQrCode } from "@/api/generateIdApi";
 
 const SERVER_URL = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:5000';
+import { UPLOAD_URL } from "@/api/axios";
 
 export default function VerificationPage() {
     const params = useParams();
@@ -40,7 +41,7 @@ export default function VerificationPage() {
         const cleanPath = path.startsWith('/') ? path.substring(1) : path;
         // If it's just a filename (no slashes), it's in the uploads folder
         if (!cleanPath.includes('/') && !cleanPath.includes('\\')) {
-            return `${SERVER_URL}/uploads/${cleanPath}`;
+            return `${UPLOAD_URL}/${cleanPath}`;
         }
         return `${SERVER_URL}/${cleanPath}`;
     };

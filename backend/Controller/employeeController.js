@@ -119,11 +119,12 @@ export const getEmployeeById = async (req, res) => {
 export const updateEmployee = async (req, res) => {
     try {
         const { id } = req.params;
-        const { dob, departmentId, ...updateData } = req.body;
+        const { dob, departmentId, userId, ...updateData } = req.body;
 
         const data = { ...updateData };
         if (dob) data.dob = new Date(dob);
         if (departmentId) data.departmentId = Number(departmentId);
+        if (userId) data.userId = Number(userId);
 
         const employee = await prisma.employee.update({
             where: { id: Number(id) },
@@ -132,6 +133,7 @@ export const updateEmployee = async (req, res) => {
         });
         res.status(200).json(employee);
     } catch (error) {
+        console.error("Update Employee Error:", error);
         res.status(500).json({ message: "Failed to update employee", error: error.message });
     }
 };
