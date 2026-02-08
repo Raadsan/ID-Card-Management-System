@@ -16,6 +16,14 @@ interface ViewIdModalProps {
 
 
 
+const ID_TEXT_STYLE = {
+    fontFamily: '"Outfit", sans-serif',
+    fontWeight: "700", // Bold
+    letterSpacing: "0.5px",
+    fontSize: "14px",
+    textTransform: "uppercase" as const
+};
+
 export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewIdModalProps) {
     const [showFront, setShowFront] = useState(true);
     const [scale, setScale] = useState(0.8);
@@ -146,18 +154,20 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                             <img
                                                 src={getImageUrl(idCard.employee?.user?.photo) || '/placeholder-user.png'}
                                                 alt=""
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full"
+                                                style={{ objectFit: (positions.photo as any).objectFit || 'cover' }}
                                             />
                                         </div>
                                         <div
                                             className="absolute whitespace-nowrap overflow-hidden"
                                             style={{
+                                                ...ID_TEXT_STYLE,
                                                 left: `${positions.fullName.x}px`,
                                                 top: `${positions.fullName.y}px`,
-                                                fontSize: `${positions.fullName.fontSize}px`,
+                                                fontSize: `${(positions.fullName as any).fontSize || 24}px`,
+                                                fontWeight: (positions.fullName as any).fontWeight || 'bold',
+                                                textAlign: (positions.fullName as any).textAlign || 'left',
                                                 color: positions.fullName.color,
-                                                fontFamily: 'Arial, sans-serif',
-                                                fontWeight: 'bold',
                                                 maxWidth: `${(idCard.template?.width || 350) - positions.fullName.x - 20}px`,
                                                 textOverflow: 'ellipsis'
                                             }}
@@ -167,12 +177,13 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                         <div
                                             className="absolute whitespace-nowrap overflow-hidden"
                                             style={{
+                                                ...ID_TEXT_STYLE,
                                                 left: `${positions.title.x}px`,
                                                 top: `${positions.title.y}px`,
                                                 fontSize: `${(positions.title as any).fontSize || 18}px`,
-                                                color: (positions.title as any).color || '#000000',
-                                                fontFamily: 'Arial, sans-serif',
                                                 fontWeight: (positions.title as any).fontWeight || 'normal',
+                                                textAlign: (positions.title as any).textAlign || 'left',
+                                                color: (positions.title as any).color || '#000000',
                                                 maxWidth: `${(idCard.template?.width || 350) - positions.title.x - 20}px`,
                                                 textOverflow: 'ellipsis'
                                             }}
@@ -182,11 +193,13 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                         <div
                                             className="absolute whitespace-nowrap overflow-hidden"
                                             style={{
+                                                ...ID_TEXT_STYLE,
                                                 left: `${positions.department.x}px`,
                                                 top: `${positions.department.y}px`,
-                                                fontSize: `${positions.department.fontSize}px`,
+                                                fontSize: `${(positions.department as any).fontSize || 18}px`,
+                                                fontWeight: (positions.department as any).fontWeight || 'normal',
+                                                textAlign: (positions.department as any).textAlign || 'left',
                                                 color: positions.department.color,
-                                                fontFamily: 'Arial, sans-serif',
                                                 maxWidth: `${(idCard.template?.width || 350) - positions.department.x - 20}px`,
                                                 textOverflow: 'ellipsis'
                                             }}
@@ -196,11 +209,29 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                         <div
                                             className="absolute whitespace-nowrap overflow-hidden"
                                             style={{
+                                                ...ID_TEXT_STYLE,
+                                                left: `${(positions as any).issueDate?.x || 0}px`,
+                                                top: `${(positions as any).issueDate?.y || 0}px`,
+                                                fontSize: `${(positions as any).issueDate?.fontSize || 16}px`,
+                                                fontWeight: (positions as any).issueDate?.fontWeight || 'normal',
+                                                textAlign: (positions as any).issueDate?.textAlign || 'left',
+                                                color: (positions as any).issueDate?.color || '#000000',
+                                                maxWidth: `${(idCard.template?.width || 350) - ((positions as any).issueDate?.x || 0) - 20}px`,
+                                                textOverflow: 'ellipsis'
+                                            }}
+                                        >
+                                            ISSUE: {idCard.issueDate ? new Date(idCard.issueDate).toLocaleDateString() : '01/01/2026'}
+                                        </div>
+                                        <div
+                                            className="absolute whitespace-nowrap overflow-hidden"
+                                            style={{
+                                                ...ID_TEXT_STYLE,
                                                 left: `${positions.expiryDate.x}px`,
                                                 top: `${positions.expiryDate.y}px`,
                                                 fontSize: `${(positions.expiryDate as any).fontSize || 16}px`,
+                                                fontWeight: (positions.expiryDate as any).fontWeight || 'normal',
+                                                textAlign: (positions.expiryDate as any).textAlign || 'left',
                                                 color: (positions.expiryDate as any).color || '#000000',
-                                                fontFamily: 'Arial, sans-serif',
                                                 maxWidth: `${(idCard.template?.width || 350) - positions.expiryDate.x - 20}px`,
                                                 textOverflow: 'ellipsis'
                                             }}
@@ -210,12 +241,14 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                         <div
                                             className="absolute whitespace-nowrap overflow-hidden"
                                             style={{
+                                                ...ID_TEXT_STYLE,
                                                 left: `${positions.idNumber.x}px`,
                                                 top: `${positions.idNumber.y}px`,
-                                                fontSize: `${positions.idNumber.fontSize}px`,
+                                                fontSize: `${(positions.idNumber as any).fontSize || 16}px`,
+                                                fontWeight: (positions.idNumber as any).fontWeight || 'bold',
+                                                textAlign: (positions.idNumber as any).textAlign || 'left',
+                                                fontFamily: 'monospace',
                                                 color: positions.idNumber.color,
-                                                fontFamily: 'Courier New, monospace',
-                                                letterSpacing: '1px',
                                                 maxWidth: `${(idCard.template?.width || 350) - positions.idNumber.x - 20}px`,
                                                 textOverflow: 'ellipsis'
                                             }}
@@ -239,6 +272,8 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                             value={`${window.location.origin}/verify/${idCard.qrCode}`}
                                             width="100%"
                                             height="100%"
+                                            fgColor="#000000"
+                                            bgColor="#ffffff"
                                         />
                                     </div>
                                 )}
@@ -272,7 +307,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                             <div className="bg-white p-4 rounded-2xl shadow-sm mb-4">
                                 <QRCodeSVG
                                     value={`${window.location.origin}/verify/${idCard.qrCode}`}
-                                    size={150}
+                                    size={250}
                                     level="H"
                                     includeMargin={false}
                                 />

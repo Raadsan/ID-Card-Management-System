@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+import { Outfit } from "next/font/google";
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex min-h-screen bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased flex min-h-screen bg-background text-foreground`}
         suppressHydrationWarning
       >
         {/* Sidebar Component - Hidden on public pages */}

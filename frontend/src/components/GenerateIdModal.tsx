@@ -31,6 +31,14 @@ interface GenerateIdModalProps {
 
 
 
+const ID_TEXT_STYLE = {
+    fontFamily: '"Outfit", sans-serif',
+    fontWeight: "700", // Bold
+    letterSpacing: "0.5px",
+    fontSize: "14px",
+    textTransform: "uppercase" as const
+};
+
 export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProps) {
 
     const [currentStep, setCurrentStep] = useState(1);
@@ -47,14 +55,15 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
     const [issueDate, setIssueDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [expiryDate, setExpiryDate] = useState<string>("");
 
-    // Positions State (Loaded from Template, Read-Only here)
+
     const [positions, setPositions] = useState({
         photo: { x: 100, y: 100, width: 150, height: 150 },
-        fullName: { x: 175, y: 280, fontSize: 24, color: "#000000" },
-        title: { x: 175, y: 300, fontSize: 18, color: "#000000" },
-        department: { x: 175, y: 320, fontSize: 18, color: "#666666" },
-        idNumber: { x: 175, y: 360, fontSize: 16, color: "#000000" },
-        expiryDate: { x: 175, y: 380, fontSize: 16, color: "#000000" },
+        fullName: { x: 175, y: 280, fontSize: 24, color: "#000000", fontWeight: "bold", textAlign: "left" },
+        title: { x: 175, y: 300, fontSize: 18, color: "#000000", fontWeight: "normal", textAlign: "left" },
+        department: { x: 175, y: 320, fontSize: 18, color: "#666666", fontWeight: "normal", textAlign: "left" },
+        idNumber: { x: 175, y: 360, fontSize: 16, color: "#000000", fontWeight: "bold", textAlign: "left" },
+        expiryDate: { x: 175, y: 380, fontSize: 16, color: "#000000", fontWeight: "normal", textAlign: "left" },
+        issueDate: { x: 175, y: 400, fontSize: 16, color: "#000000", fontWeight: "normal", textAlign: "left" },
         qrCode: { x: 100, y: 100, width: 100, height: 100 }
     });
 
@@ -367,6 +376,23 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                         <>
                                             {/* Layers */}
                                             <div
+                                                className="absolute whitespace-nowrap"
+                                                style={{
+                                                    left: `${(positions as any).issueDate?.x || 0}px`,
+                                                    top: `${(positions as any).issueDate?.y || 0}px`,
+                                                    fontSize: `${(positions as any).issueDate?.fontSize || 14}px`,
+                                                    color: (positions as any).issueDate?.color || '#000000',
+                                                    fontFamily: '"Outfit", sans-serif',
+                                                    fontWeight: (positions as any).issueDate?.fontWeight || 'normal',
+                                                    textTransform: 'uppercase',
+                                                    textAlign: (positions as any).issueDate?.textAlign || 'left'
+                                                }}
+                                            >
+                                                ISSUE: {issueDate ? new Date(issueDate).toLocaleDateString() : '01/01/2026'}
+                                            </div>
+
+                                            {/* Photo */}
+                                            <div
                                                 className="absolute overflow-hidden"
                                                 style={{
                                                     left: `${positions.photo.x}px`,
@@ -379,7 +405,8 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                                     <img
                                                         src={getImageUrl(selectedEmployee.user.photo) || ''}
                                                         alt=""
-                                                        className="w-full h-full object-cover"
+                                                        className="w-full h-full"
+                                                        style={{ objectFit: (positions.photo as any).objectFit || 'cover' }}
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-xs border border-dashed border-gray-400">
@@ -390,12 +417,13 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                             <div
                                                 className="absolute whitespace-nowrap overflow-hidden"
                                                 style={{
+                                                    ...ID_TEXT_STYLE,
                                                     left: `${positions.fullName.x}px`,
                                                     top: `${positions.fullName.y}px`,
-                                                    fontSize: `${positions.fullName.fontSize}px`,
+                                                    fontSize: `${(positions.fullName as any).fontSize || 24}px`,
+                                                    fontWeight: (positions.fullName as any).fontWeight || 'bold',
+                                                    textAlign: (positions.fullName as any).textAlign || 'left',
                                                     color: positions.fullName.color,
-                                                    fontFamily: 'Arial, sans-serif',
-                                                    fontWeight: 'bold',
                                                     maxWidth: `${(selectedTemplate?.width || 350) - positions.fullName.x - 20}px`,
                                                     textOverflow: 'ellipsis'
                                                 }}
@@ -405,12 +433,13 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                             <div
                                                 className="absolute whitespace-nowrap overflow-hidden"
                                                 style={{
+                                                    ...ID_TEXT_STYLE,
                                                     left: `${positions.title.x}px`,
                                                     top: `${positions.title.y}px`,
                                                     fontSize: `${(positions.title as any).fontSize || 18}px`,
-                                                    color: (positions.title as any).color || '#000000',
-                                                    fontFamily: 'Arial, sans-serif',
                                                     fontWeight: (positions.title as any).fontWeight || 'normal',
+                                                    textAlign: (positions.title as any).textAlign || 'left',
+                                                    color: (positions.title as any).color || '#000000',
                                                     maxWidth: `${(selectedTemplate?.width || 350) - positions.title.x - 20}px`,
                                                     textOverflow: 'ellipsis'
                                                 }}
@@ -420,11 +449,13 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                             <div
                                                 className="absolute whitespace-nowrap overflow-hidden"
                                                 style={{
+                                                    ...ID_TEXT_STYLE,
                                                     left: `${positions.department.x}px`,
                                                     top: `${positions.department.y}px`,
-                                                    fontSize: `${positions.department.fontSize}px`,
+                                                    fontSize: `${(positions.department as any).fontSize || 18}px`,
+                                                    fontWeight: (positions.department as any).fontWeight || 'normal',
+                                                    textAlign: (positions.department as any).textAlign || 'left',
                                                     color: positions.department.color,
-                                                    fontFamily: 'Arial, sans-serif',
                                                     maxWidth: `${(selectedTemplate?.width || 350) - positions.department.x - 20}px`,
                                                     textOverflow: 'ellipsis'
                                                 }}
@@ -434,11 +465,13 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                             <div
                                                 className="absolute whitespace-nowrap overflow-hidden"
                                                 style={{
+                                                    ...ID_TEXT_STYLE,
                                                     left: `${positions.expiryDate.x}px`,
                                                     top: `${positions.expiryDate.y}px`,
                                                     fontSize: `${(positions.expiryDate as any).fontSize || 16}px`,
+                                                    fontWeight: (positions.expiryDate as any).fontWeight || 'normal',
+                                                    textAlign: (positions.expiryDate as any).textAlign || 'left',
                                                     color: (positions.expiryDate as any).color || '#000000',
-                                                    fontFamily: 'Arial, sans-serif',
                                                     maxWidth: `${(selectedTemplate?.width || 350) - positions.expiryDate.x - 20}px`,
                                                     textOverflow: 'ellipsis'
                                                 }}
@@ -448,17 +481,19 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                             <div
                                                 className="absolute whitespace-nowrap overflow-hidden"
                                                 style={{
+                                                    ...ID_TEXT_STYLE,
                                                     left: `${positions.idNumber.x}px`,
                                                     top: `${positions.idNumber.y}px`,
-                                                    fontSize: `${positions.idNumber.fontSize}px`,
+                                                    fontSize: `${(positions.idNumber as any).fontSize || 16}px`,
+                                                    fontWeight: (positions.idNumber as any).fontWeight || 'bold',
+                                                    textAlign: (positions.idNumber as any).textAlign || 'left',
+                                                    fontFamily: 'monospace',
                                                     color: positions.idNumber.color,
-                                                    fontFamily: 'Courier New, monospace',
-                                                    letterSpacing: '1px',
                                                     maxWidth: `${(selectedTemplate?.width || 350) - positions.idNumber.x - 20}px`,
                                                     textOverflow: 'ellipsis'
                                                 }}
                                             >
-                                                EMP-{selectedEmployee?.id.toString().padStart(4, '0')}
+                                                EMP-{selectedEmployee?.id.toString().padStart(4, '0') || '0000'}
                                             </div>
                                         </>
                                     )}
