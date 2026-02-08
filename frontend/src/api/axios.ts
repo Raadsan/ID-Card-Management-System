@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Create axios instance with base configuration
-export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+export const BASE_URL ="https://id-card-management-system.vercel.app/api";
 export const UPLOAD_URL = BASE_URL.replace("/api", "/uploads");
 
 const api = axios.create({
