@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import Modal from "./layout/Modal";
 import { updateTemplate, IdCardTemplate } from "@/api/idTemplateApi";
 import { Loader2, Layout, Image as ImageIcon, CheckCircle2, Shield, FileText, Ruler, User, MapPin, CreditCard, ChevronRight, ChevronLeft, QrCode, Type, Bold } from "lucide-react";
+import { UPLOAD_URL } from "@/api/axios";
+
 
 interface EditIdTemplateModalProps {
     isOpen: boolean;
@@ -12,7 +14,7 @@ interface EditIdTemplateModalProps {
     template: IdCardTemplate | null;
 }
 
-const SERVER_URL = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:5000';
+
 
 const EditIdTemplateModal: React.FC<EditIdTemplateModalProps> = ({
     isOpen,
@@ -166,11 +168,14 @@ const EditIdTemplateModal: React.FC<EditIdTemplateModalProps> = ({
     const getImageUrl = (path?: string) => {
         if (!path) return null;
         if (path.startsWith('http')) return path;
-        const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-        if (!cleanPath.includes('/') && !cleanPath.includes('\\')) {
-            return `${SERVER_URL}/uploads/${cleanPath}`;
+
+        // If it already starts with uploads/, we need to be careful with double /uploads/uploads
+        if (path.startsWith('uploads/')) {
+            const rootUrl = UPLOAD_URL.replace('/uploads', '');
+            return `${rootUrl}/${path}`;
         }
-        return `${SERVER_URL}/${cleanPath}`;
+
+        return `${UPLOAD_URL}/${path}`;
     };
 
     const handleNext = () => {

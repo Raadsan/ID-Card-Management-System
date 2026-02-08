@@ -5,6 +5,8 @@ import { X, ChevronRight, ChevronLeft, User, FileText, MapPin, CreditCard, Refre
 import { getEmployees } from "@/api/employeeApi";
 import { getAllTemplates, IdCardTemplate } from "@/api/idTemplateApi";
 import { createIdGenerate, getAllIdGenerates, IdGenerate } from "@/api/generateIdApi";
+import { UPLOAD_URL } from "@/api/axios";
+
 
 interface Employee {
     id: number;
@@ -27,7 +29,7 @@ interface GenerateIdModalProps {
     onClose: () => void;
 }
 
-const SERVER_URL = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:5000';
+
 
 export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProps) {
 
@@ -155,13 +157,14 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
     const getImageUrl = (path?: string) => {
         if (!path) return null;
         if (path.startsWith('http')) return path;
-        // Construct full URL
-        const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-        // If it looks like a raw filename (no slashes), assume it goes to /uploads/
-        if (!cleanPath.includes('/') && !cleanPath.includes('\\')) {
-            return `${SERVER_URL}/uploads/${cleanPath}`;
+
+        // If it already starts with uploads/, we need to be careful with double /uploads/uploads
+        if (path.startsWith('uploads/')) {
+            const rootUrl = UPLOAD_URL.replace('/uploads', '');
+            return `${rootUrl}/${path}`;
         }
-        return `${SERVER_URL}/${cleanPath}`;
+
+        return `${UPLOAD_URL}/${path}`;
     };
 
     if (!isOpen) return null;

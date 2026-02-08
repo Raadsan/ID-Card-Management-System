@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { getMe, updateUser } from "@/api/userApi";
 import { Camera, Mail, Phone, Shield, User, Loader2, Save, Trash2, ShieldCheck } from "lucide-react";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
+import { UPLOAD_URL } from "@/api/axios";
+
 
 export default function ProfilePage() {
     const [user, setUser] = useState<any>(null);
@@ -35,7 +37,10 @@ export default function ProfilePage() {
             const data = await getMe();
             setUser(data);
             if (data.photo) {
-                setPreviewImage(`http://localhost:5000/uploads/${data.photo}`);
+                const photoSrc = data.photo.startsWith('uploads/')
+                    ? `${UPLOAD_URL.replace('/uploads', '')}/${data.photo}`
+                    : `${UPLOAD_URL}/${data.photo}`;
+                setPreviewImage(photoSrc);
             }
         } catch (error) {
             console.error("Failed to fetch profile:", error);

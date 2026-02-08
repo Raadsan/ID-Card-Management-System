@@ -12,8 +12,9 @@ export const createTemplate = async (req, res) => {
             return res.status(400).json({ error: "Front background image is required" });
         }
 
-        const frontBackground = req.files.frontBackground[0].path;
-        const backBackground = req.files.backBackground ? req.files.backBackground[0].path : null;
+        const frontBackground = req.files.frontBackground?.[0]?.filename;
+        const backBackground = req.files.backBackground?.[0]?.filename;
+
 
         // Convert string to numbers (multipart/form-data sends strings)
         const numWidth = parseInt(width);
@@ -39,8 +40,9 @@ export const createTemplate = async (req, res) => {
                 description,
                 width: numWidth,
                 height: numHeight,
-                frontBackground: frontBackground.replace(/\\/g, "/"), // Ensure forward slashes for URLs
-                backBackground: backBackground ? backBackground.replace(/\\/g, "/") : null,
+                frontBackground,
+                backBackground,
+
                 status: status || "active",
                 layout: parsedLayout,
             },
@@ -125,10 +127,10 @@ export const updateTemplate = async (req, res) => {
             if (req.files.frontBackground) {
                 // Delete old image if exists
                 // (Optional: Implement file deletion logic here if strictly required, skipping for now to focus on logic)
-                updateData.frontBackground = req.files.frontBackground[0].path.replace(/\\/g, "/");
+                updateData.frontBackground = req.files.frontBackground[0].filename;
             }
             if (req.files.backBackground) {
-                updateData.backBackground = req.files.backBackground[0].path.replace(/\\/g, "/");
+                updateData.backBackground = req.files.backBackground[0].filename;
             }
         }
 

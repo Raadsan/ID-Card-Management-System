@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { X, User, MapPin, CreditCard, LayoutTemplate, Calendar, Printer, UserCheck, QrCode } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { IdGenerate } from "@/api/generateIdApi";
+import { UPLOAD_URL } from "@/api/axios";
+
 
 interface ViewIdModalProps {
     isOpen: boolean;
@@ -12,7 +14,7 @@ interface ViewIdModalProps {
     onPrint?: (id: number) => void;
 }
 
-const SERVER_URL = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:5000';
+
 
 export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewIdModalProps) {
     const [showFront, setShowFront] = useState(true);
@@ -49,11 +51,14 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
     const getImageUrl = (path: string | null) => {
         if (!path) return null;
         if (path.startsWith('http')) return path;
-        const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-        if (!cleanPath.includes('/') && !cleanPath.includes('\\')) {
-            return `${SERVER_URL}/uploads/${cleanPath}`;
+
+        // If it already starts with uploads/, we need to be careful with double /uploads/uploads
+        if (path.startsWith('uploads/')) {
+            const rootUrl = UPLOAD_URL.replace('/uploads', '');
+            return `${rootUrl}/${path}`;
         }
-        return `${SERVER_URL}/${cleanPath}`;
+
+        return `${UPLOAD_URL}/${path}`;
     };
 
     const statusColors = {

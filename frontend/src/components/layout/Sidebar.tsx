@@ -73,7 +73,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
             } catch (error: any) {
                 console.error("Failed to fetch menus:", error);
                 if (error.message === "Network Error") {
-                    console.error("Please ensure the backend server is running on http://localhost:5000");
+                    console.error("Please ensure the backend server is reachable.");
                 }
                 setMenus([]);
             } finally {

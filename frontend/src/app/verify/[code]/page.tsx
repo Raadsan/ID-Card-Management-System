@@ -5,8 +5,8 @@ import { useParams } from "next/navigation";
 import { CheckCircle2, XCircle, ShieldCheck, Loader2, MapPin, Calendar, User, Fingerprint } from "lucide-react";
 import { verifyQrCode } from "@/api/generateIdApi";
 
-const SERVER_URL = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:5000';
 import { UPLOAD_URL } from "@/api/axios";
+
 
 export default function VerificationPage() {
     const params = useParams();
@@ -38,12 +38,14 @@ export default function VerificationPage() {
     const getImageUrl = (path: string | null) => {
         if (!path) return null;
         if (path.startsWith('http')) return path;
-        const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-        // If it's just a filename (no slashes), it's in the uploads folder
-        if (!cleanPath.includes('/') && !cleanPath.includes('\\')) {
-            return `${UPLOAD_URL}/${cleanPath}`;
+
+        // If it already starts with uploads/, we need to be careful with double /uploads/uploads
+        if (path.startsWith('uploads/')) {
+            const rootUrl = UPLOAD_URL.replace('/uploads', '');
+            return `${rootUrl}/${path}`;
         }
-        return `${SERVER_URL}/${cleanPath}`;
+
+        return `${UPLOAD_URL}/${path}`;
     };
 
     const formatDate = (date: string | null) => {

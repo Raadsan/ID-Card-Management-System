@@ -55,7 +55,21 @@ export default function UsersPage() {
         type: "info",
     });
 
+    const getImageUrl = (path: string | null | undefined) => {
+        if (!path) return null;
+        if (path.startsWith('http') || path.startsWith('data:')) return path;
+
+        // If it already starts with uploads/, we need to be careful with double /uploads/uploads
+        if (path.startsWith('uploads/')) {
+            const rootUrl = UPLOAD_URL.replace('/uploads', '');
+            return `${rootUrl}/${path}`;
+        }
+
+        return `${UPLOAD_URL}/${path}`;
+    };
+
     useEffect(() => {
+
         fetchInitialData();
     }, []);
 
@@ -98,7 +112,7 @@ export default function UsersPage() {
         });
         setUserToEdit(user);
         setSelectedPhoto(null);
-        setPhotoPreview(user.photo ? `${UPLOAD_URL}/${user.photo}` : null);
+        setPhotoPreview(getImageUrl(user.photo));
         setShowEditModal(true);
     };
 
@@ -249,7 +263,7 @@ export default function UsersPage() {
                     <div className="h-10 w-10 rounded-full overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
                         {row.photo ? (
                             <img
-                                src={`${UPLOAD_URL}/${row.photo}`}
+                                src={getImageUrl(row.photo) || ''}
                                 alt=""
                                 className="h-full w-full object-cover"
                             />
