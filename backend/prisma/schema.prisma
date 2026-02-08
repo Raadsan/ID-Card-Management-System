@@ -114,7 +114,6 @@ model Employee {
   transfers    DepartmentTransfer[]
   department   Department           @relation(fields: [departmentId], references: [id])
   user         User                 @relation(fields: [userId], references: [id])
-  // 👇 ADD THIS
   idGenerates  IdGenerate[]
 
   @@index([departmentId], map: "Employee_departmentId_fkey")
