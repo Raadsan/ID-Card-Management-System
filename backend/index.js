@@ -17,6 +17,8 @@ import employeeReportRoutes from "./Routes/report/employeeReportRoutes.js";
 import departmentReportRoutes from "./Routes/report/departmentReportRoutes.js";
 import departmentTransferReportRoutes from "./Routes/report/departmentTransferReportRoutes.js";
 import idCardReportRoutes from "./Routes/report/idCardReportRoutes.js";
+import job from "./config/cron.js";
+
 
 
 const app = express();
@@ -58,6 +60,8 @@ async function startServer() {
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
+      job.start();
+      console.log("⏰ Cron job started successfully!");
     });
   } catch (error) {
     console.error("❌ Database connection failed!");
