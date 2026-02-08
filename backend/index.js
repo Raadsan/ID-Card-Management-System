@@ -36,6 +36,9 @@ app.get("/verify/:qrCode", (req, res) => {
   res.redirect(`${frontendUrl}/verify/${qrCode}`);
 });
 
+app.get("/", (req, res) => {
+  res.send("ID Card Management System API");
+});
 
 app.use("/api/roles", roleRoutes);
 app.use("/api/users", userRoutes);
