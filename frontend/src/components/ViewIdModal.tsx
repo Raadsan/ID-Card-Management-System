@@ -88,7 +88,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
 
                 {/* Left Side: Preview Area */}
                 <div className="flex-1 bg-gray-50 flex flex-col border-r border-gray-100">
-                    <div className="p-5 border-b border-gray-100 bg-white flex justify-between items-center pr-20">
+                    <div className="p-5 border-b border-gray-100 bg-white flex justify-between items-center pr-28">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
                                 <CreditCard className="w-4 h-4" />
@@ -169,7 +169,8 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 textAlign: (positions.fullName as any).textAlign || 'left',
                                                 color: positions.fullName.color,
                                                 maxWidth: `${(idCard.template?.width || 350) - positions.fullName.x - 20}px`,
-                                                textOverflow: 'ellipsis'
+                                                textOverflow: 'ellipsis',
+                                                letterSpacing: '2px',
                                             }}
                                         >
                                             {idCard.employee?.user.fullName}
@@ -269,7 +270,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                         }}
                                     >
                                         <QRCodeSVG
-                                            value={`${window.location.origin}/verify/${idCard.qrCode}`}
+                                            value={`https://id-card-management-system.vercel.app/verify/${idCard.qrCode}`}
                                             width="100%"
                                             height="100%"
                                             fgColor="#000000"
@@ -306,7 +307,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                         <div className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-3xl border border-gray-100">
                             <div className="bg-white p-4 rounded-2xl shadow-sm mb-4">
                                 <QRCodeSVG
-                                    value={`${window.location.origin}/verify/${idCard.qrCode}`}
+                                    value={`https://id-card-management-system.vercel.app/verify/${idCard.qrCode}`}
                                     size={250}
                                     level="H"
                                     includeMargin={false}
