@@ -6,6 +6,7 @@ import { getEmployees } from "@/api/employeeApi";
 import { getAllTemplates, IdCardTemplate } from "@/api/idTemplateApi";
 import { createIdGenerate, getAllIdGenerates, IdGenerate } from "@/api/generateIdApi";
 import { UPLOAD_URL } from "@/api/axios";
+import { IdCardPreview, DEFAULT_POSITIONS, IdTemplatePositions } from "./IdTemplateLayout";
 
 
 interface Employee {
@@ -56,16 +57,7 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
     const [expiryDate, setExpiryDate] = useState<string>("");
 
 
-    const [positions, setPositions] = useState({
-        photo: { x: 100, y: 100, width: 150, height: 150 },
-        fullName: { x: 175, y: 280, fontSize: 24, color: "#000000", fontWeight: "bold", textAlign: "left" },
-        title: { x: 175, y: 300, fontSize: 18, color: "#000000", fontWeight: "normal", textAlign: "left" },
-        department: { x: 175, y: 320, fontSize: 18, color: "#666666", fontWeight: "normal", textAlign: "left" },
-        idNumber: { x: 175, y: 360, fontSize: 16, color: "#000000", fontWeight: "bold", textAlign: "left" },
-        expiryDate: { x: 175, y: 380, fontSize: 16, color: "#000000", fontWeight: "normal", textAlign: "left" },
-        issueDate: { x: 175, y: 400, fontSize: 16, color: "#000000", fontWeight: "normal", textAlign: "left" },
-        qrCode: { x: 100, y: 100, width: 100, height: 100 }
-    });
+    const [positions, setPositions] = useState<IdTemplatePositions>(DEFAULT_POSITIONS);
 
     // Zoom State
     const [scale, setScale] = useState(0.8);
@@ -84,16 +76,25 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
         }
     }, [isOpen]);
 
-    // Load layout when template changes
     useEffect(() => {
         if (selectedTemplate && selectedTemplate.layout) {
             try {
                 const layoutData = typeof selectedTemplate.layout === 'string' ? JSON.parse(selectedTemplate.layout) : selectedTemplate.layout;
-                setPositions(prev => ({
-                    ...prev,
-                    ...layoutData,
-                    qrCode: layoutData.qrCode || layoutData.barcode || prev.qrCode
-                }));
+                setPositions(prev => {
+                    const merged: IdTemplatePositions = { ...prev };
+                    Object.keys(layoutData).forEach(key => {
+                        if ((prev as any)[key]) {
+                            (merged as any)[key] = { ...((prev as any)[key] as any), ...layoutData[key] };
+                        } else {
+                            (merged as any)[key] = layoutData[key];
+                        }
+                    });
+                    // Fallback for barcode/qrCode naming differences
+                    if (layoutData.barcode && !layoutData.qrCode) {
+                        merged.qrCode = { ...merged.qrCode, ...layoutData.barcode };
+                    }
+                    return merged;
+                });
             } catch (e) {
                 console.error("Error parsing template layout", e);
             }
@@ -356,163 +357,42 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                             </div>
 
                             {/* Canvas Area */}
-                            <div className="flex-1 overflow-auto flex items-center justify-center p-8 bg-[url('https://repo.sourcelink.com/static/transparent-bg.png')] bg-gray-100">
-                                <div
-                                    className="relative shadow-2xl transition-all duration-300 ring-4 ring-black/5 bg-white scale-container"
-                                    style={{
-                                        transform: `scale(${scale})`,
-                                        transformOrigin: 'center',
-                                        width: `${selectedTemplate?.width}px`,
-                                        height: `${selectedTemplate?.height}px`,
-                                        backgroundImage: `url(${getImageUrl(
-                                            showFront ? selectedTemplate?.frontBackground : selectedTemplate?.backBackground
-                                        )})`,
-                                        backgroundSize: '100% 100%',
-                                        backgroundPosition: 'center',
-                                        backgroundColor: 'white'
-                                    }}
-                                >
-                                    {showFront && (
-                                        <>
-                                            {/* Layers */}
-                                            <div
-                                                className="absolute whitespace-nowrap"
-                                                style={{
-                                                    left: `${(positions as any).issueDate?.x || 0}px`,
-                                                    top: `${(positions as any).issueDate?.y || 0}px`,
-                                                    fontSize: `${(positions as any).issueDate?.fontSize || 14}px`,
-                                                    color: (positions as any).issueDate?.color || '#000000',
-                                                    fontFamily: '"Outfit", sans-serif',
-                                                    fontWeight: (positions as any).issueDate?.fontWeight || 'normal',
-                                                    textTransform: 'uppercase',
-                                                    textAlign: (positions as any).issueDate?.textAlign || 'left'
-                                                }}
-                                            >
-                                                ISSUE: {issueDate ? new Date(issueDate).toLocaleDateString() : '01/01/2026'}
-                                            </div>
-
-                                            {/* Photo */}
-                                            <div
-                                                className="absolute overflow-hidden"
-                                                style={{
-                                                    left: `${positions.photo.x}px`,
-                                                    top: `${positions.photo.y}px`,
-                                                    width: `${positions.photo.width}px`,
-                                                    height: `${positions.photo.height}px`,
-                                                }}
-                                            >
-                                                {selectedEmployee?.user.photo ? (
-                                                    <img
-                                                        src={getImageUrl(selectedEmployee.user.photo) || ''}
-                                                        alt=""
-                                                        className="w-full h-full"
-                                                        style={{ objectFit: (positions.photo as any).objectFit || 'cover' }}
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-xs border border-dashed border-gray-400">
-                                                        P/H
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div
-                                                className="absolute whitespace-nowrap overflow-hidden"
-                                                style={{
-                                                    ...ID_TEXT_STYLE,
-                                                    left: `${positions.fullName.x}px`,
-                                                    top: `${positions.fullName.y}px`,
-                                                    fontSize: `${(positions.fullName as any).fontSize || 24}px`,
-                                                    fontWeight: (positions.fullName as any).fontWeight || 'bold',
-                                                    textAlign: (positions.fullName as any).textAlign || 'left',
-                                                    color: positions.fullName.color,
-                                                    maxWidth: `${(selectedTemplate?.width || 350) - positions.fullName.x - 20}px`,
-                                                    textOverflow: 'ellipsis'
-                                                }}
-                                            >
-                                                {selectedEmployee?.user.fullName}
-                                            </div>
-                                            <div
-                                                className="absolute whitespace-nowrap overflow-hidden"
-                                                style={{
-                                                    ...ID_TEXT_STYLE,
-                                                    left: `${positions.title.x}px`,
-                                                    top: `${positions.title.y}px`,
-                                                    fontSize: `${(positions.title as any).fontSize || 18}px`,
-                                                    fontWeight: (positions.title as any).fontWeight || 'normal',
-                                                    textAlign: (positions.title as any).textAlign || 'left',
-                                                    color: (positions.title as any).color || '#000000',
-                                                    maxWidth: `${(selectedTemplate?.width || 350) - positions.title.x - 20}px`,
-                                                    textOverflow: 'ellipsis'
-                                                }}
-                                            >
-                                                {selectedEmployee?.title || 'Staff'}
-                                            </div>
-                                            <div
-                                                className="absolute whitespace-nowrap overflow-hidden"
-                                                style={{
-                                                    ...ID_TEXT_STYLE,
-                                                    left: `${positions.department.x}px`,
-                                                    top: `${positions.department.y}px`,
-                                                    fontSize: `${(positions.department as any).fontSize || 18}px`,
-                                                    fontWeight: (positions.department as any).fontWeight || 'normal',
-                                                    textAlign: (positions.department as any).textAlign || 'left',
-                                                    color: positions.department.color,
-                                                    maxWidth: `${(selectedTemplate?.width || 350) - positions.department.x - 20}px`,
-                                                    textOverflow: 'ellipsis'
-                                                }}
-                                            >
-                                                {selectedEmployee?.department.departmentName}
-                                            </div>
-                                            <div
-                                                className="absolute whitespace-nowrap overflow-hidden"
-                                                style={{
-                                                    ...ID_TEXT_STYLE,
-                                                    left: `${positions.expiryDate.x}px`,
-                                                    top: `${positions.expiryDate.y}px`,
-                                                    fontSize: `${(positions.expiryDate as any).fontSize || 16}px`,
-                                                    fontWeight: (positions.expiryDate as any).fontWeight || 'normal',
-                                                    textAlign: (positions.expiryDate as any).textAlign || 'left',
-                                                    color: (positions.expiryDate as any).color || '#000000',
-                                                    maxWidth: `${(selectedTemplate?.width || 350) - positions.expiryDate.x - 20}px`,
-                                                    textOverflow: 'ellipsis'
-                                                }}
-                                            >
-                                                EXP: {expiryDate ? new Date(expiryDate).toLocaleDateString() : '31/12/2026'}
-                                            </div>
-                                            <div
-                                                className="absolute whitespace-nowrap overflow-hidden"
-                                                style={{
-                                                    ...ID_TEXT_STYLE,
-                                                    left: `${positions.idNumber.x}px`,
-                                                    top: `${positions.idNumber.y}px`,
-                                                    fontSize: `${(positions.idNumber as any).fontSize || 16}px`,
-                                                    fontWeight: (positions.idNumber as any).fontWeight || 'bold',
-                                                    textAlign: (positions.idNumber as any).textAlign || 'left',
-                                                    fontFamily: 'monospace',
-                                                    color: positions.idNumber.color,
-                                                    maxWidth: `${(selectedTemplate?.width || 350) - positions.idNumber.x - 20}px`,
-                                                    textOverflow: 'ellipsis'
-                                                }}
-                                            >
-                                                EMP-{selectedEmployee?.id.toString().padStart(4, '0') || '0000'}
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {!showFront && positions.qrCode && (
-                                        <div
-                                            className="absolute overflow-hidden flex flex-col items-center justify-center p-2 bg-white rounded-lg shadow-sm"
-                                            style={{
-                                                left: `${positions.qrCode.x}px`,
-                                                top: `${positions.qrCode.y}px`,
-                                                width: `${positions.qrCode.width}px`,
-                                                height: `${positions.qrCode.height}px`,
-                                            }}
-                                        >
-                                            <QrCode size={Math.min(positions.qrCode.width, positions.qrCode.height) * 0.7} className="text-gray-800" />
-                                            <p className="text-[8px] font-bold text-gray-400 mt-1 uppercase tracking-tight">QR CODE</p>
-                                        </div>
-                                    )}
+                            <div className="flex-1 overflow-auto flex flex-col items-center justify-center p-8 bg-[url('https://repo.sourcelink.com/static/transparent-bg.png')] bg-gray-100">
+                                <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200 mb-8 z-20">
+                                    <button
+                                        onClick={() => setShowFront(true)}
+                                        className={`px-8 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${showFront ? "bg-white text-blue-600 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                                    >
+                                        Front Side
+                                    </button>
+                                    <button
+                                        onClick={() => setShowFront(false)}
+                                        className={`px-8 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${!showFront ? "bg-white text-blue-600 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                                    >
+                                        Back Side
+                                    </button>
                                 </div>
+
+                                <IdCardPreview
+                                    positions={positions}
+                                    width={selectedTemplate?.width || 1000}
+                                    height={selectedTemplate?.height || 600}
+                                    previewUrls={{
+                                        front: getImageUrl(selectedTemplate?.frontBackground),
+                                        back: getImageUrl(selectedTemplate?.backBackground)
+                                    }}
+                                    activeSide={showFront ? 'front' : 'back'}
+                                    scale={scale}
+                                    values={{
+                                        fullName: selectedEmployee?.user.fullName,
+                                        title: selectedEmployee?.title || 'Staff',
+                                        department: selectedEmployee?.department.departmentName,
+                                        idNumber: `EMP-${selectedEmployee?.id.toString().padStart(4, '0') || '0000'}`,
+                                        issueDate: `ISSUE: ${issueDate ? new Date(issueDate).toLocaleDateString() : '01/01/2026'}`,
+                                        expiryDate: `EXP: ${expiryDate ? new Date(expiryDate).toLocaleDateString() : '31/12/2026'}`,
+                                        photo: getImageUrl(selectedEmployee?.user.photo) || undefined
+                                    }}
+                                />
                             </div>
                         </div>
                     )}
