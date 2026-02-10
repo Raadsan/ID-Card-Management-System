@@ -243,18 +243,19 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                             className="absolute whitespace-nowrap overflow-hidden"
                                             style={{
                                                 ...ID_TEXT_STYLE,
-                                                left: `${positions.idNumber.x}px`,
+                                                left: `${positions.photo.x}px`,
                                                 top: `${positions.idNumber.y}px`,
-                                                fontSize: `${(positions.idNumber as any).fontSize || 16}px`,
-                                                fontWeight: (positions.idNumber as any).fontWeight || 'bold',
-                                                textAlign: (positions.idNumber as any).textAlign || 'left',
+                                                width: `${positions.photo.width}px`,
+                                                fontSize: `22px`,
+                                                fontWeight: 'bold',
+                                                textAlign: 'center',
                                                 fontFamily: 'monospace',
                                                 color: positions.idNumber.color,
-                                                maxWidth: `${(idCard.template?.width || 350) - positions.idNumber.x - 20}px`,
+                                                maxWidth: `${positions.photo.width}px`,
                                                 textOverflow: 'ellipsis'
                                             }}
                                         >
-                                            EMP-{idCard.employee?.id?.toString().padStart(4, '0') || '0000'}
+                                            S/N: SPA01{idCard.employee?.id?.toString().padStart(4, '0') || '0000'}/26
                                         </div>
                                     </>
                                 )}

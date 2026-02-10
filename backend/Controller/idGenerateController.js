@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma.js";
-import { v4 as uuidv4 } from "uuid";
+import { nanoid } from "nanoid";
 
 /**
  * CREATE ID
@@ -14,7 +14,7 @@ export const createIdGenerate = async (req, res) => {
                 employeeId: Number(employeeId),
                 templateId: Number(templateId),
                 createdById: Number(createdById),
-                qrCode: uuidv4(),
+                qrCode: nanoid(),
                 issueDate: issueDate ? new Date(issueDate) : null,
                 expiryDate: expiryDate ? new Date(expiryDate) : null,
             },

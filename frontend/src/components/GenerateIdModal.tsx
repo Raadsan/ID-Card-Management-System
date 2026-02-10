@@ -198,22 +198,6 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {currentStep === 2 && (
-                            <div className="flex bg-gray-100 rounded-lg p-1 mr-2">
-                                <button
-                                    onClick={() => setShowFront(true)}
-                                    className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${showFront ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-                                >
-                                    Front
-                                </button>
-                                <button
-                                    onClick={() => setShowFront(false)}
-                                    className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${!showFront ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-                                >
-                                    Back
-                                </button>
-                            </div>
-                        )}
                         <button
                             onClick={handleClose}
                             className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100 group"
@@ -236,109 +220,151 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
 
                     {/* STEP 1: Selection Dropdowns */}
                     {currentStep === 1 && (
-                        <div className="p-8 space-y-8">
-                            {/* Employee Select */}
-                            <div className="space-y-3">
-                                <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
-                                    <Users className="w-4 h-4 text-blue-500" /> Select Employee
-                                </label>
-                                <div className="relative">
-                                    <select
-                                        value={selectedEmployeeId}
-                                        onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                                        className="w-full pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm hover:border-gray-400"
-                                    >
-                                        <option value="">-- Choose Employee --</option>
-                                        {filteredEmployees.map(emp => (
-                                            <option key={emp.id} value={emp.id}>
-                                                {emp.user.fullName} — {emp.department.departmentName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                                        <ChevronRight className="w-5 h-5 rotate-90" />
+                        <>
+                            <div className="p-8 space-y-8">
+                                {/* Employee Select */}
+                                <div className="space-y-3">
+                                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                                        <Users className="w-4 h-4 text-blue-500" /> Select Employee
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            value={selectedEmployeeId}
+                                            onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                                            className="w-full pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm hover:border-gray-400"
+                                        >
+                                            <option value="">-- Choose Employee --</option>
+                                            {filteredEmployees.map(emp => (
+                                                <option key={emp.id} value={emp.id}>
+                                                    {emp.user.fullName} — {emp.department.departmentName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                                            <ChevronRight className="w-5 h-5 rotate-90" />
+                                        </div>
+                                    </div>
+                                    {filteredEmployees.length === 0 && !loading && (
+                                        <p className="text-xs text-amber-600 font-medium">All employees already have generated ID cards.</p>
+                                    )}
+                                </div>
+
+                                {/* Template Select */}
+                                <div className="space-y-3">
+                                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                                        <LayoutTemplate className="w-4 h-4 text-purple-500" /> Select Template
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            value={selectedTemplateId}
+                                            onChange={(e) => setSelectedTemplateId(e.target.value)}
+                                            className="w-full pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm hover:border-gray-400"
+                                        >
+                                            <option value="">-- Choose Template --</option>
+                                            {templates.map(tpl => (
+                                                <option key={tpl.id} value={tpl.id}>
+                                                    {tpl.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                                            <ChevronRight className="w-5 h-5 rotate-90" />
+                                        </div>
                                     </div>
                                 </div>
-                                {filteredEmployees.length === 0 && !loading && (
-                                    <p className="text-xs text-amber-600 font-medium">All employees already have generated ID cards.</p>
+
+                                {/* Date Inputs */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+                                    <div className="space-y-3">
+                                        <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                                            <Calendar className="w-4 h-4 text-amber-500" /> Issue Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={issueDate}
+                                            onChange={(e) => setIssueDate(e.target.value)}
+                                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-gray-700 shadow-sm"
+                                        />
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                                            <Calendar className="w-4 h-4 text-red-500" /> Expiry Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={expiryDate}
+                                            onChange={(e) => setExpiryDate(e.target.value)}
+                                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-red-500/10 focus:border-red-500 outline-none transition-all text-gray-700 shadow-sm font-medium"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Preview Selected Info */}
+                                {selectedEmployee && selectedTemplate && (
+                                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                                        <div className="bg-blue-100 p-2 rounded-lg">
+                                            <RefreshCw className="w-5 h-5 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-blue-900">Ready to Preview</p>
+                                            <p className="text-sm text-blue-700 mt-1">
+                                                Creating card for <span className="font-bold">{selectedEmployee.user.fullName}</span> using <span className="font-bold">{selectedTemplate.name}</span> layout.
+                                            </p>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
-
-                            {/* Template Select */}
-                            <div className="space-y-3">
-                                <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
-                                    <LayoutTemplate className="w-4 h-4 text-purple-500" /> Select Template
-                                </label>
-                                <div className="relative">
-                                    <select
-                                        value={selectedTemplateId}
-                                        onChange={(e) => setSelectedTemplateId(e.target.value)}
-                                        className="w-full pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm hover:border-gray-400"
-                                    >
-                                        <option value="">-- Choose Template --</option>
-                                        {templates.map(tpl => (
-                                            <option key={tpl.id} value={tpl.id}>
-                                                {tpl.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                                        <ChevronRight className="w-5 h-5 rotate-90" />
-                                    </div>
-                                </div>
+                            {/* Footer Buttons for Step 1 */}
+                            <div className="p-6 border-t border-gray-200 flex justify-end gap-3 bg-white">
+                                <button
+                                    onClick={handleClose}
+                                    className="px-6 py-3 bg-gray-100 text-gray-500 font-bold rounded-xl hover:bg-gray-200 transition-all border border-gray-200 shadow-sm"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleNext}
+                                    className="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/30 flex items-center gap-2"
+                                >
+                                    Next Step <ChevronRight className="w-4 h-4" />
+                                </button>
                             </div>
-
-                            {/* Date Inputs */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
-                                <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
-                                        <Calendar className="w-4 h-4 text-amber-500" /> Issue Date
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={issueDate}
-                                        onChange={(e) => setIssueDate(e.target.value)}
-                                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-gray-700 shadow-sm"
-                                    />
-                                </div>
-                                <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
-                                        <Calendar className="w-4 h-4 text-red-500" /> Expiry Date
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={expiryDate}
-                                        onChange={(e) => setExpiryDate(e.target.value)}
-                                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-red-500/10 focus:border-red-500 outline-none transition-all text-gray-700 shadow-sm font-medium"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Preview Selected Info */}
-                            {selectedEmployee && selectedTemplate && (
-                                <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
-                                    <div className="bg-blue-100 p-2 rounded-lg">
-                                        <RefreshCw className="w-5 h-5 text-blue-600" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-blue-900">Ready to Preview</p>
-                                        <p className="text-sm text-blue-700 mt-1">
-                                            Creating card for <span className="font-bold">{selectedEmployee.user.fullName}</span> using <span className="font-bold">{selectedTemplate.name}</span> layout.
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        </>
                     )}
 
-                    {/* STEP 2: Preview Only */}
+                    {/* STEP 2 LAYOUT (Full Preview - Matches ViewIdModal Visuals) */}
                     {currentStep === 2 && (
-                        <div className="flex-1 flex flex-col h-full">
-                            {/* Toolbar (Zoom Area) */}
-                            <div className="px-6 py-4 bg-white border-b border-gray-100 flex justify-between items-center z-10 shadow-sm">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Adjust View</span>
+                        <div className="flex-1 flex flex-col h-full bg-gray-50">
+                            {/* Header (Matches ViewIdModal) */}
+                            <div className="p-5 border-b border-gray-100 bg-white flex justify-between items-center px-8">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+                                        <CreditCard className="w-4 h-4" />
+                                    </div>
+                                    <h3 className="font-bold text-gray-800 text-sm">Design Preview</h3>
+                                </div>
+                                <div className="flex bg-gray-100 rounded-lg p-1">
+                                    <button
+                                        onClick={() => setShowFront(true)}
+                                        className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${showFront ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                                    >
+                                        Front
+                                    </button>
+                                    <button
+                                        onClick={() => setShowFront(false)}
+                                        className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all ${!showFront ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                                    >
+                                        Back
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Main Canvas Area */}
+                            <div className="flex-1 overflow-auto flex items-center justify-center p-8 bg-[url('https://repo.sourcelink.com/static/transparent-bg.png')] min-h-[400px] relative">
+                                <div className="relative group">
+                                    {/* Floating Zoom Slider Overlay */}
+                                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-lg border border-gray-200 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center gap-3">
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Zoom</span>
                                         <input
                                             type="range"
                                             min="0.3"
@@ -346,115 +372,215 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                             step="0.05"
                                             value={scale}
                                             onChange={(e) => setScale(parseFloat(e.target.value))}
-                                            className="w-32 md:w-48 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                            className="w-24 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                                         />
-                                        <span className="text-xs font-black text-blue-600 w-10 text-right">{Math.round(scale * 100)}%</span>
+                                        <span className="text-[10px] font-mono font-bold text-blue-600">{Math.round(scale * 100)}%</span>
+                                    </div>
+
+                                    {/* Manual Card Render (Copied from ViewIdModal) */}
+                                    <div
+                                        className="relative shadow-2xl ring-4 ring-black/5 bg-white overflow-hidden transition-transform duration-300 transform-gpu"
+                                        style={{
+                                            transform: `scale(${scale})`,
+                                            width: `${selectedTemplate?.width || 350}px`,
+                                            height: `${selectedTemplate?.height || 500}px`,
+                                            backgroundImage: `url(${getImageUrl(showFront ? selectedTemplate?.frontBackground : selectedTemplate?.backBackground)})`,
+                                            backgroundSize: '100% 100%',
+                                            backgroundPosition: 'center',
+                                            backgroundColor: 'white'
+                                        }}
+                                    >
+                                        {showFront && (
+                                            <>
+                                                {/* Photo */}
+                                                <div
+                                                    className="absolute overflow-hidden"
+                                                    style={{
+                                                        left: `${positions.photo.x}px`,
+                                                        top: `${positions.photo.y}px`,
+                                                        width: `${positions.photo.width}px`,
+                                                        height: `${positions.photo.height}px`,
+                                                    }}
+                                                >
+                                                    <img
+                                                        src={getImageUrl(selectedEmployee?.user.photo) || '/placeholder-user.png'}
+                                                        alt=""
+                                                        className="w-full h-full"
+                                                        style={{ objectFit: (positions.photo as any).objectFit || 'cover' }}
+                                                    />
+                                                </div>
+
+                                                {/* Full Name */}
+                                                <div
+                                                    className="absolute whitespace-nowrap overflow-hidden"
+                                                    style={{
+                                                        ...ID_TEXT_STYLE,
+                                                        left: `${positions.fullName.x}px`,
+                                                        top: `${positions.fullName.y}px`,
+                                                        fontSize: `${(positions.fullName as any).fontSize || 24}px`,
+                                                        fontWeight: (positions.fullName as any).fontWeight || 'bold',
+                                                        textAlign: (positions.fullName as any).textAlign || 'left',
+                                                        color: positions.fullName.color,
+                                                        maxWidth: `${(selectedTemplate?.width || 350) - positions.fullName.x - 20}px`,
+                                                        textOverflow: 'ellipsis',
+                                                        letterSpacing: '2px',
+                                                    }}
+                                                >
+                                                    {selectedEmployee?.user.fullName}
+                                                </div>
+
+                                                {/* Title */}
+                                                <div
+                                                    className="absolute whitespace-nowrap overflow-hidden"
+                                                    style={{
+                                                        ...ID_TEXT_STYLE,
+                                                        left: `${positions.title.x}px`,
+                                                        top: `${positions.title.y}px`,
+                                                        fontSize: `${(positions.title as any).fontSize || 18}px`,
+                                                        fontWeight: (positions.title as any).fontWeight || 'normal',
+                                                        textAlign: (positions.title as any).textAlign || 'left',
+                                                        color: (positions.title as any).color || '#000000',
+                                                        maxWidth: `${(selectedTemplate?.width || 350) - positions.title.x - 20}px`,
+                                                        textOverflow: 'ellipsis'
+                                                    }}
+                                                >
+                                                    {selectedEmployee?.title || 'Staff'}
+                                                </div>
+
+                                                {/* Department */}
+                                                <div
+                                                    className="absolute whitespace-nowrap overflow-hidden"
+                                                    style={{
+                                                        ...ID_TEXT_STYLE,
+                                                        left: `${positions.department.x}px`,
+                                                        top: `${positions.department.y}px`,
+                                                        fontSize: `${(positions.department as any).fontSize || 18}px`,
+                                                        fontWeight: (positions.department as any).fontWeight || 'normal',
+                                                        textAlign: (positions.department as any).textAlign || 'left',
+                                                        color: positions.department.color,
+                                                        maxWidth: `${(selectedTemplate?.width || 350) - positions.department.x - 20}px`,
+                                                        textOverflow: 'ellipsis'
+                                                    }}
+                                                >
+                                                    {selectedEmployee?.department.departmentName}
+                                                </div>
+
+                                                {/* Issue Date */}
+                                                <div
+                                                    className="absolute whitespace-nowrap overflow-hidden"
+                                                    style={{
+                                                        ...ID_TEXT_STYLE,
+                                                        left: `${(positions as any).issueDate?.x || 0}px`,
+                                                        top: `${(positions as any).issueDate?.y || 0}px`,
+                                                        fontSize: `${(positions as any).issueDate?.fontSize || 16}px`,
+                                                        fontWeight: (positions as any).issueDate?.fontWeight || 'normal',
+                                                        textAlign: (positions as any).issueDate?.textAlign || 'left',
+                                                        color: (positions as any).issueDate?.color || '#000000',
+                                                        maxWidth: `${(selectedTemplate?.width || 350) - ((positions as any).issueDate?.x || 0) - 20}px`,
+                                                        textOverflow: 'ellipsis'
+                                                    }}
+                                                >
+                                                    ISSUE: {issueDate ? new Date(issueDate).toLocaleDateString() : '01/01/2026'}
+                                                </div>
+
+                                                {/* Expiry Date */}
+                                                <div
+                                                    className="absolute whitespace-nowrap overflow-hidden"
+                                                    style={{
+                                                        ...ID_TEXT_STYLE,
+                                                        left: `${positions.expiryDate.x}px`,
+                                                        top: `${positions.expiryDate.y}px`,
+                                                        fontSize: `${(positions.expiryDate as any).fontSize || 16}px`,
+                                                        fontWeight: (positions.expiryDate as any).fontWeight || 'normal',
+                                                        textAlign: (positions.expiryDate as any).textAlign || 'left',
+                                                        color: (positions.expiryDate as any).color || '#000000',
+                                                        maxWidth: `${(selectedTemplate?.width || 350) - positions.expiryDate.x - 20}px`,
+                                                        textOverflow: 'ellipsis'
+                                                    }}
+                                                >
+                                                    EXP: {expiryDate ? new Date(expiryDate).toLocaleDateString() : '31/12/2026'}
+                                                </div>
+
+                                                {/* ID Number (Centered under photo logic) */}
+                                                <div
+                                                    className="absolute whitespace-nowrap overflow-hidden"
+                                                    style={{
+                                                        ...ID_TEXT_STYLE,
+                                                        left: `${positions.photo.x}px`,
+                                                        top: `${positions.idNumber.y}px`,
+                                                        width: `${positions.photo.width}px`,
+                                                        fontSize: `22px`,
+                                                        fontWeight: 'bold',
+                                                        textAlign: 'center',
+                                                        fontFamily: 'monospace',
+                                                        color: positions.idNumber.color,
+                                                        maxWidth: `${positions.photo.width}px`,
+                                                        textOverflow: 'ellipsis'
+                                                    }}
+                                                >
+                                                    S/N: SPA01{selectedEmployee?.id.toString().padStart(4, '0') || '0000'}/26
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {/* Back Side - QR Code Placeholder */}
+                                        {!showFront && positions.qrCode && (
+                                            <div
+                                                className="absolute overflow-hidden flex items-center justify-center p-1 bg-white border border-dashed border-gray-300"
+                                                style={{
+                                                    left: `${positions.qrCode.x}px`,
+                                                    top: `${positions.qrCode.y}px`,
+                                                    width: `${positions.qrCode.width}px`,
+                                                    height: `${positions.qrCode.height}px`,
+                                                }}
+                                            >
+                                                <div className="flex flex-col items-center justify-center text-center opacity-50">
+                                                    <QrCode className="w-8 h-8 text-gray-400 mb-1" />
+                                                    <span className="text-[6px] font-bold text-gray-400 uppercase">QR Will Generate</span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                                <div className="hidden md:flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                    <RefreshCw className="w-3 h-3 animate-spin-slow" /> Real-time Rendering Active
-                                </div>
                             </div>
 
-                            {/* Canvas Area */}
-                            <div className="flex-1 overflow-auto flex flex-col items-center justify-center p-8 bg-[url('https://repo.sourcelink.com/static/transparent-bg.png')] bg-gray-100">
-                                <div className="flex bg-gray-100 p-1 rounded-xl border border-gray-200 mb-8 z-20">
+                            {/* Footer Buttons */}
+                            <div className="p-6 border-t border-gray-200 flex justify-end gap-3 bg-white">
+                                <div className="flex gap-3 mr-auto">
                                     <button
-                                        onClick={() => setShowFront(true)}
-                                        className={`px-8 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${showFront ? "bg-white text-blue-600 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                                        onClick={handleBack}
+                                        className="px-6 py-2.5 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2"
                                     >
-                                        Front Side
-                                    </button>
-                                    <button
-                                        onClick={() => setShowFront(false)}
-                                        className={`px-8 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${!showFront ? "bg-white text-blue-600 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
-                                    >
-                                        Back Side
+                                        <ChevronLeft className="w-4 h-4" /> Go Back
                                     </button>
                                 </div>
 
-                                <IdCardPreview
-                                    positions={positions}
-                                    width={selectedTemplate?.width || 1000}
-                                    height={selectedTemplate?.height || 600}
-                                    previewUrls={{
-                                        front: getImageUrl(selectedTemplate?.frontBackground),
-                                        back: getImageUrl(selectedTemplate?.backBackground)
-                                    }}
-                                    activeSide={showFront ? 'front' : 'back'}
-                                    scale={scale}
-                                    values={{
-                                        fullName: selectedEmployee?.user.fullName,
-                                        title: selectedEmployee?.title || 'Staff',
-                                        department: selectedEmployee?.department.departmentName,
-                                        idNumber: `EMP-${selectedEmployee?.id.toString().padStart(4, '0') || '0000'}`,
-                                        issueDate: `ISSUE: ${issueDate ? new Date(issueDate).toLocaleDateString() : '01/01/2026'}`,
-                                        expiryDate: `EXP: ${expiryDate ? new Date(expiryDate).toLocaleDateString() : '31/12/2026'}`,
-                                        photo: getImageUrl(selectedEmployee?.user.photo) || undefined
-                                    }}
-                                />
+                                <button
+                                    onClick={handleClose}
+                                    className="px-6 py-3 bg-gray-100 text-gray-500 font-bold rounded-xl hover:bg-gray-200 transition-all border border-gray-200 shadow-sm"
+                                >
+                                    Close
+                                </button>
+
+                                <button
+                                    onClick={handleGenerate}
+                                    disabled={submitting}
+                                    className="px-8 py-3 bg-[#1B1555]  text-white font-bold rounded-xl hover:bg-[#16BCF8] transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {submitting ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" /> Generating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Download className="w-4 h-4" /> Create ID Card
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </div>
-                    )}
-                </div>
-
-                {/* Footer Buttons */}
-                <div className="p-6 border-t border-gray-200 flex justify-end gap-3 bg-white">
-                    {currentStep === 2 ? (
-                        <div className="flex gap-3 mr-auto">
-                            <button
-                                onClick={handleBack}
-                                className="px-6 py-2.5 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2"
-                            >
-                                <ChevronLeft className="w-4 h-4" /> Go Back
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="mr-auto">
-                            <button
-                                onClick={handleClose}
-                                className="px-6 py-2.5 text-gray-400 font-bold hover:text-gray-600 transition-all"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    )}
-
-                    <div className="flex gap-3">
-                        <button
-                            onClick={handleClose}
-                            className="px-6 py-3 bg-gray-100 text-gray-500 font-bold rounded-xl hover:bg-gray-200 transition-all border border-gray-200 shadow-sm"
-                        >
-                            Close
-                        </button>
-
-                        {currentStep === 1 ? (
-                            <button
-                                onClick={handleNext}
-                                className="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/30 flex items-center gap-2"
-                            >
-                                Next Step <ChevronRight className="w-4 h-4" />
-                            </button>
-                        ) : (
-                            <button
-                                onClick={handleGenerate}
-                                disabled={submitting}
-                                className="px-8 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-all shadow-lg hover:shadow-green-500/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {submitting ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 animate-spin" /> Generating...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Download className="w-4 h-4" /> Create ID Card
-                                    </>
-                                )}
-                            </button>
-                        )}
-                    </div>
-                </div>
+                    )}</div>
             </div>
-        </div>
+        </div >
     );
 }
