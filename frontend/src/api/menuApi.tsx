@@ -9,6 +9,14 @@ export const getMenus = async () => {
 };
 
 /**
+ * Get user menus (based on role)
+ */
+export const getUserMenus = async () => {
+    const response = await api.get("/menus/my-menus");
+    return response.data;
+};
+
+/**
  * Get menu by ID
  */
 export const getMenuById = async (id: string) => {

@@ -346,12 +346,36 @@ export default function EmployeesPage() {
                 key: "status",
                 align: "center",
                 render: (row: Employee) => (
-                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${row.status === 'active'
-                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                        : 'bg-rose-50 text-rose-600 border border-rose-100'
-                        }`}>
-                        {row.status}
-                    </span>
+                    <select
+                        value={row.status}
+                        onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            try {
+                                await updateEmployee(String(row.id), { status: newStatus });
+                                setMsgBox({
+                                    isOpen: true,
+                                    title: "Success",
+                                    message: `Employee status updated to ${newStatus}.`,
+                                    type: "success",
+                                });
+                                fetchEmployees();
+                            } catch (error: any) {
+                                setMsgBox({
+                                    isOpen: true,
+                                    title: "Error",
+                                    message: error.response?.data?.message || "Failed to update status.",
+                                    type: "error",
+                                });
+                            }
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border cursor-pointer transition-all ${row.status === 'active'
+                                ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
+                                : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
+                            }`}
+                    >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
                 ),
             },
             {
@@ -496,9 +520,8 @@ export default function EmployeesPage() {
                                     onChange={handleFormChange}
                                     className="w-full appearance-none rounded-xl border border-gray-200 p-3.5 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 pr-10"
                                 >
-                                    <option value="active">Active Service</option>
-                                    <option value="inactive">Inactive / On-Hold</option>
-                                    <option value="suspended">Contract Suspended</option>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
                                 </select>
                                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-[#16BCF8] transition-all">
                                     <ChevronDown size={18} />
@@ -624,9 +647,8 @@ export default function EmployeesPage() {
                                         onChange={handleFormChange}
                                         className="w-full appearance-none rounded-xl border border-gray-200 p-3.5 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 pr-10"
                                     >
-                                        <option value="active">Active Service</option>
-                                        <option value="inactive">Inactive / On-Hold</option>
-                                        <option value="suspended">Contract Suspended</option>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
                                     </select>
                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                                         <ChevronDown size={18} />
