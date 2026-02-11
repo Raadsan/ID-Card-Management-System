@@ -1,4 +1,6 @@
-export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "https://id-card-management-system-qfgg.onrender.com/api").replace("/api", "");
+import { BASE_URL } from "@/api/axios";
+
+export const API_BASE_URL = BASE_URL.replace("/api", "");
 
 export const getImageUrl = (path: string | undefined | null) => {
     if (!path || path === "") return null;
