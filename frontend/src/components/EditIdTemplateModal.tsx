@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Modal from "./layout/Modal";
 import { updateTemplate, IdCardTemplate } from "@/api/idTemplateApi";
 import { Loader2, Layout, Image as ImageIcon, CheckCircle2, Shield, FileText, Ruler, ChevronRight, ChevronLeft } from "lucide-react";
-import { UPLOAD_URL } from "@/api/axios";
+import { getImageUrl } from "@/utils/url";
 import { LayoutEditor, DEFAULT_POSITIONS, IdTemplatePositions } from "./IdTemplateLayout";
 
 
@@ -120,18 +120,7 @@ const EditIdTemplateModal: React.FC<EditIdTemplateModalProps> = ({
     };
 
 
-    const getImageUrl = (path?: string) => {
-        if (!path) return null;
-        if (path.startsWith('http')) return path;
 
-        // If it already starts with uploads/, we need to be careful with double /uploads/uploads
-        if (path.startsWith('uploads/')) {
-            const rootUrl = UPLOAD_URL.replace('/uploads', '');
-            return `${rootUrl}/${path}`;
-        }
-
-        return `${UPLOAD_URL}/${path}`;
-    };
 
     const handleNext = () => {
         setError("");

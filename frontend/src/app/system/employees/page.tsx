@@ -10,7 +10,7 @@ import Modal from "@/components/layout/Modal";
 import ViewEmployeeModal from "@/components/ViewEmployeeModal";
 import DeleteConfirmModal from "@/components/layout/ConfirmDeleteModel";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
-import { UPLOAD_URL } from "@/api/axios";
+import { getImageUrl } from "@/utils/url";
 
 // Define the Employee type based on your API response
 interface Employee {
@@ -313,7 +313,7 @@ export default function EmployeesPage() {
                     <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200">
                             <img
-                                src={row.user?.photo ? `${UPLOAD_URL}/${row.user.photo}` : "/placeholder-user.png"}
+                                src={getImageUrl(row.user?.photo) || "/placeholder-user.png"}
                                 alt={row.user?.fullName || "User"}
                                 className="h-full w-full object-cover"
                                 onError={(e) => {
@@ -369,8 +369,8 @@ export default function EmployeesPage() {
                             }
                         }}
                         className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border cursor-pointer transition-all ${row.status === 'active'
-                                ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
-                                : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
+                            ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
+                            : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
                             }`}
                     >
                         <option value="active">Active</option>

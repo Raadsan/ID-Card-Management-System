@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { X, User, MapPin, CreditCard, LayoutTemplate, Calendar, Printer, UserCheck, QrCode } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { IdGenerate } from "@/api/generateIdApi";
-import { UPLOAD_URL } from "@/api/axios";
+import { getImageUrl } from "@/utils/url";
 
 
 interface ViewIdModalProps {
@@ -56,18 +56,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
 
     if (!isOpen || !idCard) return null;
 
-    const getImageUrl = (path: string | null) => {
-        if (!path) return null;
-        if (path.startsWith('http')) return path;
 
-        // If it already starts with uploads/, we need to be careful with double /uploads/uploads
-        if (path.startsWith('uploads/')) {
-            const rootUrl = UPLOAD_URL.replace('/uploads', '');
-            return `${rootUrl}/${path}`;
-        }
-
-        return `${UPLOAD_URL}/${path}`;
-    };
 
     const statusColors = {
         created: 'bg-yellow-100 text-yellow-700 border-yellow-200',

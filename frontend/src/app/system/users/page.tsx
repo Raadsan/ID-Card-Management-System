@@ -8,7 +8,7 @@ import { Edit, Trash2, UserPlus, Mail, Phone, Shield, Lock, X, Save, Image as Im
 import Modal from "@/components/layout/Modal";
 import DeleteConfirmModal from "@/components/layout/ConfirmDeleteModel";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
-import { UPLOAD_URL } from "@/api/axios";
+import { getImageUrl } from "@/utils/url";
 
 // Define the User type based on your API response
 interface User {
@@ -56,18 +56,7 @@ export default function UsersPage() {
         type: "info",
     });
 
-    const getImageUrl = (path: string | null | undefined) => {
-        if (!path) return null;
-        if (path.startsWith('http') || path.startsWith('data:')) return path;
 
-        // If it already starts with uploads/, we need to be careful with double /uploads/uploads
-        if (path.startsWith('uploads/')) {
-            const rootUrl = UPLOAD_URL.replace('/uploads', '');
-            return `${rootUrl}/${path}`;
-        }
-
-        return `${UPLOAD_URL}/${path}`;
-    };
 
     useEffect(() => {
 
