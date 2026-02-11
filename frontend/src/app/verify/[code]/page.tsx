@@ -168,47 +168,8 @@ export default function VerificationPage() {
                         <div className="border border-gray-100 p-6 md:p-10 min-h-[900px] flex flex-col">
 
                             {/* Document Header Text - SPA Branding */}
-                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 pb-8 border-b border-gray-100">
-                                {/* Somali Header */}
-                                <div className="text-left space-y-0.5">
-                                    <h3 className="text-[11px] font-black text-gray-900 tracking-tight uppercase leading-tight">
-                                        JAMHUURIYADDA
-                                    </h3>
-                                    <h3 className="text-[11px] font-black text-gray-900 tracking-tight uppercase leading-tight">
-                                        FEDERAALKA SOOMAALIYA
-                                    </h3>
-                                    <h3 className="text-[10px] font-bold text-[#1e4e8c] tracking-tight uppercase">
-                                        HAY'ADDA BATROOLKA SOOMAALIYEED
-                                    </h3>
-                                </div>
-
-                                {/* Center Crest Area */}
-                                <div className="flex flex-col items-center">
-                                    <div className="w-24 h-24 bg-white shadow-sm border border-gray-100 rounded-lg flex items-center justify-center p-2 relative">
-
-                                        <div className="w-full h-full flex items-center justify-center overflow-hidden">
-                                            <img
-                                                src="/jamhuriyada.png"
-                                                alt="SPA Crest"
-                                                className="w-full h-full object-contain"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="mt-4 text-center">
-                                        <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest leading-none">FEDERAL REPUBLIC OF SOMALIA</p>
-                                        <p className="text-[10px] font-black text-[#1e4e8c] uppercase tracking-widest mt-1">SOMALI PETROLEUM AUTHORITY</p>
-                                    </div>
-                                </div>
-
-                                {/* Arabic Header */}
-                                <div className="text-right space-y-0.5" dir="rtl">
-                                    <h3 className="text-sm font-black text-gray-900 tracking-tight leading-tight">
-                                        جمهورية الصومال الفيدرالية
-                                    </h3>
-                                    <h3 className="text-xs font-bold text-[#1e4e8c] tracking-tight">
-                                        هيئة البترول الصومالية
-                                    </h3>
-                                </div>
+                            <div className=" border-b border-gray-100 mb-10">
+                                <img src="/jamhuriyada.png" alt="SPA Crest" className="w-full" />
                             </div>
 
                             {/* Main Document Title */}
