@@ -109,7 +109,7 @@ const ViewIdTemplateModal: React.FC<ViewIdTemplateModalProps> = ({
                                 style={{ aspectRatio: `${template.width} / ${template.height}` }}
                             >
                                 <img
-                                    src={getImageUrl(template.frontBackground) || ""}
+                                    src={getImageUrl(template.frontBackground) || "/placeholder-template.png"}
                                     alt="Front Background"
                                     className="w-full h-full object-cover"
                                 />

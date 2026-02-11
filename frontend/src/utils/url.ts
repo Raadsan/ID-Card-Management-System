@@ -1,24 +1,24 @@
-import { BASE_URL } from "@/api/axios";
-
-export const API_BASE_URL = BASE_URL.replace("/api", "");
+import { UPLOAD_URL } from "@/api/axios";
 
 export const getImageUrl = (path: string | undefined | null) => {
     if (!path || path === "") return null;
     if (path.startsWith("http")) return path;
 
-    // Normalize backslashes to forward slashes for Windows paths
+    // Normalize backslashes to forward slashes for Windows paths 
     let cleanPath = path.replace(/\\/g, "/");
 
     // Ensure path doesn't start with / if we're adding it
     cleanPath = cleanPath.startsWith("/") ? cleanPath.substring(1) : cleanPath;
 
-    // Auto-prepend uploads/ if likely missing (simple heuristic)
-    if (!cleanPath.startsWith("uploads/") && !cleanPath.startsWith("images/")) {
-        cleanPath = `uploads/${cleanPath}`;
+    // Direct mirror of the working manual construction logic:
+    // If it starts with uploads/, the base URL needs to be adjusted (remove /uploads from UPLOAD_URL)
+    if (cleanPath.startsWith('uploads/')) {
+        const rootUrl = UPLOAD_URL.replace('/uploads', '');
+        return `${rootUrl}/${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
     }
 
-    // Also handle 'uploads/' prefix if needed, but usually the backend returns it
-    return `${API_BASE_URL}/${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
+    // Default: use UPLOAD_URL as base
+    return `${UPLOAD_URL}/${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
 };
 
 export const slugify = (text: string) => {

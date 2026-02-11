@@ -168,9 +168,9 @@ const EditIdTemplateModal: React.FC<EditIdTemplateModalProps> = ({
     const getPreviewBackground = (side: 'front' | 'back') => {
         if (side === 'front' && previewUrls.front) return previewUrls.front;
         if (side === 'back' && previewUrls.back) return previewUrls.back;
-        if (side === 'front') return getImageUrl(template.frontBackground);
-        if (side === 'back') return getImageUrl(template.backBackground);
-        return null;
+
+        const path = side === 'front' ? template.frontBackground : template.backBackground;
+        return getImageUrl(path);
     }
 
     return (
