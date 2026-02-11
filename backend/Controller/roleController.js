@@ -73,9 +73,13 @@ export const updateRole = async (req, res) => {
     const id = Number(req.params.id);
     const { name, description } = req.body;
 
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+
     const role = await prisma.role.update({
       where: { id },
-      data: { name, description },
+      data: updateData,
     });
 
     res.json(role);

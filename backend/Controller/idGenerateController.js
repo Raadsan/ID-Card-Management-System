@@ -164,3 +164,20 @@ export const verifyQrCode = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+/**
+ * DELETE ID
+ */
+export const deleteIdGenerate = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        await prisma.idGenerate.delete({
+            where: { id: Number(id) },
+        });
+
+        res.json({ message: "ID deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

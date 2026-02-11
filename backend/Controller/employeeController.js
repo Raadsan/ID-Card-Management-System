@@ -119,7 +119,7 @@ export const getEmployeeById = async (req, res) => {
 export const updateEmployee = async (req, res) => {
     try {
         const { id } = req.params;
-        const { dob, departmentId, userId, ...updateData } = req.body;
+        const { dob, departmentId, userId, title, address, status } = req.body;
 
         const data = { ...updateData };
         if (dob) data.dob = new Date(dob);

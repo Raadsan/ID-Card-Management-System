@@ -74,3 +74,11 @@ export const verifyQrCode = async (qrCode: string): Promise<any> => {
     const response = await api.get(`${BASE_PATH}/verify/${qrCode}`);
     return response.data;
 };
+
+/**
+ * DELETE ID
+ */
+export const deleteIdGenerate = async (id: number): Promise<any> => {
+    const response = await api.delete(`${BASE_PATH}/${id}`);
+    return response.data;
+};

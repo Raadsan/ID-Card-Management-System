@@ -102,23 +102,24 @@ export const updateMenu = async (req, res) => {
     }
 
     // Update the menu and create new submenus
+    const updateData = {};
+    if (title) updateData.title = title;
+    if (icon) updateData.icon = icon;
+    if (url) updateData.url = url;
+    if (isCollapsible !== undefined) updateData.isCollapsible = isCollapsible;
+
+    if (subMenus !== undefined && subMenus.length > 0) {
+      updateData.subMenus = {
+        create: subMenus.map((sm) => ({
+          title: sm.title,
+          url: sm.url,
+        })),
+      };
+    }
+
     const menu = await prisma.menu.update({
       where: { id },
-      data: {
-        title,
-        icon,
-        url,
-        isCollapsible,
-        ...(subMenus !== undefined && subMenus.length > 0 && {
-          subMenus: {
-            create: subMenus.map((sm) => ({
-              title: sm.title,
-              url: sm.url,
-              // Only extract title and url, ignore id, menuId, createdAt, updatedAt
-            })),
-          },
-        }),
-      },
+      data: updateData,
       include: { subMenus: true },
     });
 

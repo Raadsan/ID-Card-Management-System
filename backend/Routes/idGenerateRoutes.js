@@ -6,6 +6,7 @@ import {
     markReadyToPrint,
     printIdGenerate,
     verifyQrCode,
+    deleteIdGenerate,
 } from "../Controller/idGenerateController.js";
 import { protect } from "../middleware/authMiddleare.js";
 
@@ -19,6 +20,7 @@ router.get("/", protect, getAllIdGenerates);
 router.get("/:id", protect, getIdGenerateById);
 router.patch("/:id/ready", protect, markReadyToPrint);
 router.patch("/:id/print", protect, printIdGenerate);
+router.delete("/:id", protect, deleteIdGenerate);
 
 // public (QR scan)
 router.get("/verify/:qrCode", verifyQrCode);

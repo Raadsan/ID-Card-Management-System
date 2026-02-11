@@ -109,7 +109,7 @@ export const getUserById = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const { fullName, email, phone, roleId, status, gender } = req.body;
+    const { fullName, email, phone, roleId, status, gender, password } = req.body;
 
     // Validate roleId if provided
     if (roleId) {
@@ -129,17 +129,24 @@ export const updateUser = async (req, res) => {
       }
     }
 
+    // Prepare update data
+    const updateData = {};
+    if (fullName) updateData.fullName = fullName;
+    if (email) updateData.email = email;
+    if (phone) updateData.phone = phone;
+    if (gender) updateData.gender = gender;
+    if (status) updateData.status = status;
+    if (roleId) updateData.roleId = Number(roleId);
+    if (photo) updateData.photo = photo;
+
+    // Only update password if provided
+    if (password && password.trim() !== "") {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
     const user = await prisma.user.update({
       where: { id },
-      data: {
-        fullName,
-        email,
-        phone,
-        gender,
-        status,
-        roleId: roleId ? Number(roleId) : undefined,
-        photo,
-      },
+      data: updateData,
       include: { role: true },
     });
 
