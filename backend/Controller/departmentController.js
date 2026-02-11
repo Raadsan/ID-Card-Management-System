@@ -49,14 +49,17 @@ export const getDepartmentById = async (req, res) => {
 export const updateDepartment = async (req, res) => {
     try {
         const { id } = req.params;
+        const { departmentName, description } = req.body;
+
+        const updateData = {};
+        if (departmentName) updateData.departmentName = departmentName;
+        if (description) updateData.description = description;
+
         const department = await prisma.department.update({
             where: {
                 id: Number(id)
             },
-            data: {
-                departmentName: req.body.departmentName,
-                description: req.body.description,
-            }
+            data: updateData
         })
         return res.status(200).json({ message: "Department updated successfully", department })
     } catch (error) {

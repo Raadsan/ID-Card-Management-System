@@ -105,12 +105,10 @@ export const updateTemplate = async (req, res) => {
             return res.status(404).json({ error: "Template not found" });
         }
 
-        let updateData = {
-            name,
-            description,
-            status,
-        };
-
+        const updateData = {};
+        if (name) updateData.name = name;
+        if (description) updateData.description = description;
+        if (status) updateData.status = status;
         if (width) updateData.width = parseInt(width);
         if (height) updateData.height = parseInt(height);
 

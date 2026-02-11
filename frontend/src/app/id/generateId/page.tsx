@@ -5,6 +5,7 @@ import { CreditCard, Plus, Loader2, Calendar, User, UserCheck } from "lucide-rea
 import GenerateIdModal from "../../../components/GenerateIdModal";
 import ViewIdModal from "../../../components/ViewIdModal";
 import { getAllIdGenerates, IdGenerate, markReadyToPrint, printIdGenerate } from "../../../api/generateIdApi";
+import Swal from 'sweetalert2';
 
 export default function GenerateIdPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,28 +32,64 @@ export default function GenerateIdPage() {
     };
 
     const handleApprove = async (id: number) => {
-        if (!window.confirm("Are you sure you want to approve this ID card? It will be marked as Ready to Print.")) {
-            return;
-        }
+        const result = await Swal.fire({
+            title: 'Approve ID Card?',
+            text: "This will mark the ID card as Ready to Print.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#1B1555',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, approve it!'
+        });
 
-        try {
-            await markReadyToPrint(id);
-            alert("ID card approved successfully!");
-            fetchIdCards();
-        } catch (err: any) {
-            console.error("Failed to approve ID card:", err);
-            alert(err.response?.data?.message || "Failed to approve ID card");
+        if (result.isConfirmed) {
+            try {
+                await markReadyToPrint(id);
+                await Swal.fire(
+                    'Approved!',
+                    'ID card has been marked as Ready to Print.',
+                    'success'
+                );
+                fetchIdCards();
+            } catch (err: any) {
+                console.error("Failed to approve ID card:", err);
+                Swal.fire(
+                    'Error!',
+                    err.response?.data?.message || "Failed to approve ID card",
+                    'error'
+                );
+            }
         }
     };
 
     const handlePrint = async (id: number) => {
-        try {
-            await printIdGenerate(id);
-            alert("ID card marked as printed!");
-            fetchIdCards();
-        } catch (err: any) {
-            console.error("Failed to mark ID as printed:", err);
-            alert(err.response?.data?.message || "Failed to mark as printed");
+        const result = await Swal.fire({
+            title: 'Mark as Printed?',
+            text: "This will update the status to Printed.",
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#16a34a',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, mark as printed'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await printIdGenerate(id);
+                await Swal.fire(
+                    'Printed!',
+                    'ID card has been marked as printed.',
+                    'success'
+                );
+                fetchIdCards();
+            } catch (err: any) {
+                console.error("Failed to mark ID as printed:", err);
+                Swal.fire(
+                    'Error!',
+                    err.response?.data?.message || "Failed to mark as printed",
+                    'error'
+                );
+            }
         }
     };
 
@@ -228,6 +265,10 @@ export default function GenerateIdPage() {
                 isOpen={isViewModalOpen}
                 onClose={() => setIsViewModalOpen(false)}
                 idCard={selectedIdCard}
+                onPrint={(id) => {
+                    setIsViewModalOpen(false); // Close modal before printing (optional, but good UX)
+                    handlePrint(id);
+                }}
             />
         </div>
     );

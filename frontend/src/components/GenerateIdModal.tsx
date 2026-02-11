@@ -234,7 +234,7 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                             className="w-full pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm hover:border-gray-400"
                                         >
                                             <option value="">-- Choose Employee --</option>
-                                            {filteredEmployees.map(emp => (
+                                            {filteredEmployees.map(emp => ( 
                                                 <option key={emp.id} value={emp.id}>
                                                     {emp.user.fullName} — {emp.department.departmentName}
                                                 </option>
