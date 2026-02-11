@@ -16,7 +16,7 @@ export const getImageUrl = (path: string | undefined | null) => {
         return `${rootUrl}/${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
     }
 
-    // Default case: assume it's in the uploads folder
+    // Default case: it's a raw filename, so use UPLOAD_URL
     return `${UPLOAD_URL}/${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
 };
 
