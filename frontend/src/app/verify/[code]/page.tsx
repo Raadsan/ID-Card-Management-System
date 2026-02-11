@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CheckCircle2, XCircle, ShieldCheck, Loader2, MapPin, Calendar, User, Fingerprint } from "lucide-react";
+import { CheckCircle2, XCircle, ShieldCheck, Loader2, MapPin, Calendar, User, Fingerprint, AlertTriangle, Clock, UserX } from "lucide-react";
 import { verifyQrCode } from "@/api/generateIdApi";
 
 import { getImageUrl } from "@/utils/url";
@@ -14,6 +14,7 @@ export default function VerificationPage() {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [errorType, setErrorType] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchVerification = async () => {
@@ -22,9 +23,14 @@ export default function VerificationPage() {
                 const result = await verifyQrCode(code);
                 setData(result.data);
                 setError(null);
+                setErrorType(null);
             } catch (err: any) {
                 console.error("Verification failed:", err);
-                setError(err.response?.data?.message || "Invalid or Expired ID Card");
+                const errorMessage = err.response?.data?.message || "Invalid or Expired ID Card";
+                const reason = err.response?.data?.reason;
+
+                setError(errorMessage);
+                setErrorType(reason || "unknown");
             } finally {
                 setLoading(false);
             }
@@ -61,13 +67,57 @@ export default function VerificationPage() {
     }
 
     if (error) {
+        // Determine icon and color based on error type
+        const getErrorConfig = () => {
+            switch (errorType) {
+                case "employee_inactive":
+                    return {
+                        icon: <UserX className="h-12 w-12 text-orange-500" />,
+                        bgColor: "bg-orange-100",
+                        ringColor: "ring-orange-50",
+                        borderColor: "border-orange-100",
+                        title: "Employee Inactive",
+                        titleColor: "text-orange-900"
+                    };
+                case "expired":
+                    return {
+                        icon: <Clock className="h-12 w-12 text-amber-500" />,
+                        bgColor: "bg-amber-100",
+                        ringColor: "ring-amber-50",
+                        borderColor: "border-amber-100",
+                        title: "ID Expired",
+                        titleColor: "text-amber-900"
+                    };
+                case "not_printed":
+                    return {
+                        icon: <AlertTriangle className="h-12 w-12 text-yellow-500" />,
+                        bgColor: "bg-yellow-100",
+                        ringColor: "ring-yellow-50",
+                        borderColor: "border-yellow-100",
+                        title: "ID Not Printed",
+                        titleColor: "text-yellow-900"
+                    };
+                default:
+                    return {
+                        icon: <XCircle className="h-12 w-12 text-red-500" />,
+                        bgColor: "bg-red-100",
+                        ringColor: "ring-red-50",
+                        borderColor: "border-red-100",
+                        title: "Access Denied",
+                        titleColor: "text-red-900"
+                    };
+            }
+        };
+
+        const config = getErrorConfig();
+
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-                <div className="bg-white p-10 rounded-[40px] shadow-2xl max-w-md w-full text-center border border-red-100 ring-8 ring-red-50">
-                    <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-                        <XCircle className="h-12 w-12 text-red-500" />
+                <div className={`bg-white p-10 rounded-[40px] shadow-2xl max-w-md w-full text-center border ${config.borderColor} ring-8 ${config.ringColor}`}>
+                    <div className={`w-24 h-24 ${config.bgColor} rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner`}>
+                        {config.icon}
                     </div>
-                    <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">Access Denied</h1>
+                    <h1 className={`text-3xl font-black ${config.titleColor} mb-3 tracking-tight`}>{config.title}</h1>
                     <p className="text-gray-500 mb-10 leading-relaxed font-medium">{error}</p>
                     <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 text-[10px] font-mono text-gray-400 uppercase tracking-[0.3em]">
                         REF-ID: {code?.slice(0, 12)}
