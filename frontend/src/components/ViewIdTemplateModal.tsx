@@ -4,7 +4,7 @@ import React from "react";
 import Modal from "./layout/Modal";
 import { IdCardTemplate } from "@/api/idTemplateApi";
 import { X, Layout, FileText, Ruler, CheckCircle2, Calendar, Image as ImageIcon } from "lucide-react";
-import { UPLOAD_URL } from "@/api/axios";
+import { getImageUrl } from "@/utils/url";
 
 
 interface ViewIdTemplateModalProps {
@@ -109,9 +109,7 @@ const ViewIdTemplateModal: React.FC<ViewIdTemplateModalProps> = ({
                                 style={{ aspectRatio: `${template.width} / ${template.height}` }}
                             >
                                 <img
-                                    src={template.frontBackground.startsWith('uploads/')
-                                        ? `${UPLOAD_URL.replace('/uploads', '')}/${template.frontBackground}`
-                                        : `${UPLOAD_URL}/${template.frontBackground}`}
+                                    src={getImageUrl(template.frontBackground) || ""}
                                     alt="Front Background"
                                     className="w-full h-full object-cover"
                                 />
@@ -128,9 +126,7 @@ const ViewIdTemplateModal: React.FC<ViewIdTemplateModalProps> = ({
                                     style={{ aspectRatio: `${template.width} / ${template.height}` }}
                                 >
                                     <img
-                                        src={template.backBackground.startsWith('uploads/')
-                                            ? `${UPLOAD_URL.replace('/uploads', '')}/${template.backBackground}`
-                                            : `${UPLOAD_URL}/${template.backBackground}`}
+                                        src={getImageUrl(template.backBackground) || ""}
                                         alt="Back Background"
                                         className="w-full h-full object-cover"
                                     />

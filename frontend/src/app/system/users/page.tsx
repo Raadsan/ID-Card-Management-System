@@ -8,7 +8,7 @@ import { Edit, Trash2, UserPlus, Mail, Phone, Shield, Lock, X, Save, Image as Im
 import Modal from "@/components/layout/Modal";
 import DeleteConfirmModal from "@/components/layout/ConfirmDeleteModel";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
-import { UPLOAD_URL } from "@/api/axios";
+import { getImageUrl } from "@/utils/url";
 
 // Define the User type based on your API response
 interface User {
@@ -37,7 +37,8 @@ export default function UsersPage() {
         email: "",
         phone: "",
         roleId: "",
-        password: ""
+        password: "",
+        gender: ""
     });
     const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -55,18 +56,7 @@ export default function UsersPage() {
         type: "info",
     });
 
-    const getImageUrl = (path: string | null | undefined) => {
-        if (!path) return null;
-        if (path.startsWith('http') || path.startsWith('data:')) return path;
 
-        // If it already starts with uploads/, we need to be careful with double /uploads/uploads
-        if (path.startsWith('uploads/')) {
-            const rootUrl = UPLOAD_URL.replace('/uploads', '');
-            return `${rootUrl}/${path}`;
-        }
-
-        return `${UPLOAD_URL}/${path}`;
-    };
 
     useEffect(() => {
 
@@ -108,7 +98,8 @@ export default function UsersPage() {
             email: user.email,
             phone: user.phone,
             roleId: String(user.role?.id || ""),
-            password: ""
+            password: "",
+            gender: (user as any).gender || ""
         });
         setUserToEdit(user);
         setSelectedPhoto(null);
@@ -154,7 +145,8 @@ export default function UsersPage() {
             email: "",
             phone: "",
             roleId: "",
-            password: ""
+            password: "",
+            gender: ""
         });
         setShowAddModal(true);
         setSelectedPhoto(null);
@@ -187,6 +179,9 @@ export default function UsersPage() {
             data.append("phone", formData.phone);
             data.append("roleId", formData.roleId);
             data.append("password", formData.password);
+            if (formData.gender) {
+                data.append("gender", formData.gender);
+            }
             if (selectedPhoto) {
                 data.append("photo", selectedPhoto);
             }
@@ -221,6 +216,9 @@ export default function UsersPage() {
             data.append("email", formData.email);
             data.append("phone", formData.phone);
             data.append("roleId", formData.roleId);
+            if (formData.gender) {
+                data.append("gender", formData.gender);
+            }
             if (formData.password) {
                 data.append("password", formData.password);
             }
@@ -347,7 +345,8 @@ export default function UsersPage() {
                         email: "",
                         phone: "",
                         roleId: "",
-                        password: ""
+                        password: "",
+                        gender: ""
                     });
                 }}
                 title="Add New User"
@@ -424,6 +423,24 @@ export default function UsersPage() {
                                 {roles.map(role => (
                                     <option key={role.id} value={role.id}>{role.name}</option>
                                 ))}
+                            </select>
+                        </div>
+
+                        {/* Gender Selection */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <UserCircle size={12} className="text-secondary" />
+                                Gender
+                            </label>
+                            <select
+                                name="gender"
+                                value={formData.gender}
+                                onChange={handleFormChange}
+                                className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-700 outline-none focus:bg-white focus:ring-2 focus:ring-secondary/20 transition-all shadow-sm cursor-pointer"
+                            >
+                                <option value="">Select gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
                             </select>
                         </div>
 
@@ -576,6 +593,24 @@ export default function UsersPage() {
                                 {roles.map(role => (
                                     <option key={role.id} value={role.id}>{role.name}</option>
                                 ))}
+                            </select>
+                        </div>
+
+                        {/* Gender Selection */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <UserCircle size={12} className="text-secondary" />
+                                Gender
+                            </label>
+                            <select
+                                name="gender"
+                                value={formData.gender}
+                                onChange={handleFormChange}
+                                className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-700 outline-none focus:bg-white focus:ring-2 focus:ring-secondary/20 transition-all shadow-sm cursor-pointer"
+                            >
+                                <option value="">Select gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
                             </select>
                         </div>
 

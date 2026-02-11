@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { CheckCircle2, XCircle, ShieldCheck, Loader2, MapPin, Calendar, User, Fingerprint } from "lucide-react";
 import { verifyQrCode } from "@/api/generateIdApi";
 
-import { UPLOAD_URL } from "@/api/axios";
+import { getImageUrl } from "@/utils/url";
 
 
 export default function VerificationPage() {
@@ -35,18 +35,7 @@ export default function VerificationPage() {
         }
     }, [code]);
 
-    const getImageUrl = (path: string | null) => {
-        if (!path) return null;
-        if (path.startsWith('http')) return path;
 
-        // If it already starts with uploads/, we need to be careful with double /uploads/uploads
-        if (path.startsWith('uploads/')) {
-            const rootUrl = UPLOAD_URL.replace('/uploads', '');
-            return `${rootUrl}/${path}`;
-        }
-
-        return `${UPLOAD_URL}/${path}`;
-    };
 
     const formatDate = (date: string | null) => {
         if (!date) return "N/A";

@@ -20,7 +20,7 @@ import {
     FileStack,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getMenus } from "@/api/menuApi";
+import { getUserMenus } from "@/api/menuApi";
 
 interface SubMenu {
     id: number;
@@ -68,7 +68,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
         const fetchMenus = async () => {
             try {
                 setLoading(true);
-                const data = await getMenus();
+                const data = await getUserMenus();
                 setMenus(data);
             } catch (error: any) {
                 console.error("Failed to fetch menus:", error);

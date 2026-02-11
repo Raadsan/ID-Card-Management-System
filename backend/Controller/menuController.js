@@ -151,3 +151,70 @@ export const deleteMenu = async (req, res) => {
     res.status(500).json({ message: "Failed to delete menu" });
   }
 };
+
+/* =========================
+   GET MY MENUS (Based on Role)
+========================= */
+export const getUserMenus = async (req, res) => {
+  try {
+    console.log("getUserMenus called");
+    console.log("Req User:", req.user);
+    const userId = req.user.id;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { role: true },
+    });
+
+    if (!user) {
+      console.log("User not found for ID:", userId);
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const roleId = user.roleId;
+    console.log("User Role ID:", roleId);
+
+    // Fetch Role Permissions
+    const rolePermissions = await prisma.rolePermissions.findUnique({
+      where: { roleId },
+      include: {
+        menus: {
+          include: {
+            menu: true,
+            subMenus: {
+              include: { subMenu: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!rolePermissions) {
+      console.log("No role permissions found for Role ID:", roleId);
+      // If no permissions defined, return empty array
+      return res.json([]);
+    }
+
+    // Transform to match Menu structure
+    const formattedMenus = rolePermissions.menus.map((roleMenu) => {
+      const menu = roleMenu.menu;
+
+      // Get allowed submenus for this menu
+      const allowedSubMenus = roleMenu.subMenus.map((roleSubMenu) => roleSubMenu.subMenu);
+
+      return {
+        ...menu,
+        subMenus: allowedSubMenus,
+      };
+    });
+
+    // Sort by Menu ID
+    formattedMenus.sort((a, b) => a.id - b.id);
+
+    console.log("Returning menus count:", formattedMenus.length);
+    res.json(formattedMenus);
+
+  } catch (error) {
+    console.error("Get my menus error:", error);
+    res.status(500).json({ message: "Failed to fetch user menus" });
+  }
+};

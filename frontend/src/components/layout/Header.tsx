@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Bell, Search, Menu, LogOut, User, Settings, ShieldCheck } from "lucide-react";
 import { getMe } from "@/api/userApi";
-import { UPLOAD_URL } from "@/api/axios";
+import { getImageUrl } from "@/utils/url";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -67,7 +67,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                         <div className="h-8 w-8 overflow-hidden rounded-full ring-2 ring-white shadow-sm border border-gray-100 relative">
                             {user?.photo ? (
                                 <img
-                                    src={`${UPLOAD_URL}/${user.photo}`}
+                                    src={getImageUrl(user.photo) || "/placeholder-user.png"}
                                     className="h-full w-full object-cover"
                                     alt="Avatar"
                                     onError={(e) => {
