@@ -121,7 +121,6 @@ const EditIdTemplateModal: React.FC<EditIdTemplateModalProps> = ({
 
 
 
-
     const handleNext = () => {
         setError("");
         if (!formData.name || !formData.width || !formData.height) {
@@ -223,16 +222,44 @@ const EditIdTemplateModal: React.FC<EditIdTemplateModalProps> = ({
                             <textarea name="description" value={formData.description} onChange={handleChange} rows={2} className="w-full rounded-xl border border-gray-200 p-3 text-sm font-semibold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 resize-none" />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
-                                    <ImageIcon size={12} className="text-[#16BCF8]" /> New Front Background
+                                    <ImageIcon size={12} className="text-[#16BCF8]" /> Front Background
                                 </label>
+                                {getPreviewBackground('front') && (
+                                    <div className="relative w-full h-32 rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm">
+                                        <img
+                                            src={getPreviewBackground('front')!}
+                                            alt="Front Background"
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-2">
+                                            <span className="text-[9px] font-bold text-white uppercase tracking-wider">
+                                                {previewUrls.front ? 'New Upload' : 'Current Background'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
                                 <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "front")} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#1B1555] file:text-white hover:file:bg-[#16BCF8]" />
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
-                                    <ImageIcon size={12} className="text-[#16BCF8]" /> New Back Background
+                                    <ImageIcon size={12} className="text-[#16BCF8]" /> Back Background
                                 </label>
+                                {getPreviewBackground('back') && (
+                                    <div className="relative w-full h-32 rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm">
+                                        <img
+                                            src={getPreviewBackground('back')!}
+                                            alt="Back Background"
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-2">
+                                            <span className="text-[9px] font-bold text-white uppercase tracking-wider">
+                                                {previewUrls.back ? 'New Upload' : 'Current Background'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
                                 <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "back")} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#1B1555] file:text-white hover:file:bg-[#16BCF8]" />
                             </div>
                         </div>
