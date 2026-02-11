@@ -147,6 +147,7 @@ export const verifyQrCode = async (req, res) => {
         });
 
         if (!data) {
+            .0                                                          
             return res.status(404).json({ message: "Invalid QR Code" });
         }
         if (data.status !== "printed") {
@@ -154,6 +155,9 @@ export const verifyQrCode = async (req, res) => {
         }
         if (data.expiryDate < new Date()) {
             return res.status(400).json({ message: "ID has expired" });
+        }
+        if(data.status === "inactive"){
+            return res.status(400).json({ message: "Employee ID is inactive" });
         }
 
         res.json({
