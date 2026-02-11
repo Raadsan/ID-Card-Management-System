@@ -121,17 +121,14 @@ export const updateEmployee = async (req, res) => {
         const { id } = req.params;
         const { dob, departmentId, userId, title, address, status } = req.body;
 
-        const updateData = {};
-        if (dob) updateData.dob = new Date(dob);
-        if (departmentId) updateData.departmentId = Number(departmentId);
-        if (userId) updateData.userId = Number(userId);
-        if (title) updateData.title = title;
-        if (address) updateData.address = address;
-        if (status) updateData.status = status;
+        const data = { ...updateData };
+        if (dob) data.dob = new Date(dob);
+        if (departmentId) data.departmentId = Number(departmentId);
+        if (userId) data.userId = Number(userId);
 
         const employee = await prisma.employee.update({
             where: { id: Number(id) },
-            data: updateData,
+            data,
             include: { department: true, user: true }
         });
         res.status(200).json(employee);

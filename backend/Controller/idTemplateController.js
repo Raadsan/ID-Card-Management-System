@@ -148,17 +148,52 @@ export const updateTemplate = async (req, res) => {
 export const deleteTemplate = async (req, res) => {
     try {
         const { id } = req.params;
+        const templateId = parseInt(id);
 
-        // Optional: Delete physical files
-        // const template = await prisma.idCardTemplate.findUnique({ where: { id: parseInt(id) } });
-
-        await prisma.idCardTemplate.delete({
-            where: { id: parseInt(id) },
+        // 1. Check if template is used in any generated IDs
+        const usageCount = await prisma.idGenerate.count({
+            where: { templateId: templateId }
         });
 
-        res.json({ message: "Template deleted successfully" });
+        if (usageCount > 0) {
+            return res.status(400).json({
+                error: "Ma tirtiri kartid template-kaan sababtoo ah waxaa jira ID-yo loo isticmaalay. Fadlan tirtir ID-yadaas marka hore."
+            });
+        }
+
+        // 2. Get template details to find file paths
+        const template = await prisma.idCardTemplate.findUnique({
+            where: { id: templateId }
+        });
+
+        if (!template) {
+            return res.status(404).json({ error: "Template-ka lama helin" });
+        }
+
+        // 3. Delete physical files if they exist
+        const deleteFile = (filename) => {
+            if (filename) {
+                const filePath = path.join("uploads", filename);
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                }
+            }
+        };
+
+        deleteFile(template.frontBackground);
+        deleteFile(template.backBackground);
+
+        // 4. Delete from database
+        await prisma.idCardTemplate.delete({
+            where: { id: templateId },
+        });
+
+        res.json({ message: "Template-ka waa la tirtiray si guul ah" });
     } catch (error) {
         console.error("Error deleting template:", error);
-        res.status(500).json({ error: "Failed to delete template" });
+        res.status(500).json({
+            error: "Wuu ku guuldareystay tirtirista template-ka.",
+            details: error.message
+        });
     }
 };

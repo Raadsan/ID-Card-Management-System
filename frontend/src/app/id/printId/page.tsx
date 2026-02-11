@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Printer, Loader2, Calendar, User, CheckCircle2 } from "lucide-react";
+import { Printer, Loader2, Calendar, User, CheckCircle2, Trash2, Eye } from "lucide-react";
 import ViewIdModal from "../../../components/ViewIdModal";
-import { getAllIdGenerates, IdGenerate, printIdGenerate } from "../../../api/generateIdApi";
+import MessageBox, { MessageBoxType } from "../../../components/MessageBox";
+import { getAllIdGenerates, IdGenerate, printIdGenerate, deleteIdGenerate } from "../../../api/generateIdApi";
 import { QRCodeSVG } from "qrcode.react";
 
 import { UPLOAD_URL } from "../../../api/axios";
@@ -17,6 +18,21 @@ export default function PrintIdPage() {
     const [cardToPrint, setCardToPrint] = useState<IdGenerate | null>(null);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [pendingPrintId, setPendingPrintId] = useState<number | null>(null);
+
+    // MessageBox State
+    const [msgBox, setMsgBox] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: MessageBoxType;
+        onConfirm?: () => void;
+        loading?: boolean;
+    }>({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info",
+    });
 
     const getImageUrl = (path: string | null) => {
         if (!path) return "";
@@ -45,6 +61,38 @@ export default function PrintIdPage() {
             setError("Failed to load ID cards. Please try again later.");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleDelete = (id: number) => {
+        setMsgBox({
+            isOpen: true,
+            title: "Delete ID Record",
+            message: "Are you sure you want to delete this ID record? This action cannot be undone.",
+            type: "confirm",
+            onConfirm: () => performDelete(id),
+        });
+    };
+
+    const performDelete = async (id: number) => {
+        try {
+            setMsgBox(prev => ({ ...prev, loading: true }));
+            await deleteIdGenerate(id);
+            setMsgBox({
+                isOpen: true,
+                title: "Deleted!",
+                message: "ID record has been removed successfully.",
+                type: "success",
+            });
+            fetchReadyToPrintIds();
+        } catch (error: any) {
+            console.error("Failed to delete ID:", error);
+            setMsgBox({
+                isOpen: true,
+                title: "Deletion Failed",
+                message: error.response?.data?.message || "Could not delete ID record.",
+                type: "error",
+            });
         }
     };
 
@@ -214,9 +262,10 @@ export default function PrintIdPage() {
                                             <div className="flex items-center justify-end gap-2 text-right">
                                                 <button
                                                     onClick={() => handleView(card)}
-                                                    className="px-4 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2"
+                                                    className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all"
+                                                    title="View ID"
                                                 >
-                                                    View
+                                                    <Eye className="h-4 w-4" />
                                                 </button>
                                                 {card.status === 'ready_to_print' ? (
                                                     <button
@@ -224,14 +273,21 @@ export default function PrintIdPage() {
                                                         className="px-4 py-2 text-xs font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all shadow-md shadow-green-100 flex items-center gap-2"
                                                     >
                                                         <Printer className="h-4 w-4" />
-                                                        Print Now
+                                                        Print
                                                     </button>
                                                 ) : (
-                                                    <div className="px-4 py-2 text-xs font-bold text-green-600 bg-green-50 rounded-lg flex items-center gap-2 border border-green-100 italic">
-                                                        <CheckCircle2 className="h-4 w-4" />
-                                                        Archived
+                                                    <div className="px-3 py-1.5 text-[10px] font-bold text-green-600 bg-green-50 rounded-lg flex items-center gap-1.5 border border-green-100">
+                                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                                        Log
                                                     </div>
                                                 )}
+                                                <button
+                                                    onClick={() => handleDelete(card.id)}
+                                                    className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-all"
+                                                    title="Delete Record"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -432,6 +488,16 @@ export default function PrintIdPage() {
                     </div>
                 )}
             </div>
+
+            <MessageBox
+                isOpen={msgBox.isOpen}
+                onClose={() => setMsgBox(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={msgBox.onConfirm}
+                title={msgBox.title}
+                message={msgBox.message}
+                type={msgBox.type}
+                loading={msgBox.loading}
+            />
         </div>
     );
 }
