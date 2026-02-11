@@ -1,4 +1,4 @@
-import { UPLOAD_URL } from "@/api/axios";
+export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "https://id-card-management-system-qfgg.onrender.com/api").replace("/api", "");
 
 export const getImageUrl = (path: string | undefined | null) => {
     if (!path || path === "") return null;
@@ -10,15 +10,13 @@ export const getImageUrl = (path: string | undefined | null) => {
     // Ensure path doesn't start with / if we're adding it
     cleanPath = cleanPath.startsWith("/") ? cleanPath.substring(1) : cleanPath;
 
-    // Direct mirror of the working manual construction logic:
-    // If it starts with uploads/, the base URL needs to be adjusted (remove /uploads from UPLOAD_URL)
-    if (cleanPath.startsWith('uploads/')) {
-        const rootUrl = UPLOAD_URL.replace('/uploads', '');
-        return `${rootUrl}/${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
+    // Auto-prepend uploads/ if likely missing (simple heuristic)
+    if (!cleanPath.startsWith("uploads/") && !cleanPath.startsWith("images/")) {
+        cleanPath = `uploads/${cleanPath}`;
     }
 
-    // Default: use UPLOAD_URL as base
-    return `${UPLOAD_URL}/${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
+    // Also handle 'uploads/' prefix if needed, but usually the backend returns it
+    return `${API_BASE_URL}/${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
 };
 
 export const slugify = (text: string) => {
