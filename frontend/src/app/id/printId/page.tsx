@@ -109,16 +109,18 @@ export default function PrintIdPage() {
         if (!element) return;
 
         const opt = {
-            margin: 0,
+            margin: [10, 10],
             filename: `ID_Card_${card.employee?.user.fullName || card.id}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: {
-                scale: 2,
+                scale: 3,
                 useCORS: true,
                 letterRendering: true,
-                allowTaint: false
+                allowTaint: false,
+                backgroundColor: "#ffffff"
             },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         html2pdf().from(element).set(opt).save();
@@ -354,8 +356,8 @@ export default function PrintIdPage() {
                     </div>
                 </div>
             )}
-            {/* Printable Area - Hidden by default, visible during window.print() */}
-            <div className="print-area hidden print:block pt-10">
+            {/* Printable Area - Hidden from view but accessible for capture */}
+            <div className="print-area invisible pointer-events-none absolute -left-[9999px] print:visible print:static print:pointer-events-auto print:block pt-10">
                 <style dangerouslySetInnerHTML={{
                     __html: `
                     @media print {
