@@ -99,7 +99,7 @@ export default function PrintIdPage() {
         setIsConfirmModalOpen(true);
     };
 
-    const handleDownloadPDF = (card: IdGenerate) => {
+    const handleDownloadPDF = async (card: IdGenerate) => {
         if (!html2pdf) {
             console.error("html2pdf library not loaded yet");
             return;
@@ -108,8 +108,20 @@ export default function PrintIdPage() {
         const element = document.querySelector('.print-area');
         if (!element) return;
 
+        // Wait for all images in the print area to load before capturing
+        const images = element.querySelectorAll('img');
+        const imagePromises = Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => {
+                img.onload = resolve;
+                img.onerror = resolve; // Continue even if an image fails
+            });
+        });
+
+        await Promise.all(imagePromises);
+
         const opt = {
-            margin: [10, 10],
+            margin: [5, 5],
             filename: `ID_Card_${card.employee?.user.fullName || card.id}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: {
@@ -117,7 +129,9 @@ export default function PrintIdPage() {
                 useCORS: true,
                 letterRendering: true,
                 allowTaint: false,
-                backgroundColor: "#ffffff"
+                backgroundColor: "#ffffff",
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
@@ -356,8 +370,8 @@ export default function PrintIdPage() {
                     </div>
                 </div>
             )}
-            {/* Printable Area - Hidden from view but accessible for capture */}
-            <div className="print-area invisible pointer-events-none absolute -left-[9999px] print:visible print:static print:pointer-events-auto print:block pt-10">
+            {/* Printable Area - Positioned off-screen but fully visible to the capture engine */}
+            <div className="print-area absolute -left-[9999px] top-0 opacity-100 z-[-100] pointer-events-none print:visible print:static print:pointer-events-auto print:block print:opacity-100 pt-10">
                 <style dangerouslySetInnerHTML={{
                     __html: `
                     @media print {
@@ -370,16 +384,20 @@ export default function PrintIdPage() {
 
                 {cardToPrint && (
                     <div className="flex flex-col items-center gap-10">
-                        {/* Front Side */}
                         <div
-                            className="relative bg-white shadow-none border border-gray-100"
+                            className="relative bg-white shadow-none border border-gray-100 overflow-hidden"
                             style={{
                                 width: `${cardToPrint.template?.width || 350}px`,
                                 height: `${cardToPrint.template?.height || 500}px`,
-                                backgroundImage: `url(${getImageUrl(cardToPrint.template?.frontBackground)})`,
-                                backgroundSize: '100% 100%',
                             }}
                         >
+                            {/* Background Image using <img> for better capture compatibility */}
+                            <img
+                                src={getImageUrl(cardToPrint.template?.frontBackground) || ""}
+                                className="absolute inset-0 w-full h-full object-fill"
+                                crossOrigin="anonymous"
+                                alt=""
+                            />
                             {/* Safe Layout Parsing with Default Fallbacks */}
                             {(() => {
                                 try {
@@ -473,16 +491,20 @@ export default function PrintIdPage() {
                             })()}
                         </div>
 
-                        {/* Back Side */}
                         <div
-                            className="relative bg-white shadow-none border border-gray-100"
+                            className="relative bg-white shadow-none border border-gray-100 overflow-hidden"
                             style={{
                                 width: `${cardToPrint.template?.width || 350}px`,
                                 height: `${cardToPrint.template?.height || 500}px`,
-                                backgroundImage: `url(${getImageUrl(cardToPrint.template?.backBackground)})`,
-                                backgroundSize: '100% 100%',
                             }}
                         >
+                            {/* Background Image using <img> for better capture compatibility */}
+                            <img
+                                src={getImageUrl(cardToPrint.template?.backBackground) || ""}
+                                className="absolute inset-0 w-full h-full object-fill"
+                                crossOrigin="anonymous"
+                                alt=""
+                            />
                             {(() => {
                                 try {
                                     const rawLayout = cardToPrint.template?.layout;
