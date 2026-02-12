@@ -20,8 +20,8 @@ export const createUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Multer file
-    const photo = req.file ? req.file.filename : null;
+    // Cloudinary file URL
+    const photo = req.file ? req.file.path : null;
 
     const user = await prisma.user.create({
       data: {
@@ -117,8 +117,8 @@ export const updateUser = async (req, res) => {
       if (!role) return res.status(400).json({ message: "Invalid roleId" });
     }
 
-    // Check if file uploaded
-    const photo = req.file ? req.file.filename : undefined;
+    // Check if file uploaded (Cloudinary returns full URL in path)
+    const photo = req.file ? req.file.path : undefined;
 
     // Optional: delete old photo if updating
     if (photo) {

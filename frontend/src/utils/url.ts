@@ -2,6 +2,8 @@ import { UPLOAD_URL } from "@/api/axios";
 
 export const getImageUrl = (path: string | undefined | null) => {
     if (!path || path === "" || path === "undefined" || path === "null") return null;
+
+    // If the path is already a full URL (like from Cloudinary), return it as is
     if (path.startsWith("http")) return path;
 
     // Normalize backslashes to forward slashes for Windows paths 
@@ -16,7 +18,7 @@ export const getImageUrl = (path: string | undefined | null) => {
         return `${rootUrl}/${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
     }
 
-    // Default case: it's a raw filename, so use UPLOAD_URL
+    // Default case: it's a raw filename from older local uploads, so use UPLOAD_URL
     return `${UPLOAD_URL}/${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
 };
 

@@ -1,25 +1,26 @@
 import multer from "multer";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../config/cloudinary.js";
 import path from "path";
 
-// Set storage engine
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/"); // folder-ka image lagu kaydinayo
+// Set Cloudinary storage engine
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "idms_uploads", // Folder name in Cloudinary
+    allowed_formats: ["jpg", "jpeg", "png", "gif", "webp", "pdf", "svg"],
+    // Remove individual filename logic as Cloudinary handles it
   },
-  filename: function (req, file, cb) {
-    // samee unique filename
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
 });
 
-// File filter (optional) - accept only images
+// File filter (optional) - accept only images and allowed types
 const fileFilter = (req, file, cb) => {
   const allowedExtensions = /jpeg|jpg|png|gif|webp|svg|pdf|html|htm/;
   const allowedMimetypes = /image\/|application\/pdf|text\/html/;
 
   const isExtensionValid = allowedExtensions.test(path.extname(file.originalname).toLowerCase());
   const isMimetypeValid = allowedMimetypes.test(file.mimetype);
-  
+
   if (isExtensionValid || isMimetypeValid) {
     cb(null, true);
   } else {
