@@ -9,6 +9,14 @@ import { QRCodeSVG } from "qrcode.react";
 
 import { getImageUrl } from "@/utils/url";
 
+// Dynamic import for html2pdf.js to avoid SSR issues
+let html2pdf: any;
+if (typeof window !== 'undefined') {
+    import('html2pdf.js').then((module) => {
+        html2pdf = module.default;
+    });
+}
+
 export default function PrintIdPage() {
     const [idCards, setIdCards] = useState<IdGenerate[]>([]);
     const [selectedIdCard, setSelectedIdCard] = useState<IdGenerate | null>(null);
@@ -91,6 +99,31 @@ export default function PrintIdPage() {
         setIsConfirmModalOpen(true);
     };
 
+    const handleDownloadPDF = (card: IdGenerate) => {
+        if (!html2pdf) {
+            console.error("html2pdf library not loaded yet");
+            return;
+        }
+
+        const element = document.querySelector('.print-area');
+        if (!element) return;
+
+        const opt = {
+            margin: 0,
+            filename: `ID_Card_${card.employee?.user.fullName || card.id}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                letterRendering: true,
+                allowTaint: false
+            },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().from(element).set(opt).save();
+    };
+
     const handlePrint = async () => {
         if (!pendingPrintId) return;
         const id = pendingPrintId;
@@ -114,10 +147,10 @@ export default function PrintIdPage() {
                 setSelectedIdCard(updatedCard);
             }
 
-            // Wait for state to update and render before printing
+            // Wait for state to update and render before downloading PDF
             setTimeout(() => {
-                window.print();
-            }, 300);
+                handleDownloadPDF(card);
+            }, 500);
         } catch (err: any) {
             console.error("Failed to mark ID as printed:", err);
             alert(err.response?.data?.message || "Failed to mark as printed");
@@ -376,6 +409,7 @@ export default function PrintIdPage() {
                                                 <img
                                                     src={getImageUrl(cardToPrint.employee?.user?.photo) || ""}
                                                     className="w-full h-full object-cover"
+                                                    crossOrigin="anonymous"
                                                 />
                                             </div>
                                             <div className="absolute whitespace-nowrap"
