@@ -5,7 +5,7 @@ import { X, ChevronRight, ChevronLeft, User, FileText, MapPin, CreditCard, Refre
 import { getEmployees } from "@/api/employeeApi";
 import { getAllTemplates, IdCardTemplate } from "@/api/idTemplateApi";
 import { createIdGenerate, getAllIdGenerates, IdGenerate } from "@/api/generateIdApi";
-import { UPLOAD_URL } from "@/api/axios";
+import { getImageUrl } from "@/utils/url";
 import { IdCardPreview, DEFAULT_POSITIONS, IdTemplatePositions } from "./IdTemplateLayout";
 
 
@@ -164,18 +164,7 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
         }
     };
 
-    const getImageUrl = (path?: string) => {
-        if (!path) return null;
-        if (path.startsWith('http')) return path;
 
-        // If it already starts with uploads/, we need to be careful with double /uploads/uploads
-        if (path.startsWith('uploads/')) {
-            const rootUrl = UPLOAD_URL.replace('/uploads', '');
-            return `${rootUrl}/${path}`;
-        }
-
-        return `${UPLOAD_URL}/${path}`;
-    };
 
     if (!isOpen) return null;
 
@@ -234,7 +223,7 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                             className="w-full pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer text-gray-700 shadow-sm hover:border-gray-400"
                                         >
                                             <option value="">-- Choose Employee --</option>
-                                            {filteredEmployees.map(emp => ( 
+                                            {filteredEmployees.map(emp => (
                                                 <option key={emp.id} value={emp.id}>
                                                     {emp.user.fullName} — {emp.department.departmentName}
                                                 </option>

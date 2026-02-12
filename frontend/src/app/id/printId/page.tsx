@@ -7,7 +7,7 @@ import MessageBox, { MessageBoxType } from "../../../components/MessageBox";
 import { getAllIdGenerates, IdGenerate, printIdGenerate, deleteIdGenerate } from "../../../api/generateIdApi";
 import { QRCodeSVG } from "qrcode.react";
 
-import { UPLOAD_URL } from "../../../api/axios";
+import { getImageUrl } from "@/utils/url";
 
 export default function PrintIdPage() {
     const [idCards, setIdCards] = useState<IdGenerate[]>([]);
@@ -34,17 +34,7 @@ export default function PrintIdPage() {
         type: "info",
     });
 
-    const getImageUrl = (path: string | null) => {
-        if (!path) return "";
-        if (path.startsWith('http')) return path;
-        const cleanPath = path.startsWith('/') ? path.substring(1) : path;
 
-        // If it's just a filename (no slashes), it's in the uploads folder
-        if (!cleanPath.includes('/') && !cleanPath.includes('\\')) {
-            return `${UPLOAD_URL}/${cleanPath}`;
-        }
-        return `${UPLOAD_URL.replace('/uploads', '')}/${cleanPath}`;
-    };
 
     const fetchReadyToPrintIds = async () => {
         try {
@@ -384,7 +374,7 @@ export default function PrintIdPage() {
                                                     height: `${pos.photo.height}px`
                                                 }}>
                                                 <img
-                                                    src={getImageUrl(cardToPrint.employee?.user?.photo)}
+                                                    src={getImageUrl(cardToPrint.employee?.user?.photo) || ""}
                                                     className="w-full h-full object-cover"
                                                 />
                                             </div>

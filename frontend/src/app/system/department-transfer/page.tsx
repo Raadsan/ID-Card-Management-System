@@ -9,7 +9,7 @@ import { Edit, Trash2, Calendar, User, ArrowRightLeft, Briefcase, FileText, Mess
 import Modal from "@/components/layout/Modal";
 import DeleteConfirmModal from "@/components/layout/ConfirmDeleteModel";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
-import { UPLOAD_URL } from "@/api/axios";
+import { getImageUrl } from "@/utils/url";
 
 
 // Define the DepartmentTransfer type based on your API response
@@ -325,11 +325,7 @@ export default function DepartmentTransferPage() {
                     <div className="flex items-center gap-3 text-[#1B1555] font-semibold">
                         <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-100">
                             <img
-                                src={row.employee?.user?.photo
-                                    ? (row.employee.user.photo.startsWith('uploads/')
-                                        ? `${UPLOAD_URL.replace('/uploads', '')}/${row.employee.user.photo}`
-                                        : `${UPLOAD_URL}/${row.employee.user.photo}`)
-                                    : "/placeholder-user.png"}
+                                src={getImageUrl(row.employee?.user?.photo) || "/placeholder-user.png"}
                                 alt=""
                                 className="h-full w-full object-cover"
                                 onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-user.png" }}

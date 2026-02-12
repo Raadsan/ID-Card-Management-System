@@ -147,13 +147,38 @@ export const verifyQrCode = async (req, res) => {
         });
 
         if (!data) {
-            return res.status(404).json({ message: "Invalid QR Code" });
+            return res.status(404).json({
+                message: "Invalid QR Code",
+                valid: false,
+                reason: "invalid_qr"
+            });
         }
+
+        // Check if ID card itself is printed
         if (data.status !== "printed") {
-            return res.status(400).json({ message: "ID is not printed" });
+            return res.status(400).json({
+                message: "ID is not printed",
+                valid: false,
+                reason: "not_printed"
+            });
         }
+
+        // Check if ID card has expired
         if (data.expiryDate < new Date()) {
-            return res.status(400).json({ message: "ID has expired" });
+            return res.status(400).json({
+                message: "ID has expired",
+                valid: false,
+                reason: "expired"
+            });
+        }
+
+        // Check if Employee is inactive
+        if (data.employee?.status === "inactive") {
+            return res.status(400).json({
+                message: "Employee ID is inactive",
+                valid: false,
+                reason: "employee_inactive"
+            });
         }
 
         res.json({
