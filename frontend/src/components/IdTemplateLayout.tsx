@@ -9,7 +9,7 @@ export type IdTemplatePositions = typeof DEFAULT_POSITIONS & { [key: string]: an
 
 export const DEFAULT_POSITIONS = {
     photo: { x: 88, y: 255, width: 220, height: 215, objectFit: 'fill' as 'cover' | 'fill' | 'contain' },
-    fullName: { x: 355, y: 284, fontSize: 27, color: "#000000ff", fontWeight: "bold", textAlign: "left" as TextAlign, letterSpacing: 0 },
+    fullName: { x: 355, y: 284, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
     title: { x: 353, y: 348, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
     department: { x: 355, y: 415, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
     idNumber: { x: 83, y: 479, fontSize: 27, color: "#000000ff", fontWeight: "bold", textAlign: "left" as TextAlign, letterSpacing: 0 },
