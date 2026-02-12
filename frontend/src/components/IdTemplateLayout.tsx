@@ -8,14 +8,14 @@ export type TextAlign = "left" | "center" | "right";
 export type IdTemplatePositions = typeof DEFAULT_POSITIONS & { [key: string]: any };
 
 export const DEFAULT_POSITIONS = {
-    photo: { x: 50, y: 155, width: 275, height: 325, objectFit: 'cover' as 'cover' | 'fill' | 'contain' },
-    fullName: { x: 360, y: 245, fontSize: 24, color: "#000000ff", fontWeight: "bold", textAlign: "left" as TextAlign, letterSpacing: 0 },
-    title: { x: 360, y: 315, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
-    department: { x: 360, y: 385, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
-    idNumber: { x: 160, y: 505, fontSize: 24, color: "#000000ff", fontWeight: "bold", textAlign: "left" as TextAlign, letterSpacing: 0 },
-    issueDate: { x: 360, y: 420, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
-    expiryDate: { x: 360, y: 455, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
-    qrCode: { x: 125, y: 125, width: 100, height: 100 }
+    photo: { x: 88, y: 255, width: 220, height: 215, objectFit: 'fill' as 'cover' | 'fill' | 'contain' },
+    fullName: { x: 355, y: 284, fontSize: 27, color: "#000000ff", fontWeight: "bold", textAlign: "left" as TextAlign, letterSpacing: 0 },
+    title: { x: 353, y: 348, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
+    department: { x: 355, y: 415, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
+    idNumber: { x: 83, y: 479, fontSize: 27, color: "#000000ff", fontWeight: "bold", textAlign: "left" as TextAlign, letterSpacing: 0 },
+    issueDate: { x: 353, y: 488, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
+    expiryDate: { x: 640, y: 491, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
+    qrCode: { x: 169, y: 404, width: 90, height: 90 }
 };
 
 interface IdCardPreviewProps {
@@ -64,7 +64,7 @@ export const IdCardPreview: React.FC<IdCardPreviewProps> = ({
     values
 }) => {
     const sampleValues = {
-        fullName: 'Full Namefffff',
+        fullName: 'Full Name',
         title: 'Position',
         department: 'Department',
         idNumber: 'ID Number',
