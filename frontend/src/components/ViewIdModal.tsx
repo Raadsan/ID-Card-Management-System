@@ -138,6 +138,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 top: `${positions.photo.y}px`,
                                                 width: `${positions.photo.width}px`,
                                                 height: `${positions.photo.height}px`,
+                                                borderRadius: '8px',
                                             }}
                                         >
                                             <img
