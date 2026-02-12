@@ -12,8 +12,8 @@ export const createTemplate = async (req, res) => {
             return res.status(400).json({ error: "Front background image is required" });
         }
 
-        const frontBackground = req.files.frontBackground?.[0]?.filename;
-        const backBackground = req.files.backBackground?.[0]?.filename;
+        const frontBackground = req.files.frontBackground?.[0]?.path;
+        const backBackground = req.files.backBackground?.[0]?.path;
 
 
         // Convert string to numbers (multipart/form-data sends strings)
@@ -125,10 +125,10 @@ export const updateTemplate = async (req, res) => {
             if (req.files.frontBackground) {
                 // Delete old image if exists
                 // (Optional: Implement file deletion logic here if strictly required, skipping for now to focus on logic)
-                updateData.frontBackground = req.files.frontBackground[0].filename;
+                updateData.frontBackground = req.files.frontBackground[0].path;
             }
             if (req.files.backBackground) {
-                updateData.backBackground = req.files.backBackground[0].filename;
+                updateData.backBackground = req.files.backBackground[0].path;
             }
         }
 

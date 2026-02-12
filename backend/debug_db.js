@@ -6,7 +6,7 @@ async function main() {
     console.log(JSON.stringify(users, null, 2));
 
     console.log("\n--- ID TEMPLATES ---");
-    const templates = await prisma.idCardTemplate.findMany({ take: 10 });
+    const templates = await prisma.idCardTemplate.findMany({ take: 10, orderBy: { id: 'desc' } });
     console.log(JSON.stringify(templates, null, 2));
 
     process.exit(0);
