@@ -1,9 +1,19 @@
 import { prisma } from "../../lib/prisma.js";
+import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../../utils/auditLogger.js";
 
 
 export const getEmployeeReport = async (req, res) => {
     try {
         const { status, departmentId } = req.query;
+
+        // Log audit
+        await logAudit({
+            userId: req.user?.id,
+            action: AUDIT_ACTIONS.VIEW,
+            tableName: TABLE_NAMES.REPORT_EMPLOYEE,
+            newData: { status, departmentId },
+            ipAddress: getClientIp(req),
+        });
 
         // Base filter object
         let where = {};

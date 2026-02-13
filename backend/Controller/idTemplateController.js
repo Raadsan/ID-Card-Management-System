@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import path from "path";
 import fs from "fs";
+import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../utils/auditLogger.js";
 
 // Create a new ID Card Template
 export const createTemplate = async (req, res) => {
@@ -46,6 +47,16 @@ export const createTemplate = async (req, res) => {
                 status: status || "active",
                 layout: parsedLayout,
             },
+        });
+
+        // Log audit
+        await logAudit({
+            userId: req.user?.id,
+            action: AUDIT_ACTIONS.CREATE,
+            tableName: TABLE_NAMES.ID_CARD_TEMPLATE,
+            recordId: template.id,
+            newData: { name, description, width: numWidth, height: numHeight, status: status || "active", layout: parsedLayout },
+            ipAddress: getClientIp(req),
         });
 
         res.status(201).json(template);
@@ -137,6 +148,24 @@ export const updateTemplate = async (req, res) => {
             data: updateData,
         });
 
+        // Log audit
+        await logAudit({
+            userId: req.user?.id,
+            action: AUDIT_ACTIONS.UPDATE,
+            tableName: TABLE_NAMES.ID_CARD_TEMPLATE,
+            recordId: parseInt(id),
+            oldData: {
+                name: existingTemplate.name,
+                description: existingTemplate.description,
+                status: existingTemplate.status,
+                width: existingTemplate.width,
+                height: existingTemplate.height,
+                layout: existingTemplate.layout
+            },
+            newData: updateData,
+            ipAddress: getClientIp(req),
+        });
+
         res.json(updatedTemplate);
     } catch (error) {
         console.error("Error updating template:", error);
@@ -186,6 +215,16 @@ export const deleteTemplate = async (req, res) => {
         // 4. Delete from database
         await prisma.idCardTemplate.delete({
             where: { id: templateId },
+        });
+
+        // Log audit
+        await logAudit({
+            userId: req.user?.id,
+            action: AUDIT_ACTIONS.DELETE,
+            tableName: TABLE_NAMES.ID_CARD_TEMPLATE,
+            recordId: templateId,
+            oldData: { name: template.name, description: template.description },
+            ipAddress: getClientIp(req),
         });
 
         res.json({ message: "Template-ka waa la tirtiray si guul ah" });

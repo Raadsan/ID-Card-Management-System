@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../utils/auditLogger.js";
 
 /* =========================
    CREATE MENU
@@ -24,6 +25,16 @@ export const createMenu = async (req, res) => {
         },
       },
       include: { subMenus: true },
+    });
+
+    // Log audit
+    await logAudit({
+      userId: req.user?.id,
+      action: AUDIT_ACTIONS.CREATE,
+      tableName: TABLE_NAMES.MENU,
+      recordId: menu.id,
+      newData: { title, icon, url, isCollapsible, subMenus },
+      ipAddress: getClientIp(req),
     });
 
     res.status(201).json(menu);
@@ -78,6 +89,12 @@ export const updateMenu = async (req, res) => {
     const id = Number(req.params.id);
     const { title, icon, url, isCollapsible, subMenus } = req.body;
 
+    // Get old data
+    const oldMenu = await prisma.menu.findUnique({
+      where: { id },
+      include: { subMenus: true }
+    });
+
     // If subMenus array is provided, we need to replace existing submenus
     if (subMenus !== undefined) {
       // First, get all existing submenus for this menu
@@ -123,6 +140,23 @@ export const updateMenu = async (req, res) => {
       include: { subMenus: true },
     });
 
+    // Log audit
+    await logAudit({
+      userId: req.user?.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      tableName: TABLE_NAMES.MENU,
+      recordId: id,
+      oldData: {
+        title: oldMenu.title,
+        icon: oldMenu.icon,
+        url: oldMenu.url,
+        isCollapsible: oldMenu.isCollapsible,
+        subMenus: oldMenu.subMenus
+      },
+      newData: updateData,
+      ipAddress: getClientIp(req),
+    });
+
     res.json(menu);
   } catch (error) {
     console.error("Update menu error:", error);
@@ -141,7 +175,30 @@ export const updateMenu = async (req, res) => {
 export const deleteMenu = async (req, res) => {
   try {
     const id = Number(req.params.id);
+
+    // Get menu data before deletion
+    const menu = await prisma.menu.findUnique({
+      where: { id },
+      include: { subMenus: true }
+    });
+
     await prisma.menu.delete({ where: { id } });
+
+    // Log audit
+    await logAudit({
+      userId: req.user?.id,
+      action: AUDIT_ACTIONS.DELETE,
+      tableName: TABLE_NAMES.MENU,
+      recordId: id,
+      oldData: {
+        title: menu.title,
+        icon: menu.icon,
+        url: menu.url,
+        isCollapsible: menu.isCollapsible
+      },
+      ipAddress: getClientIp(req),
+    });
+
     res.json({ message: "Menu deleted successfully" });
   } catch (error) {
     console.error(error);

@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../utils/auditLogger.js";
 
 // Create a new transfer and automatically update employee department
 export const createDepartmentTransfer = async (req, res) => {
@@ -42,6 +43,16 @@ export const createDepartmentTransfer = async (req, res) => {
       });
 
       return { transfer, updatedEmployee };
+    });
+
+    // Log audit
+    await logAudit({
+      userId: authorizedById,
+      action: AUDIT_ACTIONS.TRANSFER,
+      tableName: TABLE_NAMES.DEPARTMENT_TRANSFER,
+      recordId: result.transfer.id,
+      newData: { employeeId, fromDepartmentId, toDepartmentId, transferDate, reason },
+      ipAddress: getClientIp(req),
     });
 
     res.status(201).json(result);
@@ -101,6 +112,9 @@ export const updateDepartmentTransfer = async (req, res) => {
     const { id } = req.params;
     const { employeeId, fromDepartmentId, toDepartmentId, transferDate, reason } = req.body;
 
+    // Get old data
+    const oldTransfer = await prisma.departmentTransfer.findUnique({ where: { id: Number(id) } });
+
     const result = await prisma.$transaction(async (tx) => {
       // Update transfer
       const transfer = await tx.departmentTransfer.update({
@@ -123,6 +137,23 @@ export const updateDepartmentTransfer = async (req, res) => {
       return { transfer, updatedEmployee };
     });
 
+    // Log audit
+    await logAudit({
+      userId: req.user?.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      tableName: TABLE_NAMES.DEPARTMENT_TRANSFER,
+      recordId: Number(id),
+      oldData: {
+        employeeId: oldTransfer.employeeId,
+        fromDepartmentId: oldTransfer.fromDepartmentId,
+        toDepartmentId: oldTransfer.toDepartmentId,
+        transferDate: oldTransfer.transferDate,
+        reason: oldTransfer.reason
+      },
+      newData: { employeeId, fromDepartmentId, toDepartmentId, transferDate, reason },
+      ipAddress: getClientIp(req),
+    });
+
     res.json(result);
   } catch (error) {
     console.error("Update Transfer Error:", error);
@@ -135,8 +166,26 @@ export const deleteDepartmentTransfer = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Get transfer data before deletion
+    const transfer = await prisma.departmentTransfer.findUnique({ where: { id: Number(id) } });
+
     await prisma.departmentTransfer.delete({
       where: { id: Number(id) },
+    });
+
+    // Log audit
+    await logAudit({
+      userId: req.user?.id,
+      action: AUDIT_ACTIONS.DELETE,
+      tableName: TABLE_NAMES.DEPARTMENT_TRANSFER,
+      recordId: Number(id),
+      oldData: {
+        employeeId: transfer.employeeId,
+        fromDepartmentId: transfer.fromDepartmentId,
+        toDepartmentId: transfer.toDepartmentId,
+        transferDate: transfer.transferDate
+      },
+      ipAddress: getClientIp(req),
     });
 
     res.json({ message: "Transfer deleted successfully" });

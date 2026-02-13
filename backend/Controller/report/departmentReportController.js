@@ -1,9 +1,19 @@
 import { prisma } from "../../lib/prisma.js";
+import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../../utils/auditLogger.js";
 
 
 export const getDepartmentReport = async (req, res) => {
     try {
         const { status } = req.query;
+
+        // Log audit
+        await logAudit({
+            userId: req.user?.id,
+            action: AUDIT_ACTIONS.VIEW,
+            tableName: TABLE_NAMES.REPORT_DEPARTMENT,
+            newData: { status },
+            ipAddress: getClientIp(req),
+        });
 
         let where = {};
         if (status && status !== 'all') {

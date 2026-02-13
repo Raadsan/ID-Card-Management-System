@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../utils/auditLogger.js";
 
 /* =========================
    CREATE EMPLOYEE
@@ -57,6 +58,16 @@ export const createEmployee = async (req, res) => {
                 department: true,
                 user: true
             },
+        });
+
+        // Log audit
+        await logAudit({
+            userId: req.user?.id,
+            action: AUDIT_ACTIONS.CREATE,
+            tableName: TABLE_NAMES.EMPLOYEE,
+            recordId: employee.id,
+            newData: { userId, address, title, dob, status: status || "active", departmentId },
+            ipAddress: getClientIp(req),
         });
 
         res.status(201).json(employee);
@@ -121,6 +132,9 @@ export const updateEmployee = async (req, res) => {
         const { id } = req.params;
         const { dob, departmentId, userId, title, address, status } = req.body;
 
+        // Get old data
+        const oldEmployee = await prisma.employee.findUnique({ where: { id: Number(id) } });
+
         const updateData = {};
         if (dob) updateData.dob = new Date(dob);
         if (departmentId) updateData.departmentId = Number(departmentId);
@@ -134,6 +148,25 @@ export const updateEmployee = async (req, res) => {
             data: updateData,
             include: { department: true, user: true }
         });
+
+        // Log audit
+        await logAudit({
+            userId: req.user?.id,
+            action: AUDIT_ACTIONS.UPDATE,
+            tableName: TABLE_NAMES.EMPLOYEE,
+            recordId: Number(id),
+            oldData: {
+                userId: oldEmployee.userId,
+                address: oldEmployee.address,
+                title: oldEmployee.title,
+                dob: oldEmployee.dob,
+                status: oldEmployee.status,
+                departmentId: oldEmployee.departmentId
+            },
+            newData: updateData,
+            ipAddress: getClientIp(req),
+        });
+
         res.status(200).json(employee);
     } catch (error) {
         console.error("Update Employee Error:", error);
@@ -150,6 +183,9 @@ export const deleteEmployee = async (req, res) => {
         const { id } = req.params;
         const employeeId = Number(id);
 
+        // Get employee data before deletion
+        const employee = await prisma.employee.findUnique({ where: { id: employeeId } });
+
         // 1️⃣ Delete related DepartmentTransfer records first
         await prisma.departmentTransfer.deleteMany({
             where: { employeeId: employeeId }
@@ -158,6 +194,22 @@ export const deleteEmployee = async (req, res) => {
         // 2️⃣ Delete the employee
         await prisma.employee.delete({
             where: { id: employeeId }
+        });
+
+        // Log audit
+        await logAudit({
+            userId: req.user?.id,
+            action: AUDIT_ACTIONS.DELETE,
+            tableName: TABLE_NAMES.EMPLOYEE,
+            recordId: employeeId,
+            oldData: {
+                userId: employee.userId,
+                address: employee.address,
+                title: employee.title,
+                departmentId: employee.departmentId,
+                status: employee.status
+            },
+            ipAddress: getClientIp(req),
         });
 
         res.status(200).json({ message: "Employee deleted successfully" });

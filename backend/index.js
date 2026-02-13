@@ -16,6 +16,7 @@ import rolePermissionsRoutes from "./Routes/rolePermissionsRoutes.js";
 import departmentTransfareRoutes from "./Routes/departmentTransferRoute.js";
 import idTemplateRoutes from "./Routes/idTemplateRoutes.js"; // Import new routes
 import idGenerateRoutes from "./Routes/idGenerateRoutes.js";
+import auditLogRoutes from "./Routes/auditLogRoutes.js";
 import employeeReportRoutes from "./Routes/report/employeeReportRoutes.js";
 import departmentReportRoutes from "./Routes/report/departmentReportRoutes.js";
 import departmentTransferReportRoutes from "./Routes/report/departmentTransferReportRoutes.js";
@@ -65,6 +66,7 @@ app.use("/api/employee-report", employeeReportRoutes);
 app.use("/api/department-report", departmentReportRoutes);
 app.use("/api/department-transfer-report", departmentTransferReportRoutes);
 app.use("/api/id-card-report", idCardReportRoutes);
+app.use("/api/audit-logs", auditLogRoutes);
 
 async function startServer() {
   try {

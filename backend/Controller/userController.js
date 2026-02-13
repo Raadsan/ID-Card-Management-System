@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcrypt";
 import fs from "fs";
 import path from "path";
+import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../utils/auditLogger.js";
 
 /* =========================
    CREATE USER
@@ -35,6 +36,16 @@ export const createUser = async (req, res) => {
         photo,
       },
       include: { role: true },
+    });
+
+    // Log audit
+    await logAudit({
+      userId: req.user?.id || user.id,
+      action: AUDIT_ACTIONS.CREATE,
+      tableName: TABLE_NAMES.USER,
+      recordId: user.id,
+      newData: { fullName, email, phone, gender, roleId, status: status || "active" },
+      ipAddress: getClientIp(req),
     });
 
     res.status(201).json(user);
@@ -120,14 +131,9 @@ export const updateUser = async (req, res) => {
     // Check if file uploaded (Cloudinary returns full URL in path)
     const photo = req.file ? req.file.path : undefined;
 
-    // Optional: delete old photo if updating
-    if (photo) {
-      const oldUser = await prisma.user.findUnique({ where: { id } });
-      if (oldUser?.photo) {
-        const oldPath = path.join("uploads", oldUser.photo);
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-      }
-    }
+    // Fetch old data for photo deletion and audit logging
+    const oldUser = await prisma.user.findUnique({ where: { id } });
+    if (!oldUser) return res.status(404).json({ message: "User not found" });
 
     // Prepare update data
     const updateData = {};
@@ -137,7 +143,13 @@ export const updateUser = async (req, res) => {
     if (gender) updateData.gender = gender;
     if (status) updateData.status = status;
     if (roleId) updateData.roleId = Number(roleId);
-    if (photo) updateData.photo = photo;
+    if (photo !== undefined) updateData.photo = photo;
+
+    // Optional: delete old photo if updating with a new one
+    if (photo && oldUser.photo) {
+      const oldPath = path.join("uploads", oldUser.photo);
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
 
     // Only update password if provided
     if (password && password.trim() !== "") {
@@ -148,6 +160,24 @@ export const updateUser = async (req, res) => {
       where: { id },
       data: updateData,
       include: { role: true },
+    });
+
+    // Log audit
+    await logAudit({
+      userId: req.user?.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      tableName: TABLE_NAMES.USER,
+      recordId: id,
+      oldData: {
+        fullName: oldUser.fullName,
+        email: oldUser.email,
+        phone: oldUser.phone,
+        gender: oldUser.gender,
+        roleId: oldUser.roleId,
+        status: oldUser.status
+      },
+      newData: updateData,
+      ipAddress: getClientIp(req),
     });
 
     res.json(user);
@@ -176,6 +206,23 @@ export const deleteUser = async (req, res) => {
     }
 
     await prisma.user.delete({ where: { id } });
+
+    // Log audit
+    await logAudit({
+      userId: req.user?.id,
+      action: AUDIT_ACTIONS.DELETE,
+      tableName: TABLE_NAMES.USER,
+      recordId: id,
+      oldData: {
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        gender: user.gender,
+        roleId: user.roleId,
+        status: user.status
+      },
+      ipAddress: getClientIp(req),
+    });
 
     res.json({ message: "User deleted successfully" });
   } catch (error) {
