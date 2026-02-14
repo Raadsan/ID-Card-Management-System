@@ -155,19 +155,95 @@ export default function VerificationPage() {
             </div>
 
             {/* Document Body */}
-            <div className="max-w-4xl mx-auto px-4 -mt-10 relative z-20">
-                <div className=" border-b border-gray-100 mb-10">
-                    <img src="/verifyimage.png" alt="SPA Crest" className="w-full" />
+            <div className="max-w-3xl mx-auto px-4 -mt-10 relative z-20">
+                <div className="relative shadow-[0_20px_50px_rgba(0,0,0,0.15)]  overflow-hidden ">
+                    {/* Background Template */}
+                    <img
+                        src="/verifyimage.png"
+                        alt="ID Card Template"
+                        className="w-full h-auto block"
+                    />
 
+                    {/* Photo Overlay */}
+                    <div className="absolute top-[31%] right-[5.8%] w-[21.8%] h-[15.8%] aspect-[0.85/1] rounded-sm overflow-hidden  ">
+                        {data?.employee?.user?.photo ? (
+                            <img
+                                src={getImageUrl(data.employee.user.photo) || undefined}
+                                alt="Employee Photo"
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                                <User className="w-10 h-10 text-gray-300" />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Metadata Overlays (Tracking, ID, Issue Date) */}
+                    <div className="absolute top-[32.5%] left-[54%] text-[#143d73] font-normal  tracking-tight">
+                        {data?.qrCode || "N/A"}
+                    </div>
+                    <div className="absolute top-[38.6%] left-[54%] text-[#143d73] font-black text-[clamp(10px,1.8vw,14px)] tracking-tight">
+                        ID-0000{data?.employee?.id || "0"}
+                    </div>
+                    <div className="absolute top-[44%] left-[54%] text-[#143d73] font-black text-[clamp(10px,1.8vw,14px)] tracking-tight">
+                        {formatDate(data?.issueDate)}
+                    </div>
+
+                    {/* Primary Info (Full Name) */}
+                    <div className="absolute top-[50.5%] left-[8.5%] w-[79%] h-[8%] flex items-center">
+                        <h2 className="text-black font-normal  text-[clamp(10px,1.8vw,18px)] leading-none  tracking-tight">
+                            {data?.employee?.user?.fullName || "N/A"}
+                        </h2>
+                    </div>
+
+                    {/* Department and Job Title */}
+                    <div className="absolute top-[59.%] left-[8.5%] w-[38.5%] h-[5%] flex items-center">
+                        <p className="text-black font-normal text-[clamp(10px,1.8vw,18px)] leading-none ">
+                            {data?.employee?.department?.departmentName || "N/A"}
+                        </p>
+                    </div>
+                    <div className="absolute top-[60.2%] left-[53.7%] w-[36.5%] h-[5%] flex items-center">
+                        <p className="text-black font-normal text-[clamp(10px,1.8vw,18px)] leading-none ">
+                            {data?.employee?.title || "N/A"}
+                        </p>
+                    </div>
+
+                    {/* Personal Details Row */}
+                    <div className="absolute top-[71.4%] left-[8.8%] w-[20%] text-black font-normal text-[clamp(8px,1.6vw,16px)]">
+                        {data?.employee?.user?.gender || "N/A"}
+                    </div>
+                    <div className="absolute top-[71.4%] left-[25.8%] w-[30%] text-black font-normal text-[clamp(8px,1.6vw,16px)] text-center">
+                        {formatDate(data?.employee?.dob)}
+                    </div>
+                    <div className="absolute top-[71.4%] left-[69.5%] w-[21%] text-black font-normal text-[clamp(8px,1.6vw,16px)]">
+                        Somalia
+                    </div>
+
+                    {/* Address/Location Row */}
+                    <div className="absolute top-[81.3%] left-[8.8%] w-[45%] text-black font-normal text-[clamp(8px,1.6vw,16px)] truncate">
+                        Somalia
+                    </div>
+                    <div className="absolute top-[81.3%] left-[59.2%] w-[33%] text-black font-normal text-[clamp(8px,1.6vw,16px)] truncate">
+                        {data?.employee?.address || "Mogadishu"}
+                    </div>
                 </div>
-                <div className="mt-8 text-center space-y-2">
-                    <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em]">
-                        © {new Date().getFullYear()} Somali Petroleum Authority
-                    </p>
-                    <div className="flex justify-center gap-4 opacity-40">
-                        <CheckCircle2 className="w-4 h-4 text-green-600" />
-                        <ShieldCheck className="w-4 h-4 text-green-600" />
-                        <ShieldCheck className="w-4 h-4 text-green-600" />
+
+                {/* Footer Section */}
+                <div className="mt-12 text-center space-y-6">
+                    <div className="inline-flex items-center gap-3 px-6 py-3 bg-white shadow-lg rounded-full border border-green-100 transform hover:scale-105 transition-all duration-300">
+                        <div className="bg-green-500 rounded-full p-1">
+                            <CheckCircle2 className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-gray-700 font-bold text-sm tracking-wide">
+                            Authenticated Verification
+                        </span>
+                    </div>
+
+                    <div className="pt-8 border-t border-gray-200/50">
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">
+                            © {new Date().getFullYear()} Somali Petroleum Authority • SPA-CMS System
+                        </p>
                     </div>
                 </div>
             </div>
