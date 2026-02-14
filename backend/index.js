@@ -27,6 +27,9 @@ import job from "./config/cron.js";
 
 const app = express();
 
+// Trust proxy for correct IP detection behind proxies/load balancers
+app.set("trust proxy", true);
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
