@@ -45,7 +45,7 @@ const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-2xl" }: Mod
         >
             <div
                 ref={modalRef}
-                className={`${maxWidth} w-full max-h-[88vh] flex flex-col transform overflow-hidden rounded-3xl bg-white px-8 py-6 text-left align-middle shadow-2xl transition-all border border-gray-100 relative`}
+                className={`${maxWidth} w-full max-h-[88vh] flex flex-col transform overflow-hidden rounded-3xl bg-white px-4 sm:px-8 py-6 text-left align-middle shadow-2xl transition-all border border-gray-100 relative`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}

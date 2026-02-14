@@ -14,7 +14,7 @@ import { getImageUrl } from "@/utils/url";
 
 // Define the Employee type based on your API response
 interface Employee {
-    id: number; 
+    id: number;
     title: string;
     status: string;
     department?: {
@@ -413,7 +413,7 @@ export default function EmployeesPage() {
     );
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="space-y-6">
             <DataTable
                 title="All Employees"
                 columns={columns}

@@ -175,7 +175,7 @@ export default function IdTemplatesPage() {
     );
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="space-y-6">
             <DataTable
                 title="ID Card Templates"
                 columns={columns}

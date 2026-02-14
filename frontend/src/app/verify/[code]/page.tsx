@@ -136,17 +136,17 @@ export default function VerificationPage() {
                     <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-400 rounded-full blur-[100px] -ml-40 -mb-40"></div>
                 </div>
 
-                <div className="max-w-4xl mx-auto px-6 py-12 md:py-16 flex flex-col items-center relative z-10">
-                    <div className="flex items-center gap-6 mb-8 transform hover:scale-105 transition-transform">
-                        <div className="h-20 w-20 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 shadow-2xl p-4">
-                            <ShieldCheck className="h-10 w-10 text-white" />
+                <div className="max-w-4xl mx-auto px-6 py-8 md:py-16 flex flex-col items-center relative z-10 text-center md:text-left">
+                    <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 mb-8 transform hover:scale-105 transition-transform">
+                        <div className="h-16 w-16 md:h-20 md:w-20 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 shadow-2xl p-3 md:p-4">
+                            <ShieldCheck className="h-8 w-8 md:h-10 md:w-10 text-white" />
                         </div>
-                        <div className="h-12 w-[2px] bg-white/20 hidden md:block"></div>
+                        <div className="h-1 lg:h-12 w-12 lg:w-[2px] bg-white/20 hidden md:block"></div>
                         <div className="text-center md:text-left">
-                            <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase leading-none">
+                            <h1 className="text-2xl md:text-4xl lg:text-5xl font-black tracking-tight uppercase leading-tight">
                                 ID Verification
                             </h1>
-                            <p className="text-[10px] text-blue-200 mt-2 font-black uppercase tracking-[0.4em] opacity-80">
+                            <p className="text-[8px] md:text-[10px] text-blue-200 mt-1 md:mt-2 font-black uppercase tracking-[0.2em] md:tracking-[0.4em] opacity-80">
                                 Somali Petroleum Authority
                             </p>
                         </div>
