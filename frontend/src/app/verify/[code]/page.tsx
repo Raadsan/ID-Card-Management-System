@@ -198,7 +198,7 @@ export default function VerificationPage() {
                     </div>
 
                     {/* Department and Job Title */}
-                    <div className="absolute top-[59.%] left-[8.5%] w-[38.5%] h-[5%] flex items-center">
+                    <div className="absolute top-[59.2%] left-[8.5%] w-[38.5%] h-[5%] flex items-center">
                         <p className="text-black font-normal text-[clamp(10px,1.8vw,18px)] leading-none ">
                             {data?.employee?.department?.departmentName || "N/A"}
                         </p>
