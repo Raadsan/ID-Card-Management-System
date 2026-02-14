@@ -147,7 +147,7 @@ export default function VerificationPage() {
                                 ID Verification
                             </h1>
                             <p className="text-[10px] text-blue-200 mt-2 font-black uppercase tracking-[0.4em] opacity-80">
-                                National Identity Authority
+                                Somali Petroleum Authority
                             </p>
                         </div>
                     </div>
@@ -155,216 +155,95 @@ export default function VerificationPage() {
             </div>
 
             {/* Document Body */}
-            <div className="max-w-4xl mx-auto px-4 -mt-10 relative z-20">
-                <div className="bg-white rounded-[10px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden border border-gray-200 relative">
+            <div className="max-w-3xl mx-auto px-4 -mt-10 relative z-20">
+                <div className="relative shadow-[0_20px_50px_rgba(0,0,0,0.15)]  overflow-hidden ">
+                    {/* Background Template */}
+                    <img
+                        src="/verifyimage.png"
+                        alt="ID Card Template"
+                        className="w-full h-auto block"
+                    />
 
-                    {/* Security Watermark Background */}
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.03] rotate-12">
-                        <Fingerprint className="w-[600px] h-[600px] text-gray-900" />
+                    {/* Photo Overlay */}
+                    <div className="absolute top-[31%] right-[5.8%] w-[21.8%] h-[15.8%] aspect-[0.85/1] rounded-sm overflow-hidden  ">
+                        {data?.employee?.user?.photo ? (
+                            <img
+                                src={getImageUrl(data.employee.user.photo) || undefined}
+                                alt="Employee Photo"
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                                <User className="w-10 h-10 text-gray-300" />
+                            </div>
+                        )}
                     </div>
 
-                    <div className="p-1 md:p-3 relative z-10">
-                        {/* Inner Document Border */}
-                        <div className="border border-gray-100 p-6 md:p-10 min-h-[900px] flex flex-col">
-
-                            {/* Document Header Text - SPA Branding */}
-                            <div className=" border-b border-gray-100 mb-10">
-                                <img src="/jamhuriyada.png" alt="SPA Crest" className="w-full" />
-                            </div>
-
-                            {/* Main Document Title */}
-                            <div className="bg-[#1e4e8c] text-white py-2.5 px-6 flex justify-between items-center mb-12 overflow-hidden shadow-md rounded-sm">
-                                <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">SHAHAADADA AQOONSIGA</span>
-                                <span className="h-4 w-[1px] bg-white/30 mx-2"></span>
-                                <span className="text-[10px] md:text-xs font-black uppercase tracking-widest text-center flex-1">CERTIFICATE OF IDENTITY</span>
-                                <span className="h-4 w-[1px] bg-white/30 mx-2"></span>
-                                <span className="text-[10px] md:text-xs font-black tracking-widest text-right">شهادة الهوية</span>
-                            </div>
-
-                            {/* Upper Section: Photo & ID Details */}
-                            <div className="flex flex-col md:flex-row gap-12 mb-12">
-                                {/* Photo Container */}
-                                <div className="flex flex-col items-center">
-                                    <div className="w-48 h-64 border-[8px] border-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] overflow-hidden relative ring-1 ring-gray-200/50">
-                                        <img
-                                            src={getImageUrl(data.employee?.user?.photo) || '/placeholder-user.png'}
-                                            alt="Employee Identity"
-                                            className="w-full h-full object-cover grayscale-[0.1]"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = '/placeholder-user.png';
-                                            }}
-                                        />
-                                        <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/20 to-transparent"></div>
-                                    </div>
-                                </div>
-
-                                {/* Summary Grid */}
-                                <div className="flex-1 space-y-1">
-                                    {[
-                                        {
-                                            label: "TRACKING NUMBER / رقم التتبع / LAMBARKA RAAD RAACA",
-                                            value: code?.slice(0, 12).toUpperCase(),
-                                            isBold: false
-                                        },
-                                        {
-                                            label: "IDENTITY NUMBER / رقم الهوية / LAMBARKA AQOONSIGA",
-                                            value: `ID-${data.employee?.id?.toString().padStart(6, '0')}`,
-                                            isBold: true
-                                        },
-                                        {
-                                            label: "ISSUE DATE / تاريخ الإصدار / TAARIIKHDA LA BIXIYAY",
-                                            value: formatDate(data.issueDate || data.createdAt),
-                                            isBold: false
-                                        }
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex flex-col md:flex-row border-b border-gray-100 last:border-0 py-3 bg-gray-50/30 px-4 rounded-lg">
-                                            <div className="flex-1">
-                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-normal">
-                                                    {item.label}
-                                                </p>
-                                            </div>
-                                            <div className="md:w-1/2 md:text-right mt-1 md:mt-0">
-                                                <p className={`text-base tracking-widest text-[#1e4e8c] ${item.isBold ? 'font-black' : 'font-bold'}`}>
-                                                    {item.value}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Main Information Section */}
-                            <div className="space-y-4">
-                                {/* Full Name Section */}
-                                <div className="bg-[#edf2f7] p-1 rounded-sm shadow-sm">
-                                    <div className="px-4 py-2 border-l-[5px] border-[#1e4e8c]">
-                                        <p className="text-[10px] font-black text-gray-700 uppercase tracking-widest mb-1.5">
-                                            FULL NAME / الاسم الكامل / MAGACA OO AFARAH AMA SEDDAXAH
-                                        </p>
-                                        <p className="text-2xl font-black text-gray-900 tracking-wider uppercase">
-                                            {data.employee?.user?.fullName}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Department & Title Sections (Two Columns) */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Department Column */}
-                                    <div className="bg-[#edf2f7] p-1 rounded-sm shadow-sm">
-                                        <div className="px-4 py-3 border-l-[5px] border-[#1e4e8c]">
-                                            <p className="text-[10px] font-black text-gray-700 uppercase tracking-widest mb-1.5">
-                                                DEPARTMENT / القسم / WAAXDA
-                                            </p>
-                                            <p className="text-lg font-black text-gray-900 tracking-wider uppercase">
-                                                {data.employee?.department?.departmentName || 'GENERAL STAFF'}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Title Column */}
-                                    <div className="bg-[#edf2f7] p-1 rounded-sm shadow-sm">
-                                        <div className="px-4 py-3 border-l-[5px] border-[#1e4e8c]">
-                                            <p className="text-[10px] font-black text-gray-700 uppercase tracking-widest mb-1.5">
-                                                JOB TITLE / المسمى الوظيفي / XILKA
-                                            </p>
-                                            <p className="text-lg font-black text-gray-900 tracking-wider uppercase">
-                                                {data.employee?.title || 'STAFF MEMBER'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Other Personal Info Grid */}
-                                <div className="bg-[#edf2f7] p-1 rounded-sm">
-                                    <div className="px-4 py-2 border-l-[5px] border-[#1e4e8c]">
-                                        <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-3">
-                                            OTHER PERSONAL INFORMATION / معلومات شخصية أخرى / MACLUUMAADKA KALE EE QOFKA
-                                        </p>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                            <div>
-                                                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">GENDER / الجنس / LAB/DED</p>
-                                                <p className="text-sm font-black text-gray-800 uppercase tracking-widest">
-                                                    {data.employee?.user?.gender || "MALE"}
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">DATE OF BIRTH / تاريخ الميلاد / TAARIIKHDA</p>
-                                                <p className="text-sm font-black text-gray-800 uppercase tracking-widest">
-                                                    {formatDate(data.employee?.dob)}
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">COUNTRY / بلد / DALKA</p>
-                                                <p className="text-sm font-black text-gray-800 uppercase tracking-widest">SOMALIA</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Address Section */}
-                                <div className="bg-[#edf2f7] p-1 rounded-sm shadow-sm">
-                                    <div className="px-4 py-2 border-l-[5px] border-[#1e4e8c]">
-                                        <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1.5">
-                                            CURRENT ADDRESS / العنوان الحالي / DEGAANKA
-                                        </p>
-                                        <div className="space-y-4">
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                                <div>
-                                                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">COUNTRY</p>
-                                                    <p className="text-sm font-black text-gray-800">SOMALIA</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">LOCATION DETAIL</p>
-                                                    <p className="text-sm font-black text-gray-800 uppercase leading-none truncate">
-                                                        {data.employee?.address || "Region / District Unknown"}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Document Footer */}
-                            <div className="mt-auto pt-16">
-                                <div className="flex flex-col md:flex-row justify-between items-end gap-10">
-                                    <div className="flex-1 space-y-4">
-                                        <div className="h-12 w-48 bg-[url('https://repo.sourcelink.com/static/signature-placeholder.png')] bg-contain bg-no-repeat opacity-60"></div>
-                                        <div className="text-[8px] font-medium text-gray-400 uppercase leading-relaxed max-w-sm italic">
-                                            Any unauthorized use of this identification document the bearer must immediately report to NIRA.
-                                            This electronic verification session is valid for 10 minutes.
-                                        </div>
-                                    </div>
-
-                                    {/* Security QR Code */}
-                                    <div className="flex flex-col items-center gap-3">
-                                        <div className="p-3 bg-white border-2 border-gray-100 rounded-xl shadow-md">
-                                            {/* Static placeholder for aesthetics, actual verification is the URL itself */}
-                                            <div className="w-24 h-24 bg-green-50 flex items-center justify-center rounded-lg">
-                                                <CheckCircle2 className="w-14 h-14 text-[#166534] drop-shadow-sm" />
-                                            </div>
-                                        </div>
-                                        <p className="text-[10px] font-black text-[#166534] uppercase tracking-[0.2em]">
-                                            Official Verification Node
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    {/* Metadata Overlays (Tracking, ID, Issue Date) */}
+                    <div className="absolute top-[32.5%] left-[54%] text-[#143d73] font-normal  tracking-tight">
+                        {data?.qrCode || "N/A"}
+                    </div>
+                    <div className="absolute top-[38.6%] left-[54%] text-[#143d73] font-black text-[clamp(10px,1.8vw,14px)] tracking-tight">
+                        ID-0000{data?.employee?.id || "0"}
+                    </div>
+                    <div className="absolute top-[44%] left-[54%] text-[#143d73] font-black text-[clamp(10px,1.8vw,14px)] tracking-tight">
+                        {formatDate(data?.issueDate)}
                     </div>
 
-                    {/* Security Footer Seal */}
-                    <div className="bg-[#1e4e8c] h-1.5 w-full"></div>
+                    {/* Primary Info (Full Name) */}
+                    <div className="absolute top-[50.5%] left-[8.5%] w-[79%] h-[8%] flex items-center">
+                        <h2 className="text-black font-normal  text-[clamp(10px,1.8vw,18px)] leading-none  tracking-tight">
+                            {data?.employee?.user?.fullName || "N/A"}
+                        </h2>
+                    </div>
+
+                    {/* Department and Job Title */}
+                    <div className="absolute top-[59.2%] left-[8.5%] w-[38.5%] h-[5%] flex items-center">
+                        <p className="text-black font-normal text-[clamp(10px,1.8vw,18px)] leading-none ">
+                            {data?.employee?.department?.departmentName || "N/A"}
+                        </p>
+                    </div>
+                    <div className="absolute top-[60.2%] left-[53.7%] w-[36.5%] h-[5%] flex items-center">
+                        <p className="text-black font-normal text-[clamp(10px,1.8vw,18px)] leading-none ">
+                            {data?.employee?.title || "N/A"}
+                        </p>
+                    </div>
+
+                    {/* Personal Details Row */}
+                    <div className="absolute top-[71.4%] left-[8.8%] w-[20%] text-black font-normal text-[clamp(8px,1.6vw,16px)]">
+                        {data?.employee?.user?.gender || "N/A"}
+                    </div>
+                    <div className="absolute top-[71.4%] left-[25.8%] w-[30%] text-black font-normal text-[clamp(8px,1.6vw,16px)] text-center">
+                        {formatDate(data?.employee?.dob)}
+                    </div>
+                    <div className="absolute top-[71.4%] left-[69.5%] w-[21%] text-black font-normal text-[clamp(8px,1.6vw,16px)]">
+                        Somalia
+                    </div>
+
+                    {/* Address/Location Row */}
+                    <div className="absolute top-[81.3%] left-[8.8%] w-[45%] text-black font-normal text-[clamp(8px,1.6vw,16px)] truncate">
+                        Somalia
+                    </div>
+                    <div className="absolute top-[81.3%] left-[59.2%] w-[33%] text-black font-normal text-[clamp(8px,1.6vw,16px)] truncate">
+                        {data?.employee?.address || "Mogadishu"}
+                    </div>
                 </div>
 
-                <div className="mt-8 text-center space-y-2">
-                    <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em]">
-                        © {new Date().getFullYear()} Somali Petroleum Authority
-                    </p>
-                    <div className="flex justify-center gap-4 opacity-40">
-                        <CheckCircle2 className="w-4 h-4 text-green-600" />
-                        <ShieldCheck className="w-4 h-4 text-green-600" />
-                        <ShieldCheck className="w-4 h-4 text-green-600" />
+                {/* Footer Section */}
+                <div className="mt-12 text-center space-y-6">
+                    <div className="inline-flex items-center gap-3 px-6 py-3 bg-white shadow-lg rounded-full border border-green-100 transform hover:scale-105 transition-all duration-300">
+                        <div className="bg-green-500 rounded-full p-1">
+                            <CheckCircle2 className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-gray-700 font-bold text-sm tracking-wide">
+                            Authenticated Verification
+                        </span>
+                    </div>
+
+                    <div className="pt-8 border-t border-gray-200/50">
+                        <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">
+                            © {new Date().getFullYear()} Somali Petroleum Authority • SPA-CMS System
+                        </p>
                     </div>
                 </div>
             </div>
