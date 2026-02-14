@@ -43,7 +43,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             <div className="flex items-center gap-4">
                 <button
                     type="button"
-                    className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 sm:hidden"
+                    className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 lg:hidden"
                     onClick={onMenuClick}
                 >
                     <span className="sr-only">Open sidebar</span>

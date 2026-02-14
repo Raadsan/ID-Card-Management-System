@@ -224,9 +224,9 @@ export default function DashboardContent() {
             </div>
 
             {/* Employee Gender Distribution & Recent Transactions */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-7">
                 {/* Gender Distribution Pie Chart */}
-                <div className="col-span-4 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+                <div className="lg:col-span-4 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
                     <div className="mb-6 flex items-center justify-between">
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900">Employee Gender Distribution</h3>
@@ -376,7 +376,7 @@ export default function DashboardContent() {
                 </div>
 
                 {/* Recent Activity */}
-                <div className="col-span-3 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+                <div className="lg:col-span-3 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
                     <div className="mb-4 flex items-center justify-between">
                         <h3 className="text-lg font-semibold text-gray-900">Recent ID Activity</h3>
                         <Activity className="h-5 w-5 text-secondary" />

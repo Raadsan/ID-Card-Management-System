@@ -27,6 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const isLoginPage = pathname === "/login";
   const isVerifyPage = pathname?.startsWith("/verify");
   const isPublicPage = isLoginPage || isVerifyPage;
@@ -34,18 +36,25 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased flex min-h-screen bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased flex min-h-screen bg-background text-foreground overflow-x-hidden`}
         suppressHydrationWarning
       >
         {/* Sidebar Component - Hidden on public pages */}
-        {!isPublicPage && <Sidebar />}
+        {!isPublicPage && (
+          <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        )}
 
         {/* Content Area */}
-        <main className={`flex-1 min-h-screen bg-background ${!isPublicPage ? "ml-64" : ""}`}>
+        <main
+          className={`flex-1 min-h-screen bg-background transition-all duration-300 ${!isPublicPage ? "lg:ml-64 w-full" : "w-full"
+            }`}
+        >
           {/* Header Component - Hidden on public pages */}
-          {!isPublicPage && <Header />}
+          {!isPublicPage && (
+            <Header onMenuClick={() => setSidebarOpen(true)} />
+          )}
 
-          <div className={`${!isPublicPage ? "px-8 pb-8 pt-8" : "w-full"}`}>
+          <div className={`${!isPublicPage ? "px-4 sm:px-6 lg:px-8 pb-8 pt-8" : "w-full"}`}>
             {children}
           </div>
         </main>

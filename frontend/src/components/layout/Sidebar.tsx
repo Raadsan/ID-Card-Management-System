@@ -130,14 +130,14 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
             {/* Mobile Overlay */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+                    className="fixed inset-0 z-40 bg-black/50 lg:hidden"
                     onClick={onClose}
                 />
             )}
 
             {/* Sidebar */}
             <aside
-                className={`fixed left-0 top-0 z-50 h-screen w-64 bg-sidebar text-sidebar-foreground transition-transform duration-300 ease-in-out sm:translate-x-0 border-r border-white/5 shadow-2xl ${isOpen ? "translate-x-0" : "-translate-x-full"
+                className={`fixed left-0 top-0 z-50 h-screen w-64 bg-sidebar text-sidebar-foreground transition-transform duration-300 ease-in-out lg:translate-x-0 border-r border-white/5 shadow-2xl ${isOpen ? "translate-x-0" : "-translate-x-full"
                     }`}
             >
                 <div className="flex h-full flex-col px-3 pt-2 pb-4">
@@ -153,7 +153,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
                         </div>
                         <button
                             onClick={onClose}
-                            className="rounded-lg p-1 text-white/70 hover:bg-white/10 sm:hidden ml-2"
+                            className="rounded-lg p-1 text-white/70 hover:bg-white/10 lg:hidden ml-2"
                         >
                             <X className="h-6 w-6" />
                         </button>
