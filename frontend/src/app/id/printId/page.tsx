@@ -26,6 +26,8 @@ export default function PrintIdPage() {
     const [cardToPrint, setCardToPrint] = useState<IdGenerate | null>(null);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [pendingPrintId, setPendingPrintId] = useState<number | null>(null);
+    const [isPostPrintConfirmOpen, setIsPostPrintConfirmOpen] = useState(false);
+    const [printedCardId, setPrintedCardId] = useState<number | null>(null);
 
     // MessageBox State
     const [msgBox, setMsgBox] = useState<{
@@ -95,8 +97,29 @@ export default function PrintIdPage() {
     };
 
     const handlePrintRequest = (id: number) => {
-        setPendingPrintId(id);
-        setIsConfirmModalOpen(true);
+        // Directly open print dialog without confirmation
+        const card = idCards.find((c: IdGenerate) => c.id === id);
+        if (!card) return;
+
+        // Set the card to print
+        setCardToPrint(card);
+        setPrintedCardId(id);
+
+        // Wait for DOM to update
+        setTimeout(() => {
+            // Setup one-time event listener for after print dialog closes
+            const handleAfterPrint = () => {
+                // Show confirmation asking if they actually printed
+                setIsPostPrintConfirmOpen(true);
+                window.removeEventListener('afterprint', handleAfterPrint);
+            };
+
+            // Add event listener
+            window.addEventListener('afterprint', handleAfterPrint);
+
+            // Open browser print dialog
+            window.print();
+        }, 300);
     };
 
     const handleDownloadPDF = async (card: IdGenerate) => {
@@ -140,22 +163,21 @@ export default function PrintIdPage() {
         html2pdf().from(element).set(opt).save();
     };
 
-    const handlePrint = async () => {
-        if (!pendingPrintId) return;
-        const id = pendingPrintId;
+    // This function is no longer needed, kept for compatibility
+    const handlePrint = () => {
+        // Functionality moved to handlePrintRequest
+    };
+
+    const confirmPrinted = async () => {
+        if (!printedCardId) return;
+        const id = printedCardId;
 
         try {
-            const card = idCards.find((c: IdGenerate) => c.id === id);
-            if (!card) return;
-
-            setCardToPrint(card);
-            setIsConfirmModalOpen(false);
-            setPendingPrintId(null);
-
+            // Update status to printed in backend
             const response = await printIdGenerate(id);
             const updatedCard = response.data;
 
-            // Optimistically update the list with the fresh data from backend
+            // Update the list with the fresh data from backend
             setIdCards(prev => prev.map(c => c.id === id ? updatedCard : c));
 
             // If the view modal is open with this card, update its data too
@@ -163,14 +185,17 @@ export default function PrintIdPage() {
                 setSelectedIdCard(updatedCard);
             }
 
-            // Wait for state to update and render before downloading PDF
-            setTimeout(() => {
-                handleDownloadPDF(card);
-            }, 500);
+            setIsPostPrintConfirmOpen(false);
+            setPrintedCardId(null);
         } catch (err: any) {
             console.error("Failed to mark ID as printed:", err);
             alert(err.response?.data?.message || "Failed to mark as printed");
         }
+    };
+
+    const cancelPrinted = () => {
+        setIsPostPrintConfirmOpen(false);
+        setPrintedCardId(null);
     };
 
     const handleView = (card: IdGenerate) => {
@@ -344,27 +369,30 @@ export default function PrintIdPage() {
                 onPrint={handlePrintRequest}
             />
 
-            {/* Confirmation Modal */}
-            {isConfirmModalOpen && (
+            {/* Post-Print Confirmation Modal */}
+            {isPostPrintConfirmOpen && printedCardId && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center">
+                    <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
                         <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                             <Printer className="w-8 h-8" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">Print ID Card?</h3>
-                        <p className="text-gray-500 mb-8">This will mark the card as printed and record your name in the audit logs.</p>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Print Confirmation</h3>
+                        <p className="text-gray-600 mb-2">Did you print the ID of employee</p>
+                        <p className="text-lg font-bold text-blue-600 mb-6">
+                            "{idCards.find(c => c.id === printedCardId)?.employee?.user?.fullName || 'Unknown'}"?
+                        </p>
                         <div className="flex gap-4">
                             <button
-                                onClick={() => setIsConfirmModalOpen(false)}
+                                onClick={cancelPrinted}
                                 className="flex-1 py-3 text-gray-600 font-bold bg-gray-100 rounded-2xl hover:bg-gray-200 transition-all"
                             >
-                                Cancel
+                                No
                             </button>
                             <button
-                                onClick={handlePrint}
-                                className="flex-1 py-3 text-white font-bold bg-blue-600 rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
+                                onClick={confirmPrinted}
+                                className="flex-1 py-3 text-white font-bold bg-[#1B1555] rounded-2xl hover:bg-[#16BCF8] transition-all shadow-lg"
                             >
-                                Print Now
+                                Yes
                             </button>
                         </div>
                     </div>
@@ -438,7 +466,7 @@ export default function PrintIdPage() {
                                                     top: `${pos.fullName.y}px`,
                                                     fontSize: `${pos.fullName.fontSize}px`,
                                                     color: pos.fullName.color,
-                                                    fontWeight: (pos.fullName as any).fontWeight || 'bold'
+                                                    fontWeight: (pos.fullName as any).fontWeight || 'normal'
                                                 }}>
                                                 {cardToPrint.employee?.user?.fullName}
                                             </div>
