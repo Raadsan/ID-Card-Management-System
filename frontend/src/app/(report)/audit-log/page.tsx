@@ -45,15 +45,59 @@ export default function AuditLogsPage() {
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(50);
+    const [filter, setFilter] = useState("All Time");
+    const [customStartDate, setCustomStartDate] = useState("");
+    const [customEndDate, setCustomEndDate] = useState("");
+
+    const dateRange = useMemo(() => {
+        const now = new Date();
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+
+        switch (filter) {
+            case "Today":
+                return { startDate: start.toISOString(), endDate: now.toISOString() };
+            case "Last Week":
+                start.setDate(now.getDate() - 7);
+                return { startDate: start.toISOString(), endDate: now.toISOString() };
+            case "Month":
+                start.setMonth(now.getMonth() - 1);
+                return { startDate: start.toISOString(), endDate: now.toISOString() };
+            case "Year":
+                start.setFullYear(now.getFullYear() - 1);
+                return { startDate: start.toISOString(), endDate: now.toISOString() };
+            case "Custom": {
+                if (!customStartDate) return { startDate: undefined, endDate: undefined };
+
+                const s = new Date(customStartDate);
+                s.setHours(0, 0, 0, 0);
+
+                const e = customEndDate ? new Date(customEndDate) : new Date(customStartDate);
+                e.setHours(23, 59, 59, 999);
+
+                return {
+                    startDate: s.toISOString(),
+                    endDate: e.toISOString()
+                };
+            }
+            default:
+                return { startDate: undefined, endDate: undefined };
+        }
+    }, [filter, customStartDate, customEndDate]);
 
     useEffect(() => {
         fetchAuditLogs();
-    }, [page, limit]);
+    }, [page, limit, dateRange]);
 
     const fetchAuditLogs = async () => {
         try {
             setLoading(true);
-            const response = await getAuditLogs({ page, limit });
+            const response = await getAuditLogs({
+                page,
+                limit,
+                startDate: dateRange.startDate,
+                endDate: dateRange.endDate
+            });
             if (response && response.data) {
                 setAuditLogs(response.data);
                 setTotal(response.pagination.total);
@@ -203,14 +247,45 @@ export default function AuditLogsPage() {
                 </div>
 
                 <div className="flex gap-2">
-                    <div className="px-4 py-2 bg-white rounded-xl border border-gray-100 shadow-sm flex items-center gap-3">
-                        <div className="flex flex-col items-end">
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total Events</span>
-                            <span className="text-sm font-black text-[#1B1555]">{total}</span>
-                        </div>
-                        <div className="h-8 w-px bg-gray-100"></div>
-                        <Activity className="h-5 w-5 text-[#16BCF8]" />
+                    <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-xl border border-gray-100">
+                        {["All Time", "Today", "Last Week", "Month", "Year", "Custom"].map((f) => (
+                            <button
+                                key={f}
+                                onClick={() => setFilter(f)}
+                                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filter === f
+                                    ? "bg-[#1B1555] text-white shadow-md shadow-[#1B1555]/20"
+                                    : "text-gray-500 hover:bg-white hover:text-[#1B1555]"
+                                    }`}
+                            >
+                                {f}
+                            </button>
+                        ))}
                     </div>
+
+                    {filter === "Custom" && (
+                        <div className="flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-xl border border-gray-100 animate-in fade-in slide-in-from-right-2 duration-300">
+                            <div className="flex flex-col">
+                                <label className="text-[8px] font-black text-gray-400 uppercase ml-1">From</label>
+                                <input
+                                    type="date"
+                                    value={customStartDate}
+                                    onChange={(e) => setCustomStartDate(e.target.value)}
+                                    className="bg-transparent text-[11px] font-black text-[#1B1555] outline-none px-1 uppercase"
+                                />
+                            </div>
+                            <div className="h-6 w-px bg-gray-200 self-end mb-1"></div>
+                            <div className="flex flex-col">
+                                <label className="text-[8px] font-black text-gray-400 uppercase ml-1">To</label>
+                                <input
+                                    type="date"
+                                    value={customEndDate}
+                                    onChange={(e) => setCustomEndDate(e.target.value)}
+                                    className="bg-transparent text-[11px] font-black text-[#1B1555] outline-none px-1 uppercase"
+                                />
+                            </div>
+                        </div>
+                    )}
+
                 </div>
             </div>
 
