@@ -155,7 +155,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 left: `${positions.fullName.x}px`,
                                                 top: `${positions.fullName.y}px`,
                                                 fontSize: `${(positions.fullName as any).fontSize || 24}px`,
-                                                fontWeight:  'normal',
+                                                fontWeight: 'normal',
                                                 textAlign: (positions.fullName as any).textAlign || 'left',
                                                 color: positions.fullName.color,
                                                 maxWidth: `${(idCard.template?.width || 350) - positions.fullName.x - 20}px`,
@@ -389,12 +389,15 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                         >
                             Close
                         </button>
-                        {idCard.status === 'ready_to_print' && (
+                        {(idCard.status === 'ready_to_print' || idCard.status === 'printed') && (
                             <button
                                 onClick={() => onPrint?.(idCard.id)}
-                                className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex items-center justify-center gap-2"
+                                className={`flex-1 py-3 text-white font-bold rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 ${idCard.status === 'printed'
+                                        ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-100'
+                                        : 'bg-green-600 hover:bg-green-700 shadow-green-100'
+                                    }`}
                             >
-                                <Printer className="w-4 h-4" /> Print Now
+                                <Printer className="w-4 h-4" /> {idCard.status === 'printed' ? 'Download' : 'Print Now'}
                             </button>
                         )}
                     </div>

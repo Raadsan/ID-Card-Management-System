@@ -122,6 +122,31 @@ export default function PrintIdPage() {
         }, 300);
     };
 
+    const confirmPrinted = async () => {
+        if (!printedCardId) return;
+        const id = printedCardId;
+
+        try {
+            // Update status to printed in backend
+            const response = await printIdGenerate(id);
+            const updatedCard = response.data;
+
+            // Update the list with the fresh data from backend
+            setIdCards(prev => prev.map(c => c.id === id ? updatedCard : c));
+
+            // If the view modal is open with this card, update its data too
+            if (selectedIdCard?.id === id) {
+                setSelectedIdCard(updatedCard);
+            }
+
+            setIsPostPrintConfirmOpen(false);
+            setPrintedCardId(null);
+        } catch (err: any) {
+            console.error("Failed to mark ID as printed:", err);
+            alert(err.response?.data?.message || "Failed to mark as printed");
+        }
+    };
+
     const handleDownloadPDF = async (card: IdGenerate) => {
         if (!html2pdf) {
             console.error("html2pdf library not loaded yet");
@@ -163,35 +188,7 @@ export default function PrintIdPage() {
         html2pdf().from(element).set(opt).save();
     };
 
-    // This function is no longer needed, kept for compatibility
-    const handlePrint = () => {
-        // Functionality moved to handlePrintRequest
-    };
 
-    const confirmPrinted = async () => {
-        if (!printedCardId) return;
-        const id = printedCardId;
-
-        try {
-            // Update status to printed in backend
-            const response = await printIdGenerate(id);
-            const updatedCard = response.data;
-
-            // Update the list with the fresh data from backend
-            setIdCards(prev => prev.map(c => c.id === id ? updatedCard : c));
-
-            // If the view modal is open with this card, update its data too
-            if (selectedIdCard?.id === id) {
-                setSelectedIdCard(updatedCard);
-            }
-
-            setIsPostPrintConfirmOpen(false);
-            setPrintedCardId(null);
-        } catch (err: any) {
-            console.error("Failed to mark ID as printed:", err);
-            alert(err.response?.data?.message || "Failed to mark as printed");
-        }
-    };
 
     const cancelPrinted = () => {
         setIsPostPrintConfirmOpen(false);
