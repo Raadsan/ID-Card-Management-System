@@ -1,10 +1,20 @@
 import { prisma } from "../../lib/prisma.js";
+import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../../utils/auditLogger.js";
 
 
 
 export const getDepartmentTransferReport = async (req, res) => {
     try {
         const { startDate, endDate, period } = req.query;
+
+        // Log audit
+        await logAudit({
+            userId: req.user?.id,
+            action: AUDIT_ACTIONS.VIEW,
+            tableName: TABLE_NAMES.REPORT_TRANSFER,
+            newData: { startDate, endDate, period },
+            ipAddress: getClientIp(req),
+        });
 
         let where = {};
 

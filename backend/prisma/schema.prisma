@@ -97,6 +97,7 @@ model User {
   // 👇 ADD THESE
   idsCreated IdGenerate[] @relation("IdCreatedBy")
   idsPrinted IdGenerate[] @relation("IdPrintedBy")
+  auditLogs  AuditLog[]
 
   @@index([roleId], map: "User_roleId_fkey")
 }
@@ -198,4 +199,21 @@ model IdGenerate {
   updatedAt DateTime @updatedAt
 
   @@map("id_generate")
+}
+
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  action     String
+  tableName  String
+  recordId   Int?       // record id ee la bedelay, optional
+  oldData    Json?      // xogta hore, optional
+  newData    Json?      // xogta cusub, optional
+  ipAddress  String?    // IP address-ka qofka sameeyay action
+  createdAt  DateTime   @default(now())
+
+  user       User       @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "AuditLog_userId_fkey")
 }

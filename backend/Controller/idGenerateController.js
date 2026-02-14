@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { nanoid } from "nanoid";
+import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../utils/auditLogger.js";
 
 /**
  * CREATE ID
@@ -18,6 +19,16 @@ export const createIdGenerate = async (req, res) => {
                 issueDate: issueDate ? new Date(issueDate) : null,
                 expiryDate: expiryDate ? new Date(expiryDate) : null,
             },
+        });
+
+        // Log audit
+        await logAudit({
+            userId: req.user?.id,
+            action: AUDIT_ACTIONS.CREATE,
+            tableName: TABLE_NAMES.ID_GENERATE,
+            recordId: idGenerate.id,
+            newData: { employeeId, templateId, issueDate, expiryDate },
+            ipAddress: getClientIp(req),
         });
 
         res.status(201).json({
@@ -122,6 +133,16 @@ export const printIdGenerate = async (req, res) => {
             }
         });
 
+        // Log audit
+        await logAudit({
+            userId: req.user?.id,
+            action: AUDIT_ACTIONS.PRINT,
+            tableName: TABLE_NAMES.ID_GENERATE,
+            recordId: Number(id),
+            newData: { status: "printed", printedById },
+            ipAddress: getClientIp(req),
+        });
+
         res.json({
             message: "ID printed successfully",
             data: updated,
@@ -197,8 +218,21 @@ export const deleteIdGenerate = async (req, res) => {
     try {
         const { id } = req.params;
 
+        // Get ID data before deletion
+        const idGenerate = await prisma.idGenerate.findUnique({ where: { id: Number(id) } });
+
         await prisma.idGenerate.delete({
             where: { id: Number(id) },
+        });
+
+        // Log audit
+        await logAudit({
+            userId: req.user?.id,
+            action: AUDIT_ACTIONS.DELETE,
+            tableName: TABLE_NAMES.ID_GENERATE,
+            recordId: Number(id),
+            oldData: { employeeId: idGenerate.employeeId, templateId: idGenerate.templateId, status: idGenerate.status },
+            ipAddress: getClientIp(req),
         });
 
         res.json({ message: "ID deleted successfully" });

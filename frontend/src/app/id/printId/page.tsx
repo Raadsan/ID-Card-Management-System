@@ -152,20 +152,24 @@ export default function PrintIdPage() {
             setIsConfirmModalOpen(false);
             setPendingPrintId(null);
 
-            const response = await printIdGenerate(id);
-            const updatedCard = response.data;
+            let updatedCard = card;
+            // Only mark as printed if it was ready to print
+            if (card.status === 'ready_to_print') {
+                const response = await printIdGenerate(id);
+                updatedCard = response.data;
 
-            // Optimistically update the list with the fresh data from backend
-            setIdCards(prev => prev.map(c => c.id === id ? updatedCard : c));
+                // Optimistically update the list with the fresh data from backend
+                setIdCards(prev => prev.map(c => c.id === id ? updatedCard : c));
 
-            // If the view modal is open with this card, update its data too
-            if (selectedIdCard?.id === id) {
-                setSelectedIdCard(updatedCard);
+                // If the view modal is open with this card, update its data too
+                if (selectedIdCard?.id === id) {
+                    setSelectedIdCard(updatedCard);
+                }
             }
 
             // Wait for state to update and render before downloading PDF
             setTimeout(() => {
-                handleDownloadPDF(card);
+                handleDownloadPDF(updatedCard);
             }, 500);
         } catch (err: any) {
             console.error("Failed to mark ID as printed:", err);
@@ -306,20 +310,16 @@ export default function PrintIdPage() {
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </button>
-                                                {card.status === 'ready_to_print' ? (
-                                                    <button
-                                                        onClick={() => handlePrintRequest(card.id)}
-                                                        className="px-4 py-2 text-xs font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all shadow-md shadow-green-100 flex items-center gap-2"
-                                                    >
-                                                        <Printer className="h-4 w-4" />
-                                                        Print
-                                                    </button>
-                                                ) : (
-                                                    <div className="px-3 py-1.5 text-[10px] font-bold text-green-600 bg-green-50 rounded-lg flex items-center gap-1.5 border border-green-100">
-                                                        <CheckCircle2 className="h-3.5 w-3.5" />
-                                                        Log
-                                                    </div>
-                                                )}
+                                                <button
+                                                    onClick={() => handlePrintRequest(card.id)}
+                                                    className={`px-4 py-2 text-xs font-bold text-white rounded-lg transition-all shadow-md flex items-center gap-2 ${card.status === 'printed'
+                                                            ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-100'
+                                                            : 'bg-green-600 hover:bg-green-700 shadow-green-100'
+                                                        }`}
+                                                >
+                                                    <Printer className="h-4 w-4" />
+                                                    {card.status === 'printed' ? 'Download' : 'Print'}
+                                                </button>
                                                 <button
                                                     onClick={() => handleDelete(card.id)}
                                                     className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-all"

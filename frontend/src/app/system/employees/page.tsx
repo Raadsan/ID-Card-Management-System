@@ -14,7 +14,7 @@ import { getImageUrl } from "@/utils/url";
 
 // Define the Employee type based on your API response
 interface Employee {
-    id: number;
+    id: number; 
     title: string;
     status: string;
     department?: {

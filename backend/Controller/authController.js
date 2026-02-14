@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../utils/auditLogger.js";
 
 export const loginUser = async (req, res) => {
   try {
@@ -26,9 +27,19 @@ export const loginUser = async (req, res) => {
     // Generate Token
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role.name },
-      process.env.JWT_SECRET ,
+      process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
+
+    // Log successful login
+    await logAudit({
+      userId: user.id,
+      action: AUDIT_ACTIONS.LOGIN,
+      tableName: TABLE_NAMES.USER,
+      recordId: user.id,
+      newData: { email: user.email, role: user.role.name },
+      ipAddress: getClientIp(req),
+    });
 
     res.json({
       id: user.id,

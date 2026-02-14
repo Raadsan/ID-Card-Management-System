@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../utils/auditLogger.js";
 
 /* =========================
    CREATE ROLE
@@ -13,6 +14,16 @@ export const createRole = async (req, res) => {
 
     const role = await prisma.role.create({
       data: { name, description },
+    });
+
+    // Log audit
+    await logAudit({
+      userId: req.user?.id,
+      action: AUDIT_ACTIONS.CREATE,
+      tableName: TABLE_NAMES.ROLE,
+      recordId: role.id,
+      newData: { name, description },
+      ipAddress: getClientIp(req),
     });
 
     res.status(201).json(role);
@@ -73,6 +84,9 @@ export const updateRole = async (req, res) => {
     const id = Number(req.params.id);
     const { name, description } = req.body;
 
+    // Get old data
+    const oldRole = await prisma.role.findUnique({ where: { id } });
+
     const updateData = {};
     if (name) updateData.name = name;
     if (description !== undefined) updateData.description = description;
@@ -80,6 +94,17 @@ export const updateRole = async (req, res) => {
     const role = await prisma.role.update({
       where: { id },
       data: updateData,
+    });
+
+    // Log audit
+    await logAudit({
+      userId: req.user?.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      tableName: TABLE_NAMES.ROLE,
+      recordId: id,
+      oldData: { name: oldRole.name, description: oldRole.description },
+      newData: updateData,
+      ipAddress: getClientIp(req),
     });
 
     res.json(role);
@@ -107,8 +132,21 @@ export const deleteRole = async (req, res) => {
   try {
     const id = Number(req.params.id);
 
+    // Get role data before deletion
+    const role = await prisma.role.findUnique({ where: { id } });
+
     await prisma.role.delete({
       where: { id },
+    });
+
+    // Log audit
+    await logAudit({
+      userId: req.user?.id,
+      action: AUDIT_ACTIONS.DELETE,
+      tableName: TABLE_NAMES.ROLE,
+      recordId: id,
+      oldData: { name: role.name, description: role.description },
+      ipAddress: getClientIp(req),
     });
 
     res.json({ message: "Role deleted successfully" });

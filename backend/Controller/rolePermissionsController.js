@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../utils/auditLogger.js";
 
 /* =========================
    CREATE ROLE PERMISSIONS
@@ -24,6 +25,16 @@ export const createRolePermissions = async (req, res) => {
       include: {
         menus: { include: { subMenus: true } }
       }
+    });
+
+    // Log audit
+    await logAudit({
+      userId: req.user?.id,
+      action: AUDIT_ACTIONS.CREATE,
+      tableName: TABLE_NAMES.ROLE_PERMISSIONS,
+      recordId: rolePermission.id,
+      newData: { roleId, menusAccess },
+      ipAddress: getClientIp(req),
     });
 
     res.status(201).json(rolePermission);
@@ -105,9 +116,12 @@ export const updateRolePermissions = async (req, res) => {
       return res.status(400).json({ message: "menusAccess is required" });
     }
 
-    // Check role permissions exist
+    // Check role permissions exist and get old data
     const existingRolePermissions = await prisma.rolePermissions.findUnique({
       where: { roleId },
+      include: {
+        menus: { include: { subMenus: true } }
+      }
     });
     if (!existingRolePermissions) {
       return res.status(404).json({ message: "Role permissions not found" });
@@ -148,6 +162,17 @@ export const updateRolePermissions = async (req, res) => {
       },
     });
 
+    // Log audit
+    await logAudit({
+      userId: req.user?.id,
+      action: AUDIT_ACTIONS.UPDATE,
+      tableName: TABLE_NAMES.ROLE_PERMISSIONS,
+      recordId: roleId,
+      oldData: { menus: existingRolePermissions.menus },
+      newData: { menusAccess },
+      ipAddress: getClientIp(req),
+    });
+
     res.json(updatedRolePermissions);
   } catch (error) {
     console.error(error);
@@ -164,6 +189,9 @@ export const deleteRolePermissions = async (req, res) => {
 
     const existingRolePermissions = await prisma.rolePermissions.findUnique({
       where: { roleId },
+      include: {
+        menus: { include: { subMenus: true } }
+      }
     });
 
     if (!existingRolePermissions) {
@@ -182,6 +210,16 @@ export const deleteRolePermissions = async (req, res) => {
 
     // Delete rolePermissions
     await prisma.rolePermissions.delete({ where: { id: existingRolePermissions.id } });
+
+    // Log audit
+    await logAudit({
+      userId: req.user?.id,
+      action: AUDIT_ACTIONS.DELETE,
+      tableName: TABLE_NAMES.ROLE_PERMISSIONS,
+      recordId: roleId,
+      oldData: { menus: existingRolePermissions.menus },
+      ipAddress: getClientIp(req),
+    });
 
     res.json({ message: "Role permissions deleted successfully" });
   } catch (error) {
