@@ -34,7 +34,6 @@ interface GenerateIdModalProps {
 
 const ID_TEXT_STYLE = {
     fontFamily: '"Outfit", sans-serif',
-    fontWeight: "700", // Bold
     letterSpacing: "0.5px",
     fontSize: "14px",
     textTransform: "uppercase" as const
@@ -407,7 +406,7 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                                         left: `${positions.fullName.x}px`,
                                                         top: `${positions.fullName.y}px`,
                                                         fontSize: `${(positions.fullName as any).fontSize || 24}px`,
-                                                        fontWeight: (positions.fullName as any).fontWeight || 'bold',
+                                                        fontWeight: (positions.fullName as any).fontWeight || 'normal',
                                                         textAlign: (positions.fullName as any).textAlign || 'left',
                                                         color: positions.fullName.color,
                                                         maxWidth: `${(selectedTemplate?.width || 350) - positions.fullName.x - 20}px`,

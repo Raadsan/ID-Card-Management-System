@@ -143,13 +143,10 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
                 <div className="flex h-full flex-col px-3 pt-2 pb-4">
                     {/* Header / Logo */}
                     <div className="mb-2 flex items-center justify-between pl-2.5 pr-2 border-b border-white/10 pb-4">
-                        <div className="flex items-center gap-3 w-full">
-                            <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center border border-white/10 shadow-sm">
-                                <span className="text-secondary font-black text-sm">ID</span>
+                        <div className="flex items-center justify-center w-full py-2">
+                            <div className="w-48 h-20 flex items-center justify-center">
+                                <img src="/sap id 2.jpeg" alt="Logo" className="w-full h-full object-contain rounded-lg" />
                             </div>
-                            <h1 className="text-[10px] font-black text-white leading-tight tracking-[0.2em] uppercase whitespace-nowrap opacity-90">
-                                ID-MANAGEMENT-SYSTEM
-                            </h1>
                         </div>
                         <button
                             onClick={onClose}
