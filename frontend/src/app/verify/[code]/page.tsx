@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CheckCircle2, XCircle, ShieldCheck, Loader2, MapPin, Calendar, User, Fingerprint, AlertTriangle, Clock, UserX } from "lucide-react";
+import { CheckCircle2, XCircle, ShieldCheck, Loader2, MapPin, Calendar, User, Fingerprint, AlertTriangle, Clock, UserX, Mail, MessageCircle } from "lucide-react";
 import { verifyQrCode } from "@/api/generateIdApi";
 
 import { getImageUrl } from "@/utils/url";
@@ -128,34 +128,11 @@ export default function VerificationPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F0F2F5] font-sans pb-20">
-            {/* Blue Banner Header */}
-            <div className="bg-[#1e4e8c] text-white relative overflow-hidden">
-                <div className="absolute inset-0 opacity-10 pointer-events-none">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-[120px] -mr-48 -mt-48"></div>
-                    <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-400 rounded-full blur-[100px] -ml-40 -mb-40"></div>
-                </div>
+        <div className="min-h-screen font-sans pb-20">
 
-                <div className="max-w-4xl mx-auto px-6 py-8 md:py-16 flex flex-col items-center relative z-10 text-center md:text-left">
-                    <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 mb-8 transform hover:scale-105 transition-transform">
-                        <div className="h-16 w-16 md:h-20 md:w-20 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 shadow-2xl p-3 md:p-4">
-                            <ShieldCheck className="h-8 w-8 md:h-10 md:w-10 text-white" />
-                        </div>
-                        <div className="h-1 lg:h-12 w-12 lg:w-[2px] bg-white/20 hidden md:block"></div>
-                        <div className="text-center md:text-left">
-                            <h1 className="text-2xl md:text-4xl lg:text-5xl font-black tracking-tight uppercase leading-tight">
-                                ID Verification
-                            </h1>
-                            <p className="text-[8px] md:text-[10px] text-blue-200 mt-1 md:mt-2 font-black uppercase tracking-[0.2em] md:tracking-[0.4em] opacity-80">
-                                Somali Petroleum Authority
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {/* Document Body */}
-            <div className="max-w-3xl mx-auto px-4 -mt-10 relative z-20">
+            <div className="max-w-3xl mx-auto px-4 -mt-10 relative z-20 mt-20">
                 <div className="relative shadow-[0_20px_50px_rgba(0,0,0,0.15)]  overflow-hidden ">
                     {/* Background Template */}
                     <img
@@ -165,7 +142,7 @@ export default function VerificationPage() {
                     />
 
                     {/* Photo Overlay */}
-                    <div className="absolute top-[31%] right-[5.8%] w-[21.8%] h-[15.8%] aspect-[0.85/1] rounded-sm overflow-hidden  ">
+                    <div className="absolute top-[31%] right-[5.8%] w-[21.8%] h-[17.8%] aspect-[0.85/1] overflow-hidden  ">
                         {data?.employee?.user?.photo ? (
                             <img
                                 src={getImageUrl(data.employee.user.photo) || undefined}
@@ -180,13 +157,13 @@ export default function VerificationPage() {
                     </div>
 
                     {/* Metadata Overlays (Tracking, ID, Issue Date) */}
-                    <div className="absolute top-[32.5%] left-[54%] text-[#143d73] font-normal  tracking-tight">
+                    <div className="absolute top-[35.5%] left-[6%] text-[#143d73] font-black uppercase tracking-tight">
                         {data?.qrCode || "N/A"}
                     </div>
-                    <div className="absolute top-[38.6%] left-[54%] text-[#143d73] font-black text-[clamp(10px,1.8vw,14px)] tracking-tight">
-                        ID-0000{data?.employee?.id || "0"}
+                    <div className="absolute top-[41.1%] left-[6%] text-[#143d73] font-black text-[clamp(10px,1.8vw,14px)] tracking-tight">
+                        S/N: SPA01{data?.employee?.id?.toString().padStart(4, '0')}/26
                     </div>
-                    <div className="absolute top-[44%] left-[54%] text-[#143d73] font-black text-[clamp(10px,1.8vw,14px)] tracking-tight">
+                    <div className="absolute top-[46.8%] left-[6%] text-[#143d73] font-black text-[clamp(10px,1.8vw,14px)] tracking-tight">
                         {formatDate(data?.issueDate)}
                     </div>
 
@@ -221,26 +198,54 @@ export default function VerificationPage() {
                     </div>
 
                     {/* Address/Location Row */}
-                    <div className="absolute top-[81.3%] left-[8.8%] w-[45%] text-black font-normal text-[clamp(8px,1.6vw,16px)] truncate">
-                        Somalia
+                    <div className="absolute top-[79.6%] left-[8.8%] w-[45%] text-black font-normal text-[clamp(8px,1.6vw,16px)] truncate">
+                        {data?.employee?.user?.phone || "N/A"}
                     </div>
-                    <div className="absolute top-[81.3%] left-[59.2%] w-[33%] text-black font-normal text-[clamp(8px,1.6vw,16px)] truncate">
+                    <div className="absolute top-[79.6%] left-[53.7%] w-[33%] text-black font-normal text-[clamp(8px,1.6vw,16px)] truncate">
                         {data?.employee?.address || "Mogadishu"}
                     </div>
                 </div>
 
                 {/* Footer Section */}
                 <div className="mt-12 text-center space-y-6">
-                    <div className="inline-flex items-center gap-3 px-6 py-3 bg-white shadow-lg rounded-full border border-green-100 transform hover:scale-105 transition-all duration-300">
-                        <div className="bg-green-500 rounded-full p-1">
-                            <CheckCircle2 className="w-4 h-4 text-white" />
+
+                    {/* Contact Us */}
+                    <div className="space-y-4">
+                        <p className="text-gray-400 text-[11px] font-black uppercase tracking-[0.5em] opacity-60">
+                            Contact Support
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 items-center justify-center pt-2">
+                            <a
+                                href="https://wa.me/252615930944"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group flex items-center gap-4 px-6 py-3 bg-white/80 backdrop-blur-sm rounded-2xl border border-green-100 shadow-lg shadow-green-900/5 transition-all duration-300 hover:bg-green-50 hover:-translate-y-1 hover:shadow-green-900/10"
+                            >
+                                <div className="p-2 bg-green-100 rounded-xl text-green-600 group-hover:scale-110 transition-transform">
+                                    <MessageCircle className="w-5 h-5" />
+                                </div>
+                                <div className="text-left">
+                                    <p className="text-[8px] font-black text-green-600/50 uppercase tracking-widest leading-none mb-1">WhatsApp</p>
+                                    <p className="text-sm font-bold text-gray-700 tracking-tight">+252 61 593 0944</p>
+                                </div>
+                            </a>
+
+                            <a
+                                href="mailto:info@spa.gov.so"
+                                className="group flex items-center gap-4 px-6 py-3 bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-100 shadow-lg shadow-blue-900/5 transition-all duration-300 hover:bg-blue-50 hover:-translate-y-1 hover:shadow-blue-900/10"
+                            >
+                                <div className="p-2 bg-blue-100 rounded-xl text-blue-600 group-hover:scale-110 transition-transform">
+                                    <Mail className="w-5 h-5" />
+                                </div>
+                                <div className="text-left">
+                                    <p className="text-[8px] font-black text-blue-600/50 uppercase tracking-widest leading-none mb-1">Email Us</p>
+                                    <p className="text-sm font-bold text-gray-700 tracking-tight">info@spa.gov.so</p>
+                                </div>
+                            </a>
                         </div>
-                        <span className="text-gray-700 font-bold text-sm tracking-wide">
-                            Authenticated Verification
-                        </span>
                     </div>
 
-                    <div className="pt-8 border-t border-gray-200/50">
+                    <div className="pt-4 border-t border-gray-200/50">
                         <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em]">
                             © {new Date().getFullYear()} Somali Petroleum Authority • SPA-CMS System
                         </p>
