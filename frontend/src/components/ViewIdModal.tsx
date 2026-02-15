@@ -230,23 +230,21 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                             EXP: {idCard.expiryDate ? new Date(idCard.expiryDate).toLocaleDateString() : '31/12/2026'}
                                         </div>
                                         <div
-                                            className="absolute whitespace-nowrap overflow-hidden"
+                                            className="absolute whitespace-nowrap overflow-visible barcode"
                                             style={{
-                                                ...ID_TEXT_STYLE,
                                                 left: `${positions.photo.x}px`,
                                                 top: `${positions.idNumber.y}px`,
                                                 width: `${positions.photo.width}px`,
-                                                fontSize: `22px`,
-                                                fontWeight: 'bold',
+                                                fontSize: `36px`,
+                                                fontWeight: 'normal',
                                                 textAlign: 'center',
-                                                fontFamily: 'Orbitron',
-                                                color: positions.idNumber.color,
-                                                maxWidth: `${positions.photo.width}px`,
-                                                textOverflow: 'ellipsis'
+                                                color: positions.idNumber.color || '#000000',
+                                                lineHeight: '1.2',
                                             }}
                                         >
-                                            S/N: SPA01{idCard.employee?.id?.toString().padStart(4, '0') || '0000'}/26
+                                            SPA01{idCard.employee?.id?.toString().padStart(4, '0') || '0000'}/26
                                         </div>
+
                                     </>
                                 )}
 
@@ -393,8 +391,8 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                             <button
                                 onClick={() => onPrint?.(idCard.id)}
                                 className={`flex-1 py-3 text-white font-bold rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 ${idCard.status === 'printed'
-                                        ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-100'
-                                        : 'bg-green-600 hover:bg-green-700 shadow-green-100'
+                                    ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-100'
+                                    : 'bg-green-600 hover:bg-green-700 shadow-green-100'
                                     }`}
                             >
                                 <Printer className="w-4 h-4" /> {idCard.status === 'printed' ? 'Download' : 'Print Now'}

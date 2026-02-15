@@ -183,7 +183,9 @@ export const IdCardPreview: React.FC<IdCardPreviewProps> = ({
                                     }}
                                 >
                                     {isEditable && <span className="absolute -top-7 left-0 text-[10px] font-black text-white bg-orange-500 px-2 py-0.5 rounded shadow-sm opacity-0 group-hover/field:opacity-100 transition-opacity uppercase tracking-widest">SERIAL / ID NO</span>}
-                                    {currentValues.idNumber}
+                                    <div className="barcode" style={{ fontSize: `${(positions.idNumber.fontSize || 27) * 1.4}px`, fontWeight: 'normal' }}>
+                                        SPA010024/26
+                                    </div>
                                     {isEditable && onResizeStart && (
                                         <div
                                             onMouseDown={(e) => onResizeStart(e, 'idNumber')}

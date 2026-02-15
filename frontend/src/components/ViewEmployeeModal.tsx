@@ -131,7 +131,7 @@ const ViewEmployeeModal: React.FC<ViewEmployeeModalProps> = ({ isOpen, onClose, 
                                     />
                                 </div>
                             )}
-                            <div className="absolute whitespace-nowrap overflow-hidden font-bold" style={{ ...getPosStyles(positions.fullName), textOverflow: 'ellipsis' }}>
+                            <div className="absolute whitespace-nowrap overflow-hidden " style={{ ...getPosStyles(positions.fullName), textOverflow: 'ellipsis' }}>
                                 {employee.user?.fullName}
                             </div>
                             <div className="absolute whitespace-nowrap overflow-hidden" style={{ ...getPosStyles(positions.title), textOverflow: 'ellipsis' }}>
@@ -143,9 +143,21 @@ const ViewEmployeeModal: React.FC<ViewEmployeeModalProps> = ({ isOpen, onClose, 
                             <div className="absolute whitespace-nowrap overflow-hidden" style={{ ...getPosStyles(positions.expiryDate), textOverflow: 'ellipsis' }}>
                                 EXP: {idCard.expiryDate ? new Date(idCard.expiryDate).toLocaleDateString() : 'N/A'}
                             </div>
-                            <div className="absolute whitespace-nowrap overflow-hidden font-bold text-center" style={{ ...getPosStyles(positions.idNumber), textOverflow: 'ellipsis' }}>
-                                S/N: SPA01{employee.id?.toString().padStart(4, '0')}/26
+                            <div
+                                className="absolute whitespace-nowrap overflow-visible barcode text-center"
+                                style={{
+                                    left: `${(positions.photo.x / width) * 100}%`,
+                                    top: `${(positions.idNumber.y / height) * 100}%`,
+                                    width: `${(positions.photo.width / width) * 100}%`,
+                                    fontSize: '5cqw',
+                                    color: positions.idNumber.color || '#000000',
+                                    fontWeight: 'normal',
+                                    lineHeight: '1.2',
+                                }}
+                            >
+                                SPA01{employee.id?.toString().padStart(4, '0')}/26
                             </div>
+
                         </>
                     )}
                     {!isFront && positions.qrCode && (

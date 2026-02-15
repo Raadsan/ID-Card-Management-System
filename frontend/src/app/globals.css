@@ -46,3 +46,17 @@ body {
   background: rgba(15, 23, 42, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+@font-face {
+  font-family: 'LibreBarcode';
+  src: url('/fonts/LibreBarcode39Text-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.barcode {
+  font-family: 'LibreBarcode';
+  font-size: 60px;
+  letter-spacing: 12px;
+  color: #143d73;
+}
