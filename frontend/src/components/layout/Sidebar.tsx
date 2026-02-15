@@ -145,7 +145,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
                     <div className="mb-2 flex items-center justify-between pl-2.5 pr-2 border-b border-white/10 pb-4">
                         <div className="flex items-center justify-center w-full py-2">
                             <div className="w-48 h-20 flex items-center justify-center">
-                                <img src="/sap id 2.jpeg" alt="Logo" className="w-full h-full object-contain rounded-lg" />
+                                <img src="/sap id card.png" alt="Logo" className="w-full h-full object-contain rounded-lg" />
                             </div>
                         </div>
                         <button
