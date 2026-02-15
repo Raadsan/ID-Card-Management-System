@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  color-scheme: light;
   --background: #F4F7FE;
   --foreground: #1B1555;
   --primary: #1B1555;
@@ -22,13 +23,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f8fafc;
-    --sidebar: #0a0a0a;
-  }
-}
 
 body {
   background: var(--background);
@@ -42,10 +36,6 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.dark .glass {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
 
 @font-face {
   font-family: 'LibreBarcode';
