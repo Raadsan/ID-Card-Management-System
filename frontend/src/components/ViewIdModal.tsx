@@ -242,7 +242,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 lineHeight: '1.2',
                                             }}
                                         >
-                                           SPA01{idCard.employee?.id?.toString().padStart(4, '0') || '0000'}/26
+                                            SPA01{idCard.employee?.id?.toString().padStart(4, '0') || '0000'}/26
                                         </div>
 
                                     </>
