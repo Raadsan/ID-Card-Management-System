@@ -186,7 +186,7 @@ export const deleteTemplate = async (req, res) => {
 
         if (usageCount > 0) {
             return res.status(400).json({
-                error: "Ma tirtiri kartid template-kaan sababtoo ah waxaa jira ID-yo loo isticmaalay. Fadlan tirtir ID-yadaas marka hore."
+                message: "Ma tirtiri kartid template-kaan sababtoo ah waxaa jira ID-yo loo isticmaalay. Fadlan tirtir ID-yadaas marka hore."
             });
         }
 

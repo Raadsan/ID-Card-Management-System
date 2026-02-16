@@ -130,7 +130,7 @@ export default function UsersPage() {
             setMsgBox({
                 isOpen: true,
                 title: "Error",
-                message: "Failed to delete user. Please try again.",
+                message: (error as any).response?.data?.message || "Failed to delete user. Please try again.",
                 type: "error"
             });
         } finally {

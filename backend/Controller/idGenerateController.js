@@ -229,12 +229,15 @@ export const verifyQrCode = async (req, res) => {
 export const deleteIdGenerate = async (req, res) => {
     try {
         const { id } = req.params;
+        const recordId = Number(id);
 
-        // Get ID data before deletion
-        const idGenerate = await prisma.idGenerate.findUnique({ where: { id: Number(id) } });
+        // 1️⃣ Check if record exists
+        const idGenerate = await prisma.idGenerate.findUnique({ where: { id: recordId } });
+        if (!idGenerate) return res.status(404).json({ message: "Xogtan lama helin" });
 
+        // 2️⃣ Perform Delete
         await prisma.idGenerate.delete({
-            where: { id: Number(id) },
+            where: { id: recordId },
         });
 
         // Log audit
@@ -242,13 +245,21 @@ export const deleteIdGenerate = async (req, res) => {
             userId: req.user?.id,
             action: AUDIT_ACTIONS.DELETE,
             tableName: TABLE_NAMES.ID_GENERATE,
-            recordId: Number(id),
+            recordId: recordId,
             oldData: { employeeId: idGenerate.employeeId, templateId: idGenerate.templateId, status: idGenerate.status },
             ipAddress: getClientIp(req),
         });
 
-        res.json({ message: "ID deleted successfully" });
+        res.json({ message: "Xogta ID-ga waa la tirtiray si guul ah" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error("DELETE_ID_ERROR:", error);
+
+        if (error.code === "P2003") {
+            return res.status(400).json({
+                message: "Ma tirtiri kartid xogtan sababtoo ah waxaa jira xog kale oo ku xiran."
+            });
+        }
+
+        res.status(500).json({ message: "Wuu ku guuldareystay tirtirista xogta ID-ga.", error: error.message });
     }
 };
