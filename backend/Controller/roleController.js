@@ -132,9 +132,30 @@ export const deleteRole = async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    // Get role data before deletion
-    const role = await prisma.role.findUnique({ where: { id } });
+    // 1️⃣ Check if role exists and has relations
+    const role = await prisma.role.findUnique({
+      where: { id },
+      include: {
+        users: { take: 1 },
+        RolePermissions: { take: 1 }
+      }
+    });
 
+    if (!role) return res.status(404).json({ message: "Role-ka lama helin" });
+
+    // 2️⃣ Check for related records
+    const relatedRecords = [];
+    if (role.users.length > 0) relatedRecords.push("Isticmaalayaal (Users)");
+    if (role.RolePermissions) relatedRecords.push("Ogolaansho (Permissions)");
+
+    if (relatedRecords.length > 0) {
+      const tableList = relatedRecords.join(" iyo ");
+      return res.status(400).json({
+        message: `Ma tirtiri kartid Role-kan sababtoo ah waxaa jira ${tableList} ku xiran. Fadlan marka hore ka saar xogtaas.`
+      });
+    }
+
+    // 3️⃣ Perform Delete
     await prisma.role.delete({
       where: { id },
     });
@@ -149,14 +170,20 @@ export const deleteRole = async (req, res) => {
       ipAddress: getClientIp(req),
     });
 
-    res.json({ message: "Role deleted successfully" });
+    res.json({ message: "Role-ka waa la tirtiray si guul ah" });
   } catch (error) {
-    console.error(error);
+    console.error("DELETE_ROLE_ERROR:", error);
 
     if (error.code === "P2025") {
-      return res.status(404).json({ message: "Role not found" });
+      return res.status(404).json({ message: "Role-ka lama helin" });
     }
 
-    res.status(500).json({ message: "Failed to delete role" });
+    if (error.code === "P2003") {
+      return res.status(400).json({
+        message: "Ma tirtiri kartid Role-kan sababtoo ah waxaa jira xog kale oo ku xiran."
+      });
+    }
+
+    res.status(500).json({ message: "Wuu ku guuldareystay tirtirista Role-ka.", error: error.message });
   }
 };

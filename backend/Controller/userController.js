@@ -196,15 +196,41 @@ export const deleteUser = async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    // delete user photo if exists
-    const user = await prisma.user.findUnique({ where: { id } });
+    // 1️⃣ Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id },
+      include: {
+        employee: true,
+        idsCreated: { take: 1 },
+        idsPrinted: { take: 1 },
+        transfersPerformed: { take: 1 },
+        auditLogs: { take: 1 }
+      }
+    });
+
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    // 2️⃣ Check for related records (Foreign Key Constraints)
+    const relatedRecords = [];
+    if (user.employee) relatedRecords.push("Shaqaale (Employee)");
+    if (user.idsCreated.length > 0 || user.idsPrinted.length > 0) relatedRecords.push("ID Cards");
+    if (user.transfersPerformed.length > 0) relatedRecords.push("Wareejin (Transfers)");
+    if (user.auditLogs.length > 0) relatedRecords.push("Logs");
+
+    if (relatedRecords.length > 0) {
+      const tableList = relatedRecords.join(", ");
+      return res.status(400).json({
+        message: `Ma tirtiri kartid isticmaalahan sababtoo ah waxaa jira ${tableList} ku xiran. Fadlan marka hore tirtir xogtaas ama ka dhig isticmaalaha mid aan firfirconayn (Inactive).`
+      });
+    }
+
+    // 3️⃣ Delete user photo if exists
     if (user.photo) {
       const photoPath = path.join("uploads", user.photo);
       if (fs.existsSync(photoPath)) fs.unlinkSync(photoPath);
     }
 
+    // 4️⃣ Perform Delete
     await prisma.user.delete({ where: { id } });
 
     // Log audit
@@ -226,7 +252,15 @@ export const deleteUser = async (req, res) => {
 
     res.json({ message: "User deleted successfully" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to delete user" });
+    console.error("DELETE_USER_ERROR:", error);
+
+    // Prisma Foreign Key Constraint error
+    if (error.code === "P2003") {
+      return res.status(400).json({
+        message: "Ma tirtiri kartid isticmaalahan sababtoo ah waxaa jira xog kale oo ku xiran database-ka."
+      });
+    }
+
+    res.status(500).json({ message: "Failed to delete user", error: error.message });
   }
 };
