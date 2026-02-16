@@ -22,6 +22,7 @@ interface Employee {
         id: number;
         departmentName: string;
     };
+    status: string;
     title?: string;
     transfers: any[];
     idGenerates: any[];
@@ -65,15 +66,17 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
 
     // Derived State
     const filteredEmployees = employees.filter(emp => {
-        // Find if this employee has any active ID card 
-        // (Active = status is 'created', 'ready_to_print', or 'printed')
-        const hasActiveId = emp.idGenerates && emp.idGenerates.some((id: any) =>
-            id.status === 'created' || id.status === 'ready_to_print' || id.status === 'printed'
-        );
+        // 1. Only include active employees
+        if (emp.status !== "active") return false;
 
-        // If they don't have an active ID card, they are eligible for a new one.
-        // This includes new employees and those whose IDs were 'replaced' due to transfer.
-        return !hasActiveId;
+        // 2. Only display employees who don't have ANY id-card records yet
+        // (This includes 'created', 'ready_to_print', 'printed', and 'replaced')
+        const hasIdHistory = emp.idGenerates && emp.idGenerates.length > 0;
+
+        // 3. Remove employees who have transferred departments
+        const hasTransferHistory = emp.transfers && emp.transfers.length > 0;
+
+        return !hasIdHistory && !hasTransferHistory;
     });
 
     const selectedEmployee = employees.find(e => e.id.toString() === selectedEmployeeId) || null;

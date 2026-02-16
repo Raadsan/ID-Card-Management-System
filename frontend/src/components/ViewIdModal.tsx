@@ -196,7 +196,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 textOverflow: 'ellipsis'
                                             }}
                                         >
-                                            {idCard.department?.departmentName || idCard.employee?.department?.departmentName || 'N/A'}
+                                            {idCard.employee?.department?.departmentName || idCard.department?.departmentName || 'N/A'}
                                         </div>
                                         <div
                                             className="absolute whitespace-nowrap overflow-hidden"
