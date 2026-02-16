@@ -182,18 +182,33 @@ export const updateEmployee = async (req, res) => {
 
 export const deleteEmployee = async (req, res) => {
     try {
-        const { id } = req.params;
+        const id = Number(req.params.id);
         const employeeId = Number(id);
 
-        // Get employee data before deletion
-        const employee = await prisma.employee.findUnique({ where: { id: employeeId } });
-
-        // 1️⃣ Delete related DepartmentTransfer records first
-        await prisma.departmentTransfer.deleteMany({
-            where: { employeeId: employeeId }
+        // 1️⃣ Check if employee exists and has relations
+        const employee = await prisma.employee.findUnique({
+            where: { id: employeeId },
+            include: {
+                idGenerates: { take: 1 },
+                transfers: { take: 1 }
+            }
         });
 
-        // 2️⃣ Delete the employee
+        if (!employee) return res.status(404).json({ message: "Shaqaalahan lama helin" });
+
+        // 2️⃣ Check for related records
+        const relatedRecords = [];
+        if (employee.idGenerates.length > 0) relatedRecords.push("ID Cards");
+        if (employee.transfers.length > 0) relatedRecords.push("Wareejin (Transfers)");
+
+        if (relatedRecords.length > 0) {
+            const tableList = relatedRecords.join(" iyo ");
+            return res.status(400).json({
+                message: `Ma tirtiri kartid shaqaalahan sababtoo ah waxaa jira ${tableList} ku xiran. Fadlan marka hore ka saar xogtaas.`
+            });
+        }
+
+        // 3️⃣ Perform Delete
         await prisma.employee.delete({
             where: { id: employeeId }
         });
@@ -214,9 +229,16 @@ export const deleteEmployee = async (req, res) => {
             ipAddress: getClientIp(req),
         });
 
-        res.status(200).json({ message: "Employee deleted successfully" });
+        res.status(200).json({ message: "Shaqaalaha waa la tirtiray si guul ah" });
     } catch (error) {
         console.error("Delete Employee Error:", error);
-        res.status(500).json({ message: "Failed to delete employee", error: error.message });
+
+        if (error.code === "P2003") {
+            return res.status(400).json({
+                message: "Ma tirtiri kartid shaqaalahan sababtoo ah waxaa jira xog kale oo ku xiran."
+            });
+        }
+
+        res.status(500).json({ message: "Wuu ku guuldareystay tirtirista shaqaalaha.", error: error.message });
     }
 };

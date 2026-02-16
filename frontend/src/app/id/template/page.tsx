@@ -85,7 +85,7 @@ export default function IdTemplatesPage() {
             setMsgBox({
                 isOpen: true,
                 title: "Deletion Failed",
-                message: error.response?.data?.error || "Could not delete template.",
+                message: error.response?.data?.message || error.response?.data?.error || "Could not delete template.",
                 type: "error",
             });
         }

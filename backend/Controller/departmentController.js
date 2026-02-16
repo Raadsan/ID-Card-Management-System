@@ -98,46 +98,34 @@ export const deleteDepartment = async (req, res) => {
         const { id } = req.params;
         const departmentId = Number(id);
 
-        // Get department data before deletion
-        const department = await prisma.department.findUnique({ where: { id: departmentId } });
-
-        // Perform everything in a transaction for safety
-        const result = await prisma.$transaction(async (tx) => {
-            // 1️⃣ Delete all DepartmentTransfer records where this department is participating
-            await tx.departmentTransfer.deleteMany({
-                where: {
-                    OR: [
-                        { fromDepartmentId: departmentId },
-                        { toDepartmentId: departmentId }
-                    ]
-                }
-            });
-
-            // 2️⃣ Get all employees in this department to clean up their specific transfers
-            const employeesInDept = await tx.employee.findMany({
-                where: { departmentId: departmentId },
-                select: { id: true }
-            });
-
-            const employeeIds = employeesInDept.map(emp => emp.id);
-
-            // 3️⃣ Delete transfers for these specific employees
-            if (employeeIds.length > 0) {
-                await tx.departmentTransfer.deleteMany({
-                    where: { employeeId: { in: employeeIds } }
-                });
-
-                // 4️⃣ Delete the employees themselves
-                await tx.employee.deleteMany({
-                    where: { id: { in: employeeIds } }
-                });
+        // 1️⃣ Check if department exists and has relations
+        const department = await prisma.department.findUnique({
+            where: { id: departmentId },
+            include: {
+                employees: { take: 1 },
+                transfersFrom: { take: 1 },
+                transfersTo: { take: 1 },
+                idGenerates: { take: 1 }
             }
-
-            // 5️⃣ Finaly delete the department
-            return await tx.department.delete({
-                where: { id: departmentId }
-            });
         });
+
+        if (!department) return res.status(404).json({ message: "Waaxda (Department) lama helin" });
+
+        // 2️⃣ Check for related records
+        const relatedRecords = [];
+        if (department.employees.length > 0) relatedRecords.push("Shaqaale (Employees)");
+        if (department.transfersFrom.length > 0 || department.transfersTo.length > 0) relatedRecords.push("Wareejin (Transfers)");
+        if (department.idGenerates.length > 0) relatedRecords.push("ID Cards");
+
+        if (relatedRecords.length > 0) {
+            const tableList = relatedRecords.join(" iyo ");
+            return res.status(400).json({
+                message: `Ma tirtiri kartid waaxdan sababtoo ah waxaa jira ${tableList} ku xiran. Fadlan marka hore ka saar xogtaas.`
+            });
+        }
+
+        // 3️⃣ Perform Delete
+        await prisma.department.delete({ where: { id: departmentId } });
 
         // Log audit
         await logAudit({
