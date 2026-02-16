@@ -399,169 +399,241 @@ export default function PrintIdPage() {
                 </div>
             )}
             {/* Printable Area - Positioned off-screen but fully visible to the capture engine */}
-            <div className="print-area absolute -left-[9999px] top-0 opacity-100 z-[-100] pointer-events-none print:visible print:static print:pointer-events-auto print:block print:opacity-100 pt-10">
+            <div className="print-area hidden print:block">
                 <style dangerouslySetInnerHTML={{
                     __html: `
                     @media print {
                         body * { visibility: hidden; }
                         .print-area, .print-area * { visibility: visible; }
-                        .print-area { position: absolute; left: 0; top: 0; width: 100%; }
-                        @page { size: auto; margin: 0; }
+                        .print-area { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+                        
+                        /* Standard ID card size for printers - CR80 */
+                        @page { 
+                          size: 86mm 54mm; 
+                          margin: 0; 
+                        }
+                        
+                        .id-card-page {
+                            page-break-after: always;
+                            break-after: page;
+                            width: 86mm;
+                            height: 54mm;
+                            margin: 0;
+                            padding: 0;
+                            display: block;
+                            overflow: hidden;
+                            position: relative;
+                        }
+                        
+                        .id-card-page:last-child {
+                            page-break-after: avoid;
+                            break-after: avoid;
+                        }
+
+                        /* Ensure the card fills the 86x54mm page */
+                        .print-card-container {
+                            width: 100%;
+                            height: 100%;
+                            position: relative;
+                            overflow: hidden;
+                        }
                     }
                 `}} />
 
                 {cardToPrint && (
-                    <div className="flex flex-col items-center gap-10">
-                        <div
-                            className="relative bg-white shadow-none border border-gray-100 overflow-hidden"
-                            style={{
-                                width: `${cardToPrint.template?.width || 350}px`,
-                                height: `${cardToPrint.template?.height || 500}px`,
-                            }}
-                        >
-                            {/* Background Image using <img> for better capture compatibility */}
-                            <img
-                                src={getImageUrl(cardToPrint.template?.frontBackground) || ""}
-                                className="absolute inset-0 w-full h-full object-fill"
-                                crossOrigin="anonymous"
-                                alt=""
-                            />
-                            {/* Safe Layout Parsing with Default Fallbacks */}
-                            {(() => {
-                                try {
-                                    const rawLayout = cardToPrint.template?.layout;
-                                    const layout = typeof rawLayout === 'string'
-                                        ? JSON.parse(rawLayout)
-                                        : (rawLayout || {});
+                    <>
+                        {/* FRONT SIDE - PAGE 1 */}
+                        <div className="id-card-page">
+                            <div
+                                className="print-card-container bg-white"
+                                style={{
+                                    width: `${cardToPrint.template?.width || 1000}px`,
+                                    height: `${cardToPrint.template?.height || 600}px`,
+                                    transform: `scale(${86 / (cardToPrint.template?.width || 1000) * 3.7795})`, // Convert mm to px roughly
+                                    transformOrigin: 'top left'
+                                }}
+                            >
+                                {/* Background Image using <img> for better capture compatibility */}
+                                <img
+                                    src={getImageUrl(cardToPrint.template?.frontBackground) || ""}
+                                    className="absolute inset-0 w-full h-full object-fill"
+                                    crossOrigin="anonymous"
+                                    alt=""
+                                />
+                                {(() => {
+                                    try {
+                                        const rawLayout = cardToPrint.template?.layout;
+                                        const layout = typeof rawLayout === 'string'
+                                            ? JSON.parse(rawLayout)
+                                            : (rawLayout || {});
 
-                                    // Default positions if layout is empty or missing properties
-                                    const pos = {
-                                        photo: layout.photo || { x: 100, y: 100, width: 150, height: 150 },
-                                        fullName: layout.fullName || { x: 175, y: 280, fontSize: 24, color: "#000000" },
-                                        title: layout.title || { x: 175, y: 300, fontSize: 18, color: "#000000" },
-                                        department: layout.department || { x: 175, y: 320, fontSize: 18, color: "#666666" },
-                                        idNumber: layout.idNumber || { x: 175, y: 360, fontSize: 16, color: "#000000" },
-                                        expiryDate: layout.expiryDate || { x: 175, y: 380, fontSize: 16, color: "#000000" },
-                                        qrCode: layout.qrCode || layout.barcode || { x: 100, y: 100, width: 100, height: 100 }
-                                    };
+                                        // Default positions matching IdTemplateLayout.tsx EXACTLY (1000x600 space)
+                                        const pos = {
+                                            photo: layout.photo || { x: 88, y: 130, width: 220, height: 215, objectFit: 'fill' },
+                                            fullName: layout.fullName || { x: 355, y: 284, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
+                                            title: layout.title || { x: 353, y: 348, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
+                                            department: layout.department || { x: 355, y: 415, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
+                                            idNumber: layout.idNumber || { x: 83, y: 479, fontSize: 27, color: "#000000ff", fontWeight: "bold", textAlign: "left", letterSpacing: 0 },
+                                            issueDate: layout.issueDate || { x: 353, y: 488, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
+                                            expiryDate: layout.expiryDate || { x: 640, y: 491, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
+                                        };
 
-                                    return (
-                                        <>
-                                            <div className="absolute overflow-hidden"
+                                        return (
+                                            <>
+                                                <div className="absolute overflow-hidden"
+                                                    style={{
+                                                        left: `${pos.photo.x}px`,
+                                                        top: `${pos.photo.y}px`,
+                                                        width: `${pos.photo.width}px`,
+                                                        height: `${pos.photo.height}px`
+                                                    }}>
+                                                    <img
+                                                        src={getImageUrl(cardToPrint.employee?.user?.photo) || ""}
+                                                        className="w-full h-full"
+                                                        style={{ objectFit: (pos.photo as any).objectFit || 'cover' }}
+                                                        crossOrigin="anonymous"
+                                                    />
+                                                </div>
+                                                <div className="absolute whitespace-nowrap overflow-hidden"
+                                                    style={{
+                                                        left: `${pos.fullName.x}px`,
+                                                        top: `${pos.fullName.y}px`,
+                                                        fontSize: `${pos.fullName.fontSize}px`,
+                                                        color: pos.fullName.color,
+                                                        fontFamily: 'Outfit, sans-serif',
+                                                        fontWeight: (pos.fullName as any).fontWeight || 'normal',
+                                                        textAlign: (pos.fullName as any).textAlign || 'left',
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: `${(pos.fullName as any).letterSpacing || 0}px`
+                                                    }}>
+                                                    {cardToPrint.employee?.user?.fullName}
+                                                </div>
+                                                <div className="absolute whitespace-nowrap overflow-hidden"
+                                                    style={{
+                                                        left: `${pos.title.x}px`,
+                                                        top: `${pos.title.y}px`,
+                                                        fontSize: `${pos.title.fontSize}px`,
+                                                        color: (pos.title as any).color || '#000000ff',
+                                                        fontFamily: 'Outfit, sans-serif',
+                                                        fontWeight: (pos.title as any).fontWeight || 'normal',
+                                                        textAlign: (pos.title as any).textAlign || 'left',
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: `${(pos.title as any).letterSpacing || 0}px`
+                                                    }}>
+                                                    {cardToPrint.employee?.title || 'Staff'}
+                                                </div>
+                                                <div className="absolute whitespace-nowrap overflow-hidden"
+                                                    style={{
+                                                        left: `${pos.department.x}px`,
+                                                        top: `${pos.department.y}px`,
+                                                        fontSize: `${pos.department.fontSize}px`,
+                                                        color: pos.department.color,
+                                                        fontFamily: 'Outfit, sans-serif',
+                                                        fontWeight: (pos.department as any).fontWeight || 'normal',
+                                                        textAlign: (pos.department as any).textAlign || 'left',
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: `${(pos.department as any).letterSpacing || 0}px`
+                                                    }}>
+                                                    {cardToPrint.employee?.department?.departmentName || 'N/A'}
+                                                </div>
+                                                <div className="absolute whitespace-nowrap overflow-hidden"
+                                                    style={{
+                                                        left: `${pos.issueDate.x}px`,
+                                                        top: `${pos.issueDate.y}px`,
+                                                        fontSize: `${pos.issueDate.fontSize}px`,
+                                                        color: pos.issueDate.color,
+                                                        fontFamily: 'Outfit, sans-serif',
+                                                        fontWeight: (pos.issueDate as any).fontWeight || 'normal',
+                                                        textAlign: (pos.issueDate as any).textAlign || 'left',
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: `${(pos.issueDate as any).letterSpacing || 0}px`
+                                                    }}>
+                                                    {cardToPrint.issueDate ? new Date(cardToPrint.issueDate).toLocaleDateString() : 'N/A'}
+                                                </div>
+                                                <div className="absolute whitespace-nowrap overflow-hidden"
+                                                    style={{
+                                                        left: `${pos.expiryDate.x}px`,
+                                                        top: `${pos.expiryDate.y}px`,
+                                                        fontSize: `${pos.expiryDate.fontSize}px`,
+                                                        color: pos.expiryDate.color,
+                                                        fontFamily: 'Outfit, sans-serif',
+                                                        fontWeight: (pos.expiryDate as any).fontWeight || 'normal',
+                                                        textAlign: (pos.expiryDate as any).textAlign || 'left',
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: `${(pos.expiryDate as any).letterSpacing || 0}px`
+                                                    }}>
+                                                    {cardToPrint.expiryDate ? new Date(cardToPrint.expiryDate).toLocaleDateString() : 'N/A'}
+                                                </div>
+                                                <div className="absolute whitespace-nowrap overflow-visible barcode"
+                                                    style={{
+                                                        left: `${pos.idNumber.x}px`,
+                                                        top: `${pos.idNumber.y}px`,
+                                                        fontSize: `${(pos.idNumber as any).fontSize || 27}px`,
+                                                        color: pos.idNumber.color || '#000000ff',
+                                                        fontFamily: 'monospace',
+                                                        fontWeight: (pos.idNumber as any).fontWeight || 'bold',
+                                                        textAlign: (pos.idNumber as any).textAlign || 'left',
+                                                        letterSpacing: `${(pos.idNumber as any).letterSpacing || 0}px`
+                                                    }}>
+                                                    SPA01{cardToPrint.employee?.id?.toString().padStart(4, '0') || '0000'}/26
+                                                </div>
+                                            </>
+                                        );
+                                    } catch (e) {
+                                        return null;
+                                    }
+                                })()}
+                            </div>
+                        </div>
+
+                        {/* BACK SIDE - PAGE 2 */}
+                        <div className="id-card-page">
+                            <div
+                                className="print-card-container bg-white"
+                                style={{
+                                    width: `${cardToPrint.template?.width || 1000}px`,
+                                    height: `${cardToPrint.template?.height || 600}px`,
+                                    transform: `scale(${86 / (cardToPrint.template?.width || 1000) * 3.7795})`,
+                                    transformOrigin: 'top left'
+                                }}
+                            >
+                                {/* Background Image using <img> for better capture compatibility */}
+                                <img
+                                    src={getImageUrl(cardToPrint.template?.backBackground) || ""}
+                                    className="absolute inset-0 w-full h-full object-fill"
+                                    crossOrigin="anonymous"
+                                    alt=""
+                                />
+                                {(() => {
+                                    try {
+                                        const rawLayout = cardToPrint.template?.layout;
+                                        const layout = typeof rawLayout === 'string'
+                                            ? JSON.parse(rawLayout)
+                                            : (rawLayout || {});
+                                        const qrPos = layout.qrCode || { x: 169, y: 404, width: 90, height: 90 };
+
+                                        return (
+                                            <div className="absolute bg-white/80 p-1 rounded-lg"
                                                 style={{
-                                                    left: `${pos.photo.x}px`,
-                                                    top: `${pos.photo.y}px`,
-                                                    width: `${pos.photo.width}px`,
-                                                    height: `${pos.photo.height}px`
+                                                    left: `${qrPos.x}px`,
+                                                    top: `${qrPos.y}px`,
+                                                    width: `${qrPos.width}px`,
+                                                    height: `${qrPos.height}px`
                                                 }}>
-                                                <img
-                                                    src={getImageUrl(cardToPrint.employee?.user?.photo) || ""}
-                                                    className="w-full h-full object-cover"
-                                                    crossOrigin="anonymous"
+                                                <QRCodeSVG
+                                                    value={`${window.location.origin}/verify/${cardToPrint.qrCode}`}
+                                                    width="100%"
+                                                    height="100%"
                                                 />
                                             </div>
-                                            <div className="absolute whitespace-nowrap"
-                                                style={{
-                                                    left: `${pos.fullName.x}px`,
-                                                    top: `${pos.fullName.y}px`,
-                                                    fontSize: `${pos.fullName.fontSize}px`,
-                                                    color: pos.fullName.color,
-                                                    fontWeight: (pos.fullName as any).fontWeight || 'normal'
-                                                }}>
-                                                {cardToPrint.employee?.user?.fullName}
-                                            </div>
-                                            <div className="absolute whitespace-nowrap"
-                                                style={{
-                                                    left: `${pos.title.x}px`,
-                                                    top: `${pos.title.y}px`,
-                                                    fontSize: `${pos.title.fontSize || 18}px`,
-                                                    color: pos.title.color || '#000000',
-                                                    fontWeight: (pos.title as any).fontWeight || 'normal'
-                                                }}>
-                                                {cardToPrint.employee?.title || 'Staff'}
-                                            </div>
-                                            <div className="absolute whitespace-nowrap"
-                                                style={{
-                                                    left: `${pos.department.x}px`,
-                                                    top: `${pos.department.y}px`,
-                                                    fontSize: `${pos.department.fontSize}px`,
-                                                    color: pos.department.color,
-                                                    fontWeight: (pos.department as any).fontWeight || 'normal'
-                                                }}>
-                                                {cardToPrint.employee?.department?.departmentName || cardToPrint.department?.departmentName || 'N/A'}
-                                            </div>
-                                            <div className="absolute whitespace-nowrap"
-                                                style={{
-                                                    left: `${pos.expiryDate.x}px`,
-                                                    top: `${pos.expiryDate.y}px`,
-                                                    fontSize: `${pos.expiryDate.fontSize || 16}px`,
-                                                    color: pos.expiryDate.color || '#000000',
-                                                    fontWeight: (pos.expiryDate as any).fontWeight || 'normal'
-                                                }}>
-                                                EXP: {cardToPrint.expiryDate ? new Date(cardToPrint.expiryDate).toLocaleDateString() : '31/12/2026'}
-                                            </div>
-                                            <div className="absolute font-mono whitespace-nowrap"
-                                                style={{
-                                                    left: `${pos.idNumber.x}px`,
-                                                    top: `${pos.idNumber.y}px`,
-                                                    fontSize: `${pos.idNumber.fontSize}px`,
-                                                    color: pos.idNumber.color,
-                                                    fontWeight: (pos.idNumber as any).fontWeight || 'bold'
-                                                }}>
-                                                EMP-{cardToPrint.employee?.id?.toString().padStart(4, '0') || '0000'}
-                                            </div>
-                                        </>
-                                    );
-                                } catch (e) {
-                                    console.error("Layout Error:", e);
-                                    return <div className="p-4 text-red-500 bg-white/80">Layout Parsing Failed</div>;
-                                }
-                            })()}
+                                        );
+                                    } catch (e) {
+                                        return null;
+                                    }
+                                })()}
+                            </div>
                         </div>
-
-                        <div
-                            className="relative bg-white shadow-none border border-gray-100 overflow-hidden"
-                            style={{
-                                width: `${cardToPrint.template?.width || 350}px`,
-                                height: `${cardToPrint.template?.height || 500}px`,
-                            }}
-                        >
-                            {/* Background Image using <img> for better capture compatibility */}
-                            <img
-                                src={getImageUrl(cardToPrint.template?.backBackground) || ""}
-                                className="absolute inset-0 w-full h-full object-fill"
-                                crossOrigin="anonymous"
-                                alt=""
-                            />
-                            {(() => {
-                                try {
-                                    const rawLayout = cardToPrint.template?.layout;
-                                    const layout = typeof rawLayout === 'string'
-                                        ? JSON.parse(rawLayout)
-                                        : (rawLayout || {});
-                                    const qrPos = layout.qrCode || layout.barcode || { x: 100, y: 100, width: 100, height: 100 };
-
-                                    return (
-                                        <div className="absolute bg-white p-1"
-                                            style={{
-                                                left: `${qrPos.x}px`,
-                                                top: `${qrPos.y}px`,
-                                                width: `${qrPos.width}px`,
-                                                height: `${qrPos.height}px`
-                                            }}>
-                                            <QRCodeSVG
-                                                value={`${window.location.origin}/verify/${cardToPrint.qrCode}`}
-                                                size={Math.min(qrPos.width, qrPos.height) - 10}
-                                                level="H"
-                                            />
-                                        </div>
-                                    );
-                                } catch (e) {
-                                    return null;
-                                }
-                            })()}
-                        </div>
-                    </div>
+                    </>
                 )}
             </div>
 
@@ -574,6 +646,6 @@ export default function PrintIdPage() {
                 type={msgBox.type}
                 loading={msgBox.loading}
             />
-        </div>
+        </div >
     );
 }

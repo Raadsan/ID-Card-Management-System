@@ -28,13 +28,14 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
     const [showFront, setShowFront] = useState(true);
     const [scale, setScale] = useState(0.8);
     const [positions, setPositions] = useState({
-        photo: { x: 100, y: 100, width: 150, height: 150 },
-        fullName: { x: 175, y: 280, fontSize: 24, color: "#000000" },
-        title: { x: 175, y: 300, fontSize: 18, color: "#000000" },
-        department: { x: 175, y: 320, fontSize: 18, color: "#666666" },
-        idNumber: { x: 175, y: 360, fontSize: 16, color: "#000000" },
-        expiryDate: { x: 175, y: 380, fontSize: 16, color: "#000000" },
-        qrCode: { x: 100, y: 100, width: 100, height: 100 }
+        photo: { x: 88, y: 130, width: 220, height: 215, objectFit: 'fill' as 'cover' | 'fill' | 'contain' },
+        fullName: { x: 355, y: 284, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
+        title: { x: 353, y: 348, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
+        department: { x: 355, y: 415, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
+        idNumber: { x: 83, y: 479, fontSize: 27, color: "#000000ff", fontWeight: "bold", textAlign: "left", letterSpacing: 0 },
+        issueDate: { x: 353, y: 488, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
+        expiryDate: { x: 640, y: 491, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
+        qrCode: { x: 169, y: 404, width: 90, height: 90 }
     });
 
     useEffect(() => {
@@ -122,8 +123,8 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                 className="relative shadow-2xl ring-4 ring-black/5 bg-white overflow-hidden transition-transform duration-300"
                                 style={{
                                     transform: `scale(${scale})`,
-                                    width: `${idCard.template?.width || 350}px`,
-                                    height: `${idCard.template?.height || 500}px`,
+                                    width: `${idCard.template?.width || 1000}px`,
+                                    height: `${idCard.template?.height || 600}px`,
                                     backgroundImage: `url(${getImageUrl(showFront ? idCard.template?.frontBackground : idCard.template?.backBackground)})`,
                                     backgroundSize: '100% 100%',
                                     backgroundPosition: 'center',
@@ -155,13 +156,13 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 ...ID_TEXT_STYLE,
                                                 left: `${positions.fullName.x}px`,
                                                 top: `${positions.fullName.y}px`,
-                                                fontSize: `${(positions.fullName as any).fontSize || 24}px`,
-                                                fontWeight: 'normal',
+                                                fontSize: `${(positions.fullName as any).fontSize || 27}px`,
+                                                fontWeight: (positions.fullName as any).fontWeight || 'normal',
                                                 textAlign: (positions.fullName as any).textAlign || 'left',
                                                 color: positions.fullName.color,
-                                                maxWidth: `${(idCard.template?.width || 350) - positions.fullName.x - 20}px`,
+                                                maxWidth: `${(idCard.template?.width || 1000) - positions.fullName.x - 20}px`,
                                                 textOverflow: 'ellipsis',
-                                                letterSpacing: '2px',
+                                                letterSpacing: `${(positions.fullName as any).letterSpacing || 0}px`,
                                             }}
                                         >
                                             {idCard.employee?.user.fullName}
@@ -172,11 +173,11 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 ...ID_TEXT_STYLE,
                                                 left: `${positions.title.x}px`,
                                                 top: `${positions.title.y}px`,
-                                                fontSize: `${(positions.title as any).fontSize || 18}px`,
-                                                fontWeight: 'normal',
+                                                fontSize: `${(positions.title as any).fontSize || 27}px`,
+                                                fontWeight: (positions.title as any).fontWeight || 'normal',
                                                 textAlign: (positions.title as any).textAlign || 'left',
                                                 color: (positions.title as any).color || '#000000',
-                                                maxWidth: `${(idCard.template?.width || 350) - positions.title.x - 20}px`,
+                                                maxWidth: `${(idCard.template?.width || 1000) - positions.title.x - 20}px`,
                                                 textOverflow: 'ellipsis'
                                             }}
                                         >
@@ -188,11 +189,11 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 ...ID_TEXT_STYLE,
                                                 left: `${positions.department.x}px`,
                                                 top: `${positions.department.y}px`,
-                                                fontSize: `${(positions.department as any).fontSize || 18}px`,
+                                                fontSize: `${(positions.department as any).fontSize || 27}px`,
                                                 fontWeight: (positions.department as any).fontWeight || 'normal',
                                                 textAlign: (positions.department as any).textAlign || 'left',
                                                 color: positions.department.color,
-                                                maxWidth: `${(idCard.template?.width || 350) - positions.department.x - 20}px`,
+                                                maxWidth: `${(idCard.template?.width || 1000) - positions.department.x - 20}px`,
                                                 textOverflow: 'ellipsis'
                                             }}
                                         >
@@ -204,11 +205,11 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 ...ID_TEXT_STYLE,
                                                 left: `${(positions as any).issueDate?.x || 0}px`,
                                                 top: `${(positions as any).issueDate?.y || 0}px`,
-                                                fontSize: `${(positions as any).issueDate?.fontSize || 16}px`,
+                                                fontSize: `${(positions as any).issueDate?.fontSize || 18}px`,
                                                 fontWeight: (positions as any).issueDate?.fontWeight || 'normal',
                                                 textAlign: (positions as any).issueDate?.textAlign || 'left',
                                                 color: (positions as any).issueDate?.color || '#000000',
-                                                maxWidth: `${(idCard.template?.width || 350) - ((positions as any).issueDate?.x || 0) - 20}px`,
+                                                maxWidth: `${(idCard.template?.width || 1000) - ((positions as any).issueDate?.x || 0) - 20}px`,
                                                 textOverflow: 'ellipsis'
                                             }}
                                         >
@@ -220,11 +221,11 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 ...ID_TEXT_STYLE,
                                                 left: `${positions.expiryDate.x}px`,
                                                 top: `${positions.expiryDate.y}px`,
-                                                fontSize: `${(positions.expiryDate as any).fontSize || 16}px`,
+                                                fontSize: `${(positions.expiryDate as any).fontSize || 18}px`,
                                                 fontWeight: (positions.expiryDate as any).fontWeight || 'normal',
                                                 textAlign: (positions.expiryDate as any).textAlign || 'left',
                                                 color: (positions.expiryDate as any).color || '#000000',
-                                                maxWidth: `${(idCard.template?.width || 350) - positions.expiryDate.x - 20}px`,
+                                                maxWidth: `${(idCard.template?.width || 1000) - positions.expiryDate.x - 20}px`,
                                                 textOverflow: 'ellipsis'
                                             }}
                                         >
@@ -234,12 +235,11 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                             className="absolute whitespace-nowrap overflow-visible barcode"
                                             style={{
                                                 left: `${positions.photo.x}px`,
-                                                top: `${positions.idNumber.y}px`,
-                                                width: `${positions.photo.width}px`,
-                                                fontSize: `25px`,
-                                                fontWeight: 'normal',
-                                                textAlign: 'center',
-                                                color: positions.idNumber.color || '#000000',
+                                                fontSize: `${(positions.idNumber as any).fontSize || 27}px`,
+                                                fontWeight: (positions.idNumber as any).fontWeight || 'bold',
+                                                fontFamily: 'monospace',
+                                                textAlign: (positions.idNumber as any).textAlign || 'center',
+                                                color: (positions.idNumber as any).color || '#000000',
                                             }}
                                         >
                                             SPA01{idCard.employee?.id?.toString().padStart(4, '0') || '0000'}/26
