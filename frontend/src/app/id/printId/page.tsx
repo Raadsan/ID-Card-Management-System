@@ -331,7 +331,7 @@ export default function PrintIdPage() {
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </button>
-                                                {card.status === 'ready_to_print' ? (
+                                                {(card.status === 'ready_to_print' || card.status === 'replaced') ? (
                                                     <button
                                                         onClick={() => handlePrintRequest(card.id)}
                                                         className="px-4 py-2 text-xs font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all shadow-md shadow-green-100 flex items-center gap-2"
@@ -488,7 +488,7 @@ export default function PrintIdPage() {
                                                     color: pos.department.color,
                                                     fontWeight: (pos.department as any).fontWeight || 'normal'
                                                 }}>
-                                                {cardToPrint.employee?.department?.departmentName || 'N/A'}
+                                                {cardToPrint.employee?.department?.departmentName || cardToPrint.department?.departmentName || 'N/A'}
                                             </div>
                                             <div className="absolute whitespace-nowrap"
                                                 style={{

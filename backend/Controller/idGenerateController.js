@@ -52,17 +52,23 @@ export const createIdGenerate = async (req, res) => {
  */
 export const getAllIdGenerates = async (req, res) => {
     try {
-        const data = await prisma.idGenerate.findMany({
+        const idGenerates = await prisma.idGenerate.findMany({
             include: {
-                employee: { include: { user: true, department: true } },
+                employee: {
+                    include: {
+                        user: true,
+                        department: true
+                    },
+                },
                 template: true,
-                department: true,
                 createdBy: true,
                 printedBy: true,
+                department: true
             },
+            orderBy: { createdAt: "desc" },
         });
 
-        res.json(data);
+        res.json(idGenerates);
     } catch (error) {
         return res.status(500).json({
             message: error.message,
