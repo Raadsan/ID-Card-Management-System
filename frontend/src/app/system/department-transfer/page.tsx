@@ -5,7 +5,7 @@ import DataTable from "@/components/layout/DataTable";
 import { getDepartmentTransfers, deleteDepartmentTransfer, createDepartmentTransfer, updateDepartmentTransfer, getDepartmentTransferById } from "@/api/department_transfareApi";
 import { getEmployees } from "@/api/employeeApi";
 import { getDepartments } from "@/api/departmentApi";
-import { Edit, Trash2, Calendar, User, ArrowRightLeft, Briefcase, FileText, MessageSquare, Shield, CheckCircle2, Loader2, Save, Activity, ChevronDown, Plus } from "lucide-react";
+import { Edit, Trash2, Calendar, User, ArrowRightLeft, Briefcase, FileText, MessageSquare, Shield, CheckCircle2, Loader2, Save, Activity, ChevronDown, Plus, Eye } from "lucide-react";
 import Modal from "@/components/layout/Modal";
 import DeleteConfirmModal from "@/components/layout/ConfirmDeleteModel";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
@@ -47,6 +47,9 @@ export default function DepartmentTransferPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedTransferId, setSelectedTransferId] = useState<number | null>(null);
     const [transferToDelete, setTransferToDelete] = useState<Transfer | null>(null);
+    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+    const [historyTransfers, setHistoryTransfers] = useState<Transfer[]>([]);
+    const [selectedEmployeeName, setSelectedEmployeeName] = useState("");
 
     // Dropdown Data
     const [employeesList, setEmployeesList] = useState<any[]>([]);
@@ -91,6 +94,37 @@ export default function DepartmentTransferPage() {
             fetchEditData();
         }
     }, [isEditModalOpen, selectedTransferId]);
+
+    const groupedTransfers = useMemo(() => {
+        const groups: Record<number, Transfer[]> = {};
+        transfers.forEach(t => {
+            const empId = t.employee?.id;
+            if (!empId) return;
+            if (!groups[empId]) groups[empId] = [];
+            groups[empId].push(t);
+        });
+
+        // Sort each group by date descending (latest first)
+        Object.values(groups).forEach(group => {
+            group.sort((a, b) => new Date(b.transferDate).getTime() - new Date(a.transferDate).getTime());
+        });
+
+        return groups;
+    }, [transfers]);
+
+    const displayData = useMemo(() => {
+        // Return only the latest transfer for each employee for the main table
+        return Object.values(groupedTransfers).map(group => group[0]).sort((a, b) =>
+            new Date(b.transferDate).getTime() - new Date(a.transferDate).getTime()
+        );
+    }, [groupedTransfers]);
+
+    const handleViewHistory = (empId: number) => {
+        const history = groupedTransfers[empId] || [];
+        setHistoryTransfers(history);
+        setSelectedEmployeeName(history[0]?.employee?.user?.fullName || "Employee");
+        setIsHistoryModalOpen(true);
+    };
 
     const fetchDropdownData = async () => {
         try {
@@ -362,6 +396,13 @@ export default function DepartmentTransferPage() {
                 render: (row: Transfer) => (
                     <div className="flex items-center gap-2">
                         <button
+                            onClick={() => handleViewHistory(row.employee.id)}
+                            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="View History"
+                        >
+                            <Eye className="h-4 w-4" />
+                        </button>
+                        <button
                             onClick={() => handleEdit(row)}
                             className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Edit"
@@ -379,7 +420,7 @@ export default function DepartmentTransferPage() {
                 ),
             },
         ],
-        [transfers]
+        [displayData, groupedTransfers]
     );
 
     return (
@@ -387,7 +428,7 @@ export default function DepartmentTransferPage() {
             <DataTable
                 title="Department Transfers"
                 columns={columns}
-                data={transfers}
+                data={displayData}
                 loading={loading}
                 onAddClick={handleAddTransfer}
                 addButtonLabel="Transfer Employee"
@@ -660,6 +701,78 @@ export default function DepartmentTransferPage() {
                 type={msgBox.type}
                 loading={msgBox.loading}
             />
+
+            {/* History Modal */}
+            <Modal
+                isOpen={isHistoryModalOpen}
+                onClose={() => setIsHistoryModalOpen(false)}
+                title={`Transfer History: ${selectedEmployeeName}`}
+                maxWidth="max-w-5xl"
+            >
+                <div className="p-4">
+                    <div className="overflow-hidden rounded-2xl border border-gray-100 shadow-sm bg-white">
+                        <table className="w-full text-left">
+                            <thead className="bg-[#1B1555]/5">
+                                <tr>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#1B1555]/60">Date</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#1B1555]/60">From Department</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#1B1555]/60">To Department</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#1B1555]/60">Reason</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#1B1555]/60">Authorized By</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {[...historyTransfers].sort((a, b) => new Date(b.transferDate).getTime() - new Date(a.transferDate).getTime()).map((t) => (
+                                    <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center gap-2 text-sm font-bold text-[#1B1555]">
+                                                <Calendar size={14} className="text-[#16BCF8]" />
+                                                {new Date(t.transferDate).toLocaleDateString()}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-sm font-semibold text-rose-500 bg-rose-50 px-3 py-1 rounded-lg border border-rose-100">
+                                                {t.fromDepartment?.departmentName}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-sm font-semibold text-emerald-500 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
+                                                {t.toDepartment?.departmentName}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <p className="text-xs text-gray-500 italic max-w-xs">{t.reason || "No documentation"}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {t.authorizedBy && (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="h-6 w-6 rounded-full overflow-hidden bg-gray-100 border border-gray-100 flex-shrink-0">
+                                                        <img
+                                                            src={getImageUrl(t.authorizedBy.photo) || "/placeholder-user.png"}
+                                                            className="h-full w-full object-cover"
+                                                            alt=""
+                                                            onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-user.png" }}
+                                                        />
+                                                    </div>
+                                                    <span className="text-xs font-bold text-gray-600">{t.authorizedBy.fullName}</span>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="mt-6 flex justify-end">
+                        <button
+                            onClick={() => setIsHistoryModalOpen(false)}
+                            className="rounded-xl bg-gray-100 px-8 py-3 text-sm font-black text-gray-500 uppercase tracking-widest transition-all hover:bg-gray-200 active:scale-95"
+                        >
+                            Close History
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }
