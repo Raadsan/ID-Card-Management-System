@@ -23,6 +23,8 @@ interface Employee {
         departmentName: string;
     };
     title?: string;
+    transfers: any[];
+    idGenerates: any[];
 }
 
 interface GenerateIdModalProps {
@@ -62,9 +64,17 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
     const [scale, setScale] = useState(0.8);
 
     // Derived State
-    const filteredEmployees = employees.filter(emp =>
-        !generatedIds.some(gen => gen.employeeId === emp.id)
-    );
+    const filteredEmployees = employees.filter(emp => {
+        // Find if this employee has any active ID card 
+        // (Active = status is 'created', 'ready_to_print', or 'printed')
+        const hasActiveId = emp.idGenerates && emp.idGenerates.some((id: any) =>
+            id.status === 'created' || id.status === 'ready_to_print' || id.status === 'printed'
+        );
+
+        // If they don't have an active ID card, they are eligible for a new one.
+        // This includes new employees and those whose IDs were 'replaced' due to transfer.
+        return !hasActiveId;
+    });
 
     const selectedEmployee = employees.find(e => e.id.toString() === selectedEmployeeId) || null;
     const selectedTemplate = templates.find(t => t.id.toString() === selectedTemplateId) || null;

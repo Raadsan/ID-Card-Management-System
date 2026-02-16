@@ -2,12 +2,13 @@ import api from "./axios";
 
 const BASE_PATH = "/id-generates";
 
-export type IdGenerateStatus = "created" | "ready_to_print" | "printed";
+export type IdGenerateStatus = "created" | "ready_to_print" | "printed" | "replaced";
 
 export interface IdGenerate {
     id: number;
     employeeId: number;
     templateId: number;
+    departmentId?: number;
     createdById: number;
     printedById?: number;
     qrCode: string;
@@ -16,8 +17,9 @@ export interface IdGenerate {
     expiryDate?: string;
     createdAt: string;
     updatedAt: string;
-    employee?: any; // Expanding this based on backend include
+    employee?: any;
     template?: any;
+    department?: any;
     createdBy?: any;
     printedBy?: any;
 }

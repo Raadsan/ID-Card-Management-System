@@ -129,6 +129,7 @@ model Department {
   transfersFrom  DepartmentTransfer[] @relation("FromDepartment")
   transfersTo    DepartmentTransfer[] @relation("ToDepartment")
   employees      Employee[]
+  idGenerates    IdGenerate[]
 }
 
 model DepartmentTransfer {
@@ -173,18 +174,22 @@ enum IdGenerateStatus {
   created
   ready_to_print
   printed
+  replaced
+
 }
 
 model IdGenerate {
   id Int @id @default(autoincrement())
 
-  employeeId  Int
-  templateId  Int
-  createdById Int
-  printedById Int?
+  employeeId   Int
+  templateId   Int
+  departmentId Int?
+  createdById  Int
+  printedById  Int?
 
   employee  Employee       @relation(fields: [employeeId], references: [id])
   template  IdCardTemplate @relation(fields: [templateId], references: [id])
+  department Department?   @relation(fields: [departmentId], references: [id])
   createdBy User           @relation("IdCreatedBy", fields: [createdById], references: [id])
   printedBy User?          @relation("IdPrintedBy", fields: [printedById], references: [id])
 

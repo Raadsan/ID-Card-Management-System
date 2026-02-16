@@ -34,7 +34,7 @@ export default function RootLayout({
   const isPublicPage = isLoginPage || isVerifyPage;
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} antialiased flex min-h-screen bg-background text-foreground overflow-x-hidden`}
         suppressHydrationWarning

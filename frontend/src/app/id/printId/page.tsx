@@ -50,9 +50,9 @@ export default function PrintIdPage() {
         try {
             setIsLoading(true);
             const data = await getAllIdGenerates();
-            // Filter both ready_to_print and printed status for this page
+            // Filter ready_to_print, printed and replaced status for this page
             const filteredData = data.filter((card: IdGenerate) =>
-                card.status === 'ready_to_print' || card.status === 'printed'
+                card.status === 'ready_to_print' || card.status === 'printed' || card.status === 'replaced'
             );
             setIdCards(filteredData);
             setError(null);
@@ -280,9 +280,12 @@ export default function PrintIdPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide ${card.status === 'printed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide ${card.status === 'printed' ? 'bg-green-100 text-green-700' :
+                                                card.status === 'replaced' ? 'bg-orange-100 text-orange-700 border border-orange-200' :
+                                                    'bg-blue-100 text-blue-700'
                                                 }`}>
-                                                {card.status === 'printed' ? 'Printed' : 'Ready to Print'}
+                                                {card.status === 'printed' ? 'Printed' :
+                                                    card.status === 'replaced' ? 'Replaced' : 'Ready to Print'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">

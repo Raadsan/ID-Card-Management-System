@@ -61,7 +61,8 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
     const statusColors = {
         created: 'bg-yellow-100 text-yellow-700 border-yellow-200',
         ready_to_print: 'bg-blue-100 text-blue-700 border-blue-200',
-        printed: 'bg-green-100 text-green-700 border-green-200'
+        printed: 'bg-green-100 text-green-700 border-green-200',
+        replaced: 'bg-orange-100 text-orange-700 border-orange-200'
     };
 
     return (
@@ -195,7 +196,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 textOverflow: 'ellipsis'
                                             }}
                                         >
-                                            {idCard.employee?.department?.departmentName || 'N/A'}
+                                            {idCard.department?.departmentName || idCard.employee?.department?.departmentName || 'N/A'}
                                         </div>
                                         <div
                                             className="absolute whitespace-nowrap overflow-hidden"
@@ -235,11 +236,10 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 left: `${positions.photo.x}px`,
                                                 top: `${positions.idNumber.y}px`,
                                                 width: `${positions.photo.width}px`,
-                                                fontSize: `36px`,
+                                                fontSize: `25px`,
                                                 fontWeight: 'normal',
                                                 textAlign: 'center',
                                                 color: positions.idNumber.color || '#000000',
-                                                lineHeight: '1.2',
                                             }}
                                         >
                                             SPA01{idCard.employee?.id?.toString().padStart(4, '0') || '0000'}/26
@@ -387,12 +387,12 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                         >
                             Close
                         </button>
-                        {(idCard.status === 'ready_to_print' || idCard.status === 'printed') && (
+                        {(idCard.status === 'ready_to_print' || idCard.status === 'printed' || idCard.status === 'replaced') && (
                             <button
                                 onClick={() => onPrint?.(idCard.id)}
-                                className={`flex-1 py-3 text-white font-bold rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 ${idCard.status === 'printed'
-                                    ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-100'
-                                    : 'bg-green-600 hover:bg-green-700 shadow-green-100'
+                                className={`flex-1 py-3 text-white font-bold rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 ${idCard.status === 'printed' ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-100' :
+                                    idCard.status === 'replaced' ? 'bg-orange-600 hover:bg-orange-700 shadow-orange-100' :
+                                        'bg-green-600 hover:bg-green-700 shadow-green-100'
                                     }`}
                             >
                                 <Printer className="w-4 h-4" /> {idCard.status === 'printed' ? 'Download' : 'Print Now'}

@@ -167,6 +167,7 @@ export default function IdCardReportPage() {
                 if (row.status === 'printed') colorClass = "bg-emerald-50 text-emerald-700 border border-emerald-100";
                 if (row.status === 'ready_to_print') colorClass = "bg-blue-50 text-blue-700 border border-blue-100";
                 if (row.status === 'created') colorClass = "bg-amber-50 text-amber-700 border border-amber-100";
+                if (row.status === 'replaced') colorClass = "bg-orange-50 text-orange-700 border border-orange-100";
 
                 return (
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${colorClass}`}>
@@ -320,6 +321,7 @@ export default function IdCardReportPage() {
                             <option value="created">Created</option>
                             <option value="ready_to_print">Ready to Print</option>
                             <option value="printed">Printed</option>
+                            <option value="replaced">Replaced</option>
                         </select>
 
                         <div className="relative">

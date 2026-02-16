@@ -42,6 +42,18 @@ export const createDepartmentTransfer = async (req, res) => {
         data: { departmentId: Number(toDepartmentId) },
       });
 
+      // 3️⃣ Mark existing active ID cards as 'replaced' and store their original department
+      await tx.idGenerate.updateMany({
+        where: {
+          employeeId: Number(employeeId),
+          status: { in: ["printed", "ready_to_print"] },
+        },
+        data: {
+          status: "replaced",
+          departmentId: Number(fromDepartmentId)
+        },
+      });
+
       return { transfer, updatedEmployee };
     });
 

@@ -10,10 +10,17 @@ export const createIdGenerate = async (req, res) => {
         const { employeeId, templateId, issueDate, expiryDate } = req.body;
         const createdById = req.user.id; // from auth middleware
 
+        // 1️⃣ Fetch employee's current department before creating the ID record
+        const employee = await prisma.employee.findUnique({
+            where: { id: Number(employeeId) },
+            select: { departmentId: true }
+        });
+
         const idGenerate = await prisma.idGenerate.create({
             data: {
                 employeeId: Number(employeeId),
                 templateId: Number(templateId),
+                departmentId: employee?.departmentId || null,
                 createdById: Number(createdById),
                 qrCode: nanoid(),
                 issueDate: issueDate ? new Date(issueDate) : null,
@@ -49,6 +56,7 @@ export const getAllIdGenerates = async (req, res) => {
             include: {
                 employee: { include: { user: true, department: true } },
                 template: true,
+                department: true,
                 createdBy: true,
                 printedBy: true,
             },
@@ -56,7 +64,11 @@ export const getAllIdGenerates = async (req, res) => {
 
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({
+            message: error.message,
+            error: error.toString(),
+            stack: error.stack
+        });
     }
 };
 

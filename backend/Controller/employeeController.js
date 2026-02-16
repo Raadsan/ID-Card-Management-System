@@ -94,7 +94,9 @@ export const getAllEmployees = async (req, res) => {
                 department: true,
                 user: {
                     include: { role: true }
-                }
+                },
+                transfers: true,
+                idGenerates: true
             },
             orderBy: { createdAt: "desc" },
             ...(limit && { take: Number(limit) })
