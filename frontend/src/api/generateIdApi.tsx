@@ -2,7 +2,7 @@ import api from "./axios";
 
 const BASE_PATH = "/id-generates";
 
-export type IdGenerateStatus = "created" | "ready_to_print" | "printed" | "replaced";
+export type IdGenerateStatus = "created" | "ready_to_print" | "printed" | "replaced" | "lost" | "expired";
 
 export interface IdGenerate {
     id: number;
@@ -66,6 +66,14 @@ export const markReadyToPrint = async (id: number): Promise<any> => {
  */
 export const printIdGenerate = async (id: number): Promise<any> => {
     const response = await api.patch(`${BASE_PATH}/${id}/print`);
+    return response.data;
+};
+
+/**
+ * MARK AS LOST
+ */
+export const markAsLost = async (id: number): Promise<any> => {
+    const response = await api.patch(`${BASE_PATH}/${id}/lost`);
     return response.data;
 };
 

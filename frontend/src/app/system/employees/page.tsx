@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/layout/DataTable";
+import { usePermission } from "@/hooks/usePermission";
 import { getEmployees, deleteEmployee, createEmployee, updateEmployee, getEmployeeById } from "@/api/employeeApi";
 import { getUsers } from "@/api/userApi";
 import { getDepartments } from "@/api/departmentApi";
@@ -298,6 +299,12 @@ export default function EmployeesPage() {
     };
 
 
+    const { hasPermission } = usePermission();
+
+    const canAdd = hasPermission("Employees", "add", true);
+    const canEdit = hasPermission("Employees", "edit", true);
+    const canDelete = hasPermission("Employees", "delete", true);
+
     const columns = useMemo(
         () => [
             {
@@ -349,6 +356,7 @@ export default function EmployeesPage() {
                     <select
                         value={row.status}
                         onChange={async (e) => {
+                            if (!canEdit) return; // Prevent change if no permission
                             const newStatus = e.target.value;
                             try {
                                 await updateEmployee(String(row.id), { status: newStatus });
@@ -368,10 +376,11 @@ export default function EmployeesPage() {
                                 });
                             }
                         }}
+                        disabled={!canEdit} // Disable status change if no permission
                         className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider border cursor-pointer transition-all ${row.status === 'active'
                             ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
                             : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
-                            }`}
+                            } ${!canEdit ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
@@ -391,25 +400,29 @@ export default function EmployeesPage() {
                         >
                             <Eye className="h-4 w-4" />
                         </button>
-                        <button
-                            onClick={() => handleEdit(row)}
-                            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit Employee"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={() => handleDelete(row)}
-                            className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-                            title="Delete Employee"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
+                        {canEdit && (
+                            <button
+                                onClick={() => handleEdit(row)}
+                                className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Edit Employee"
+                            >
+                                <Edit className="h-4 w-4" />
+                            </button>
+                        )}
+                        {canDelete && (
+                            <button
+                                onClick={() => handleDelete(row)}
+                                className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                title="Delete Employee"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
                 ),
             },
         ],
-        [employees]
+        [employees, canEdit, canDelete]
     );
 
     return (
@@ -419,7 +432,7 @@ export default function EmployeesPage() {
                 columns={columns}
                 data={employees}
                 loading={loading}
-                onAddClick={handleAddEmployee}
+                onAddClick={canAdd ? handleAddEmployee : undefined}
                 addButtonLabel="Add Employee"
             />
 

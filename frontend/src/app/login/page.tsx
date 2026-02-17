@@ -28,7 +28,8 @@ export default function LoginPage() {
                 fullName: data.fullName,
                 email: data.email,
                 role: data.role,
-                photo: data.photo
+                photo: data.photo,
+                permissions: data.permissions // Store permissions
             }));
 
             // Redirect to dashboard

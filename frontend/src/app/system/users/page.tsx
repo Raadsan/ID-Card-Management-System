@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/layout/DataTable";
+import { usePermission } from "@/hooks/usePermission";
 import { getUsers, deleteUser, createUser, updateUser } from "@/api/userApi";
 import { getRoles } from "@/api/roleApi";
+import { getUserMenus } from "@/api/menuApi";
 import { Edit, Trash2, UserPlus, Mail, Phone, Shield, Lock, X, Save, Image as ImageIcon, UserCircle } from "lucide-react";
 import Modal from "@/components/layout/Modal";
 import DeleteConfirmModal from "@/components/layout/ConfirmDeleteModel";
@@ -30,6 +32,14 @@ export default function UsersPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState<User | null>(null);
     const [userToEdit, setUserToEdit] = useState<User | null>(null);
+    const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+    const { hasPermission } = usePermission();
+
+    const canAdd = hasPermission("Users", "add", true);
+    const canEdit = hasPermission("Users", "edit", true);
+    const canDelete = hasPermission("Users", "delete", true);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -40,8 +50,7 @@ export default function UsersPage() {
         password: "",
         gender: ""
     });
-    const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
-    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
 
     // MessageBox State
     const [msgBox, setMsgBox] = useState<{
@@ -68,10 +77,11 @@ export default function UsersPage() {
             setLoading(true);
             const [usersData, rolesData] = await Promise.all([
                 getUsers(),
-                getRoles()
+                getRoles(),
             ]);
             setUsers(usersData);
             setRoles(rolesData);
+
         } catch (error) {
             console.error("Failed to fetch initial data:", error);
         } finally {
@@ -300,25 +310,29 @@ export default function UsersPage() {
                 key: "actions",
                 render: (row: User) => (
                     <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => handleEdit(row)}
-                            className="rounded p-1 text-blue-600 hover:bg-blue-50"
-                            title="Edit User"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={() => handleDelete(row)}
-                            className="rounded p-1 text-red-600 hover:bg-red-50"
-                            title="Delete User"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
+                        {canEdit && (
+                            <button
+                                onClick={() => handleEdit(row)}
+                                className="rounded p-1 text-blue-600 hover:bg-blue-50"
+                                title="Edit User"
+                            >
+                                <Edit className="h-4 w-4" />
+                            </button>
+                        )}
+                        {canDelete && (
+                            <button
+                                onClick={() => handleDelete(row)}
+                                className="rounded p-1 text-red-600 hover:bg-red-50"
+                                title="Delete User"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
                 ),
             },
         ],
-        []
+        [canEdit, canDelete]
     );
 
     return (
@@ -331,7 +345,7 @@ export default function UsersPage() {
                 columns={columns}
                 data={users}
                 loading={loading}
-                onAddClick={handleAddUser}
+                onAddClick={canAdd ? handleAddUser : undefined}
                 addButtonLabel="Add User"
             />
 

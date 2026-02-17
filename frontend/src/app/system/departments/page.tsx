@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/layout/DataTable";
+import { usePermission } from "@/hooks/usePermission";
 import { getDepartments, deleteDepartment, createDepartment, updateDepartment, getDepartmentById } from "@/api/departmentApi";
 import { Edit, Trash2, Briefcase, AlignLeft, Shield, CheckCircle2, Loader2, Save, Activity, Plus } from "lucide-react";
 import Modal from "@/components/layout/Modal";
@@ -213,6 +214,12 @@ export default function DepartmentsPage() {
     };
 
 
+    const { hasPermission } = usePermission();
+
+    const canAdd = hasPermission("Departments", "add", true);
+    const canEdit = hasPermission("Departments", "edit", true);
+    const canDelete = hasPermission("Departments", "delete", true);
+
     const columns = useMemo(
         () => [
             {
@@ -235,25 +242,29 @@ export default function DepartmentsPage() {
                 align: "center",
                 render: (row: Department) => (
                     <div className="flex items-center justify-center gap-2">
-                        <button
-                            onClick={() => handleEdit(row)}
-                            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit Department"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={() => handleDelete(row)}
-                            className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-                            title="Delete Department"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
+                        {canEdit && (
+                            <button
+                                onClick={() => handleEdit(row)}
+                                className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Edit Department"
+                            >
+                                <Edit className="h-4 w-4" />
+                            </button>
+                        )}
+                        {canDelete && (
+                            <button
+                                onClick={() => handleDelete(row)}
+                                className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                title="Delete Department"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
                 ),
             },
         ],
-        [departments]
+        [departments, canEdit, canDelete]
     );
 
     return (
@@ -263,7 +274,7 @@ export default function DepartmentsPage() {
                 columns={columns}
                 data={departments}
                 loading={loading}
-                onAddClick={handleAddDepartment}
+                onAddClick={canAdd ? handleAddDepartment : undefined}
                 addButtonLabel="Add Department"
             />
 

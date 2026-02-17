@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/layout/DataTable";
+import { usePermission } from "@/hooks/usePermission";
 import { getAllTemplates, deleteTemplate, IdCardTemplate } from "@/api/idTemplateApi";
 import { Edit, Trash2, Eye } from "lucide-react";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
@@ -16,6 +17,11 @@ export default function IdTemplatesPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState<IdCardTemplate | null>(null);
+
+    const { hasPermission } = usePermission();
+    const canAdd = hasPermission("ID Template", "add", true);
+    const canEdit = hasPermission("ID Template", "edit", true);
+    const canDelete = hasPermission("ID Template", "delete", true);
 
     // MessageBox State
     const [msgBox, setMsgBox] = useState<{
@@ -153,25 +159,29 @@ export default function IdTemplatesPage() {
                         >
                             <Eye className="h-4 w-4" />
                         </button>
-                        <button
-                            onClick={() => handleEdit(row)}
-                            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit Template"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={() => handleDelete(row.id)}
-                            className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-                            title="Delete Template"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
+                        {canEdit && (
+                            <button
+                                onClick={() => handleEdit(row)}
+                                className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Edit Template"
+                            >
+                                <Edit className="h-4 w-4" />
+                            </button>
+                        )}
+                        {canDelete && (
+                            <button
+                                onClick={() => handleDelete(row.id)}
+                                className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                title="Delete Template"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
                 ),
             },
         ],
-        [templates]
+        [templates, canEdit, canDelete]
     );
 
     return (
@@ -181,7 +191,7 @@ export default function IdTemplatesPage() {
                 columns={columns}
                 data={templates}
                 loading={loading}
-                onAddClick={handleAddTemplate}
+                onAddClick={canAdd ? handleAddTemplate : undefined}
                 addButtonLabel="New Template"
             />
 

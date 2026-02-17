@@ -14,9 +14,17 @@ export const createRolePermissions = async (req, res) => {
         menus: {
           create: menusAccess.map(menu => ({
             menuId: Number(menu.menuId),
+            canView: menu.canView !== undefined ? menu.canView : true,
+            canAdd: menu.canAdd !== undefined ? menu.canAdd : false,
+            canEdit: menu.canEdit !== undefined ? menu.canEdit : false,
+            canDelete: menu.canDelete !== undefined ? menu.canDelete : false,
             subMenus: {
               create: menu.subMenus.map(sub => ({
-                subMenuId: Number(sub.subMenuId)
+                subMenuId: Number(sub.subMenuId),
+                canView: sub.canView !== undefined ? sub.canView : true,
+                canAdd: sub.canAdd !== undefined ? sub.canAdd : false,
+                canEdit: sub.canEdit !== undefined ? sub.canEdit : false,
+                canDelete: sub.canDelete !== undefined ? sub.canDelete : false,
               }))
             }
           }))
@@ -143,9 +151,17 @@ export const updateRolePermissions = async (req, res) => {
         menus: {
           create: menusAccess.map(menu => ({
             menuId: Number(menu.menuId),
+            canView: menu.canView !== undefined ? menu.canView : true,
+            canAdd: menu.canAdd !== undefined ? menu.canAdd : false,
+            canEdit: menu.canEdit !== undefined ? menu.canEdit : false,
+            canDelete: menu.canDelete !== undefined ? menu.canDelete : false,
             subMenus: {
               create: menu.subMenus.map(sub => ({
                 subMenuId: Number(sub.subMenuId),
+                canView: sub.canView !== undefined ? sub.canView : true,
+                canAdd: sub.canAdd !== undefined ? sub.canAdd : false,
+                canEdit: sub.canEdit !== undefined ? sub.canEdit : false,
+                canDelete: sub.canDelete !== undefined ? sub.canDelete : false,
               })),
             },
           })),

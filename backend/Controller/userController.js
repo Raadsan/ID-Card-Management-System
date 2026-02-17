@@ -7,8 +7,51 @@ import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../utils/audi
 /* =========================
    CREATE USER
 ========================= */
+const checkUserPermission = async (req, action) => {
+  const userId = req.user?.id;
+  if (!userId) return false;
+
+  const user = await prisma.user.findUnique({
+    where: { id: Number(userId) },
+    select: { roleId: true }
+  });
+
+  if (!user) return false;
+
+  // Check permissions for "Users" submenu
+  // We look for the submenu with url "/system/users"
+  const permission = await prisma.roleSubMenuAccess.findFirst({
+    where: {
+      subMenu: {
+        OR: [
+          { url: "/system/users" },
+          { title: "Users" }
+        ]
+      },
+      roleMenuAccess: {
+        rolePermissions: {
+          roleId: user.roleId
+        }
+      }
+    }
+  });
+
+  if (!permission) return false;
+
+  if (action === 'create' && !permission.canAdd) return false;
+  if (action === 'update' && !permission.canEdit) return false;
+  if (action === 'delete' && !permission.canDelete) return false;
+
+  return true;
+};
+
 export const createUser = async (req, res) => {
   try {
+    const hasPermission = await checkUserPermission(req, 'create');
+    if (!hasPermission) {
+      return res.status(403).json({ message: "You do not have permission to add users." });
+    }
+
     const { fullName, email, phone, password, roleId, status, gender } = req.body;
 
     if (!fullName || !email || !password || !roleId) {
@@ -119,6 +162,11 @@ export const getUserById = async (req, res) => {
 ========================= */
 export const updateUser = async (req, res) => {
   try {
+    const hasPermission = await checkUserPermission(req, 'update');
+    if (!hasPermission) {
+      return res.status(403).json({ message: "You do not have permission to update users." });
+    }
+
     const id = Number(req.params.id);
     const { fullName, email, phone, roleId, status, gender, password } = req.body;
 
@@ -194,6 +242,11 @@ export const updateUser = async (req, res) => {
 ========================= */
 export const deleteUser = async (req, res) => {
   try {
+    const hasPermission = await checkUserPermission(req, 'delete');
+    if (!hasPermission) {
+      return res.status(403).json({ message: "You do not have permission to delete users." });
+    }
+
     const id = Number(req.params.id);
 
     // 1️⃣ Check if user exists

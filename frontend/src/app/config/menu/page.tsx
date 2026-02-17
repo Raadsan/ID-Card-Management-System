@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/layout/DataTable";
+import { usePermission } from "@/hooks/usePermission";
 import { getMenus, deleteMenu, createMenu, updateMenu, getMenuById } from "@/api/menuApi";
 import { Edit, Trash2, Layout, ExternalLink, Box, Plus, Link as LinkIcon, Smile, ChevronDown, Loader2, Save } from "lucide-react";
 import Modal from "@/components/layout/Modal";
@@ -27,6 +28,12 @@ export default function MenuPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedMenuId, setSelectedMenuId] = useState<number | null>(null);
     const [menuToDelete, setMenuToDelete] = useState<Menu | null>(null);
+
+    const { hasPermission } = usePermission();
+
+    const canAdd = hasPermission("Menu", "add", true);
+    const canEdit = hasPermission("Menu", "edit", true);
+    const canDelete = hasPermission("Menu", "delete", true);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -317,25 +324,29 @@ export default function MenuPage() {
                 align: "center",
                 render: (row: Menu) => (
                     <div className="flex items-center justify-center gap-1.5">
-                        <button
-                            onClick={() => handleEdit(row)}
-                            className="rounded p-1 text-blue-600 hover:bg-blue-50"
-                            title="Edit Menu"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={() => handleDelete(row)}
-                            className="rounded p-1 text-red-600 hover:bg-red-50"
-                            title="Delete Menu"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
+                        {canEdit && (
+                            <button
+                                onClick={() => handleEdit(row)}
+                                className="rounded p-1 text-blue-600 hover:bg-blue-50"
+                                title="Edit Menu"
+                            >
+                                <Edit className="h-4 w-4" />
+                            </button>
+                        )}
+                        {canDelete && (
+                            <button
+                                onClick={() => handleDelete(row)}
+                                className="rounded p-1 text-red-600 hover:bg-red-50"
+                                title="Delete Menu"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
                 ),
             },
         ],
-        [menus]
+        [menus, canEdit, canDelete]
     );
 
     return (
@@ -345,7 +356,7 @@ export default function MenuPage() {
                 columns={columns}
                 data={menus}
                 loading={loading}
-                onAddClick={handleAddMenu}
+                onAddClick={canAdd ? handleAddMenu : undefined}
                 addButtonLabel="Add Menu"
             />
 

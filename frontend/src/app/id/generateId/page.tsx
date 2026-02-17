@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CreditCard, Plus, Loader2, Calendar, User, UserCheck } from "lucide-react";
+import { usePermission } from "@/hooks/usePermission";
 import GenerateIdModal from "../../../components/GenerateIdModal";
 import ViewIdModal from "../../../components/ViewIdModal";
 import { getAllIdGenerates, IdGenerate, markReadyToPrint, printIdGenerate } from "../../../api/generateIdApi";
@@ -15,12 +16,18 @@ export default function GenerateIdPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const { hasPermission } = usePermission();
+    const canAdd = hasPermission("Generate ID", "add", true);
+    const canEdit = hasPermission("Generate ID", "edit", true);
+
     const fetchIdCards = async () => {
         try {
             setIsLoading(true);
             const data = await getAllIdGenerates();
-            // Filter only 'created' status for this page
-            const filteredData = data.filter((card: IdGenerate) => card.status === 'created');
+            // Filter 'created', 'lost', and 'expired' status for this page
+            const filteredData = data.filter((card: IdGenerate) =>
+                card.status === 'created' || card.status === 'lost' || card.status === 'expired'
+            );
             setIdCards(filteredData);
             setError(null);
         } catch (err: any) {
@@ -117,13 +124,15 @@ export default function GenerateIdPage() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="px-6 py-3 bg-[#1B1555] text-white rounded-lg font-medium hover:bg-[#141040] transition-colors flex items-center gap-2"
-                    >
-                        <Plus className="h-5 w-5" />
-                        Generate New ID
-                    </button>
+                    {canAdd && (
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="px-6 py-3 bg-[#1B1555] text-white rounded-lg font-medium hover:bg-[#141040] transition-colors flex items-center gap-2"
+                        >
+                            <Plus className="h-5 w-5" />
+                            Generate New ID
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -191,9 +200,13 @@ export default function GenerateIdPage() {
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide ${card.status === 'printed' ? 'bg-green-100 text-green-700' :
                                                 card.status === 'ready_to_print' ? 'bg-blue-100 text-blue-700' :
                                                     card.status === 'replaced' ? 'bg-orange-100 text-orange-700 border border-orange-200' :
-                                                        'bg-yellow-100 text-yellow-700'
+                                                        card.status === 'lost' ? 'bg-red-100 text-red-700 border border-red-200' :
+                                                            card.status === 'expired' ? 'bg-gray-100 text-gray-700 border border-gray-300' :
+                                                                'bg-yellow-100 text-yellow-700'
                                                 }`}>
-                                                {card.status.replace('_', ' ')}
+                                                {card.status === 'lost' ? 'Lost' :
+                                                    card.status === 'expired' ? 'Expired' :
+                                                        card.status.replace('_', ' ')}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
@@ -227,7 +240,7 @@ export default function GenerateIdPage() {
                                                 >
                                                     View
                                                 </button>
-                                                {card.status === 'created' && (
+                                                {canEdit && (card.status === 'created' || card.status === 'lost' || card.status === 'expired') && (
                                                     <button
                                                         onClick={() => handleApprove(card.id)}
                                                         className="px-3 py-1.5 text-sm font-medium text-white bg-[#16BCF8] rounded-lg hover:bg-[#009ED9] transition-colors shadow-sm"
@@ -235,7 +248,7 @@ export default function GenerateIdPage() {
                                                         Approve
                                                     </button>
                                                 )}
-                                                {card.status === 'ready_to_print' && (
+                                                {canEdit && card.status === 'ready_to_print' && (
                                                     <button
                                                         onClick={() => handlePrint(card.id)}
                                                         className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm"

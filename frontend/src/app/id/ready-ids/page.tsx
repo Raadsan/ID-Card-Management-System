@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Printer, Loader2, Calendar, User, CheckCircle2, Trash2, Eye, AlertTriangle } from "lucide-react";
+import { Printer, Loader2, Calendar, User, CheckCircle2, Trash2, Eye } from "lucide-react";
 import ViewIdModal from "../../../components/ViewIdModal";
 import MessageBox, { MessageBoxType } from "../../../components/MessageBox";
-import { usePermission } from "@/hooks/usePermission";
-import { getAllIdGenerates, IdGenerate, printIdGenerate, deleteIdGenerate, markAsLost } from "../../../api/generateIdApi";
+import { getAllIdGenerates, IdGenerate, printIdGenerate, deleteIdGenerate } from "../../../api/generateIdApi";
 import { QRCodeSVG } from "qrcode.react";
 
 import { getImageUrl } from "@/utils/url";
@@ -18,16 +17,12 @@ if (typeof window !== 'undefined') {
     });
 }
 
-export default function PrintIdPage() {
+export default function ReadyIdsPage() {
     const [idCards, setIdCards] = useState<IdGenerate[]>([]);
     const [selectedIdCard, setSelectedIdCard] = useState<IdGenerate | null>(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    const { hasPermission } = usePermission();
-    const canEdit = hasPermission("Print ID", "edit", true);
-    const canDelete = hasPermission("Print ID", "delete", true);
     const [cardToPrint, setCardToPrint] = useState<IdGenerate | null>(null);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [pendingPrintId, setPendingPrintId] = useState<number | null>(null);
@@ -57,7 +52,7 @@ export default function PrintIdPage() {
             const data = await getAllIdGenerates();
             // Filter ready_to_print, printed and replaced status for this page
             const filteredData = data.filter((card: IdGenerate) =>
-                card.status === 'printed'
+                card.status === 'ready_to_print' || card.status === 'replaced'
             );
             setIdCards(filteredData);
             setError(null);
@@ -205,49 +200,6 @@ export default function PrintIdPage() {
         setIsViewModalOpen(true);
     };
 
-    const handleMarkAsLost = (id: number) => {
-        const card = idCards.find((c: IdGenerate) => c.id === id);
-        setMsgBox({
-            isOpen: true,
-            title: "Mark ID as Lost",
-            message: `Are you sure you want to mark the ID of "${card?.employee?.user?.fullName}" as lost? This action will update the ID status.`,
-            type: "confirm",
-            onConfirm: () => performMarkAsLost(id),
-        });
-    };
-
-    const performMarkAsLost = async (id: number) => {
-        try {
-            setMsgBox(prev => ({ ...prev, loading: true }));
-            const response = await markAsLost(id);
-            const updatedCard = response.data;
-
-            // Update the list with the fresh data from backend
-            setIdCards(prev => prev.map(c => c.id === id ? updatedCard : c));
-
-            // If the view modal is open with this card, update its data too
-            if (selectedIdCard?.id === id) {
-                setSelectedIdCard(updatedCard);
-            }
-
-            setMsgBox({
-                isOpen: true,
-                title: "Marked as Lost!",
-                message: "ID has been marked as lost successfully.",
-                type: "success",
-            });
-            fetchReadyToPrintIds();
-        } catch (error: any) {
-            console.error("Failed to mark ID as lost:", error);
-            setMsgBox({
-                isOpen: true,
-                title: "Operation Failed",
-                message: error.response?.data?.message || "Could not mark ID as lost.",
-                type: "error",
-            });
-        }
-    };
-
     useEffect(() => {
         fetchReadyToPrintIds();
     }, []);
@@ -261,8 +213,8 @@ export default function PrintIdPage() {
                         <Printer className="h-6 w-6 text-green-600" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">ID Printing & Logs</h1>
-                        <p className="text-sm text-gray-500">Manage approved cards and view printing history</p>
+                        <h1 className="text-2xl font-bold text-gray-900">Ready to Print IDs</h1>
+                        <p className="text-sm text-gray-500">Manage IDs ready for printing</p>
                     </div>
                 </div>
             </div>
@@ -286,8 +238,8 @@ export default function PrintIdPage() {
             ) : idCards.length === 0 ? (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
                     <CheckCircle2 className="h-16 w-16 text-green-200 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Printed Logs Found</h3>
-                    <p className="text-gray-500">No print history available.</p>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Cards Ready to Print</h3>
+                    <p className="text-gray-500">There are no IDs currently waiting to be printed.</p>
                 </div>
             ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -330,14 +282,10 @@ export default function PrintIdPage() {
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide ${card.status === 'printed' ? 'bg-green-100 text-green-700' :
                                                 card.status === 'replaced' ? 'bg-orange-100 text-orange-700 border border-orange-200' :
-                                                    card.status === 'lost' ? 'bg-red-100 text-red-700 border border-red-200' :
-                                                        card.status === 'expired' ? 'bg-gray-100 text-gray-700 border border-gray-300' :
-                                                            'bg-blue-100 text-blue-700'
+                                                    'bg-blue-100 text-blue-700'
                                                 }`}>
                                                 {card.status === 'printed' ? 'Printed' :
-                                                    card.status === 'replaced' ? 'Replaced' :
-                                                        card.status === 'lost' ? 'Lost' :
-                                                            card.status === 'expired' ? 'Expired' : 'Ready to Print'}
+                                                    card.status === 'replaced' ? 'Replaced' : 'Ready to Print'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
@@ -383,7 +331,7 @@ export default function PrintIdPage() {
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </button>
-                                                {canEdit && (card.status === 'ready_to_print' || card.status === 'replaced') && (
+                                                {(card.status === 'ready_to_print' || card.status === 'replaced') ? (
                                                     <button
                                                         onClick={() => handlePrintRequest(card.id)}
                                                         className="px-4 py-2 text-xs font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all shadow-md shadow-green-100 flex items-center gap-2"
@@ -391,31 +339,19 @@ export default function PrintIdPage() {
                                                         <Printer className="h-4 w-4" />
                                                         Print
                                                     </button>
-                                                )}
-                                                {!canEdit && (card.status === 'ready_to_print' || card.status === 'replaced') && (
-                                                    <div className="px-3 py-1.5 text-[10px] font-bold text-gray-400 bg-gray-50 rounded-lg flex items-center gap-1.5 border border-gray-100 italic">
-                                                        No Print Permission
+                                                ) : (
+                                                    <div className="px-3 py-1.5 text-[10px] font-bold text-green-600 bg-green-50 rounded-lg flex items-center gap-1.5 border border-green-100">
+                                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                                        Log
                                                     </div>
                                                 )}
-                                                {card.status === 'printed' && canEdit && (
-                                                    <button
-                                                        onClick={() => handleMarkAsLost(card.id)}
-                                                        className="px-3 py-2 text-xs font-bold text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-all shadow-md shadow-amber-100 flex items-center gap-2"
-                                                        title="Mark as Lost"
-                                                    >
-                                                        <AlertTriangle className="h-4 w-4" />
-                                                        Lost
-                                                    </button>
-                                                )}
-                                                {canDelete && (
-                                                    <button
-                                                        onClick={() => handleDelete(card.id)}
-                                                        className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-all"
-                                                        title="Delete Record"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
-                                                )}
+                                                <button
+                                                    onClick={() => handleDelete(card.id)}
+                                                    className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-all"
+                                                    title="Delete Record"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>

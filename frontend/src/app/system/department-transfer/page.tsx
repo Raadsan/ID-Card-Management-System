@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/layout/DataTable";
+import { usePermission } from "@/hooks/usePermission";
 import { getDepartmentTransfers, deleteDepartmentTransfer, createDepartmentTransfer, updateDepartmentTransfer, getDepartmentTransferById } from "@/api/department_transfareApi";
 import { getEmployees } from "@/api/employeeApi";
 import { getDepartments } from "@/api/departmentApi";
@@ -50,6 +51,12 @@ export default function DepartmentTransferPage() {
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [historyTransfers, setHistoryTransfers] = useState<Transfer[]>([]);
     const [selectedEmployeeName, setSelectedEmployeeName] = useState("");
+
+    const { hasPermission } = usePermission();
+
+    const canAdd = hasPermission("Department Transfer", "add", true);
+    const canEdit = hasPermission("Department Transfer", "edit", true);
+    const canDelete = hasPermission("Department Transfer", "delete", true);
 
     // Dropdown Data
     const [employeesList, setEmployeesList] = useState<any[]>([]);
@@ -402,25 +409,29 @@ export default function DepartmentTransferPage() {
                         >
                             <Eye className="h-4 w-4" />
                         </button>
-                        <button
-                            onClick={() => handleEdit(row)}
-                            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit"
-                        >
-                            <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={() => handleDelete(row)}
-                            className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-                            title="Delete"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
+                        {canEdit && (
+                            <button
+                                onClick={() => handleEdit(row)}
+                                className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Edit"
+                            >
+                                <Edit className="h-4 w-4" />
+                            </button>
+                        )}
+                        {canDelete && (
+                            <button
+                                onClick={() => handleDelete(row)}
+                                className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                                title="Delete"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
                 ),
             },
         ],
-        [displayData, groupedTransfers]
+        [displayData, canEdit, canDelete]
     );
 
     return (
@@ -430,7 +441,7 @@ export default function DepartmentTransferPage() {
                 columns={columns}
                 data={displayData}
                 loading={loading}
-                onAddClick={handleAddTransfer}
+                onAddClick={canAdd ? handleAddTransfer : undefined}
                 addButtonLabel="Transfer Employee"
             />
 

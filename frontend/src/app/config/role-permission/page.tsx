@@ -29,6 +29,7 @@ import {
 import Modal from "@/components/layout/Modal";
 import DeleteConfirmModal from "@/components/layout/ConfirmDeleteModel";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
+import { usePermission } from "@/hooks/usePermission";
 
 // Interfaces
 interface SubMenu {
@@ -55,6 +56,10 @@ interface Role {
 interface RoleMenuAccess {
     id?: number;
     menuId: number;
+    canView: boolean;
+    canAdd: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
     menu: {
         id: number;
         title: string;
@@ -62,6 +67,10 @@ interface RoleMenuAccess {
     subMenus: {
         id: number;
         subMenuId: number;
+        canView: boolean;
+        canAdd: boolean;
+        canEdit: boolean;
+        canDelete: boolean;
         subMenu: {
             id: number;
             title: string;
@@ -87,6 +96,11 @@ export default function RolePermissionsPage() {
     const [permissionToDelete, setPermissionToDelete] = useState<RolePermission | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const { hasPermission } = usePermission();
+    const canAdd = hasPermission("Role Permission", "add", true);
+    const canEdit = hasPermission("Role Permission", "edit", true);
+    const canDelete = hasPermission("Role Permission", "delete", true);
+
     // MessageBox State
     const [msgBox, setMsgBox] = useState<{
         isOpen: boolean;
@@ -106,7 +120,19 @@ export default function RolePermissionsPage() {
     const [selectedMenus, setSelectedMenus] = useState<{
         [menuId: number]: {
             enabled: boolean;
-            subMenus: number[];
+            canView: boolean;
+            canAdd: boolean;
+            canEdit: boolean;
+            canDelete: boolean;
+            subMenus: {
+                [subMenuId: number]: {
+                    enabled: boolean;
+                    canView: boolean;
+                    canAdd: boolean;
+                    canEdit: boolean;
+                    canDelete: boolean;
+                }
+            };
         };
     }>({});
 
@@ -138,9 +164,24 @@ export default function RolePermissionsPage() {
         const menuMap: any = {};
 
         perm.menus.forEach((ma) => {
+            const subMenuMap: any = {};
+            ma.subMenus.forEach((sm) => {
+                subMenuMap[sm.subMenuId] = {
+                    enabled: true,
+                    canView: sm.canView,
+                    canAdd: sm.canAdd,
+                    canEdit: sm.canEdit,
+                    canDelete: sm.canDelete,
+                };
+            });
+
             menuMap[ma.menuId] = {
                 enabled: true,
-                subMenus: ma.subMenus.map((sm) => sm.subMenuId),
+                canView: ma.canView,
+                canAdd: ma.canAdd,
+                canEdit: ma.canEdit,
+                canDelete: ma.canDelete,
+                subMenus: subMenuMap,
             };
         });
 
@@ -180,25 +221,51 @@ export default function RolePermissionsPage() {
     };
 
     const toggleMenu = (menuId: number) => {
-        setSelectedMenus((prev) => ({
-            ...prev,
-            [menuId]: {
-                enabled: !prev[menuId]?.enabled,
-                subMenus: prev[menuId]?.subMenus || [],
-            },
-        }));
+        setSelectedMenus((prev) => {
+            const isEnabled = !prev[menuId]?.enabled;
+            return {
+                ...prev,
+                [menuId]: {
+                    enabled: isEnabled,
+                    canView: isEnabled,
+                    canAdd: false,
+                    canEdit: false,
+                    canDelete: false,
+                    subMenus: prev[menuId]?.subMenus || {},
+                },
+            };
+        });
     };
 
     const toggleSubMenu = (menuId: number, subMenuId: number) => {
         setSelectedMenus((prev) => {
-            const current = prev[menuId] || { enabled: true, subMenus: [] };
-            const subMenus = current.subMenus.includes(subMenuId)
-                ? current.subMenus.filter((id) => id !== subMenuId)
-                : [...current.subMenus, subMenuId];
+            const currentMenu = prev[menuId] || {
+                enabled: true,
+                canView: true,
+                canAdd: false,
+                canEdit: false,
+                canDelete: false,
+                subMenus: {}
+            };
+
+            const currentSub = currentMenu.subMenus[subMenuId];
+            const isEnabled = !currentSub?.enabled;
 
             return {
                 ...prev,
-                [menuId]: { ...current, subMenus },
+                [menuId]: {
+                    ...currentMenu,
+                    subMenus: {
+                        ...currentMenu.subMenus,
+                        [subMenuId]: {
+                            enabled: isEnabled,
+                            canView: isEnabled,
+                            canAdd: false,
+                            canEdit: false,
+                            canDelete: false,
+                        }
+                    }
+                },
             };
         });
     };
@@ -206,11 +273,27 @@ export default function RolePermissionsPage() {
     const selectAllSubMenus = (menuId: number) => {
         const menu = menus.find((m) => m.id === menuId);
         if (!menu) return;
+
+        const subMenuMap: any = {};
+        menu.subMenus.forEach(sm => {
+            subMenuMap[sm.id] = {
+                enabled: true,
+                canView: true,
+                canAdd: true,
+                canEdit: true,
+                canDelete: true,
+            };
+        });
+
         setSelectedMenus((prev) => ({
             ...prev,
             [menuId]: {
                 enabled: true,
-                subMenus: menu.subMenus.map((sm) => sm.id),
+                canView: true,
+                canAdd: true,
+                canEdit: true,
+                canDelete: true,
+                subMenus: subMenuMap,
             },
         }));
     };
@@ -219,8 +302,14 @@ export default function RolePermissionsPage() {
         setSelectedMenus((prev) => ({
             ...prev,
             [menuId]: {
-                ...(prev[menuId] || { enabled: true }),
-                subMenus: [],
+                ...(prev[menuId] || {
+                    enabled: true,
+                    canView: true,
+                    canAdd: false,
+                    canEdit: false,
+                    canDelete: false
+                }),
+                subMenus: {},
             },
         }));
     };
@@ -235,7 +324,19 @@ export default function RolePermissionsPage() {
                 .filter(([_, data]) => data.enabled)
                 .map(([menuId, data]) => ({
                     menuId: Number(menuId),
-                    subMenus: data.subMenus.map((smId) => ({ subMenuId: Number(smId) })),
+                    canView: data.canView,
+                    canAdd: data.canAdd,
+                    canEdit: data.canEdit,
+                    canDelete: data.canDelete,
+                    subMenus: Object.entries(data.subMenus)
+                        .filter(([_, subData]) => subData.enabled)
+                        .map(([subMenuId, subData]) => ({
+                            subMenuId: Number(subMenuId),
+                            canView: subData.canView,
+                            canAdd: subData.canAdd,
+                            canEdit: subData.canEdit,
+                            canDelete: subData.canDelete,
+                        })),
                 }));
 
             const exists = permissions.find(p => p.roleId === selectedRoleId);
@@ -329,13 +430,21 @@ export default function RolePermissionsPage() {
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Assigned Modules</label>
                                 <div className="grid grid-cols-3 gap-2">
                                     {perm.menus.map((ma, idx) => (
-                                        <div key={idx} className="px-2 py-1.5 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-between gap-1 overflow-hidden" title={ma.menu?.title}>
-                                            <span className="text-[9px] font-bold text-gray-700 uppercase tracking-tight truncate">{ma.menu?.title}</span>
-                                            {ma.subMenus.length > 0 && (
-                                                <span className="h-4 w-4 shrink-0 rounded-full bg-blue-500 flex items-center justify-center text-[8px] font-black text-white">
-                                                    {ma.subMenus.length}
-                                                </span>
-                                            )}
+                                        <div key={idx} className="px-2 py-1.5 bg-gray-50 border border-gray-100 rounded-lg flex flex-col gap-1 overflow-hidden" title={ma.menu?.title}>
+                                            <div className="flex items-center justify-between gap-1 overflow-hidden">
+                                                <span className="text-[9px] font-bold text-gray-700 uppercase tracking-tight truncate">{ma.menu?.title}</span>
+                                                {ma.subMenus.length > 0 && (
+                                                    <span className="h-3 w-3 shrink-0 rounded-full bg-blue-500 flex items-center justify-center text-[7px] font-black text-white">
+                                                        {ma.subMenus.length}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="flex gap-0.5 opacity-60">
+                                                {ma.canView && <span className="text-[7px] font-black text-blue-500">V</span>}
+                                                {ma.canAdd && <span className="text-[7px] font-black text-green-500">A</span>}
+                                                {ma.canEdit && <span className="text-[7px] font-black text-orange-500">E</span>}
+                                                {ma.canDelete && <span className="text-[7px] font-black text-rose-500">D</span>}
+                                            </div>
                                         </div>
                                     ))}
                                     {perm.menus.length === 0 && (
@@ -383,18 +492,34 @@ export default function RolePermissionsPage() {
                     <div className="p-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
                         <div className="space-y-6">
                             {viewingPerm.menus.map((ma, idx) => (
-                                <div key={idx} className="space-y-3">
-                                    <div className="flex items-center gap-2 text-gray-800 font-black uppercase text-xs tracking-widest">
-                                        <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                                        {ma.menu?.title}
+                                <div key={idx} className="space-y-3 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-gray-800 font-black uppercase text-xs tracking-widest">
+                                            <div className="h-2 w-2 rounded-full bg-blue-500" />
+                                            {ma.menu?.title}
+                                        </div>
+                                        <div className="flex gap-1">
+                                            {ma.canView && <span className="px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded text-[8px] font-black" title="View">V</span>}
+                                            {ma.canAdd && <span className="px-1.5 py-0.5 bg-green-100 text-green-600 rounded text-[8px] font-black" title="Add">A</span>}
+                                            {ma.canEdit && <span className="px-1.5 py-0.5 bg-orange-100 text-orange-600 rounded text-[8px] font-black" title="Edit">E</span>}
+                                            {ma.canDelete && <span className="px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded text-[8px] font-black" title="Delete">D</span>}
+                                        </div>
                                     </div>
-                                    <div className="pl-4 flex flex-wrap gap-2">
+                                    <div className="pl-4 space-y-2">
                                         {ma.subMenus.length > 0 ? ma.subMenus.map((sm, sIdx) => (
-                                            <span key={sIdx} className="px-3 py-1 bg-gray-100 rounded-lg text-[10px] font-bold text-gray-500 uppercase">
-                                                {sm.subMenu?.title}
-                                            </span>
+                                            <div key={sIdx} className="flex items-center justify-between py-1 border-b border-gray-100 last:border-0">
+                                                <span className="text-[10px] font-bold text-gray-500 uppercase">
+                                                    {sm.subMenu?.title}
+                                                </span>
+                                                <div className="flex gap-1">
+                                                    {sm.canView && <span className="px-1.5 py-0.5 bg-blue-50 text-blue-400 rounded text-[7px] font-black" title="View">V</span>}
+                                                    {sm.canAdd && <span className="px-1.5 py-0.5 bg-green-50 text-green-400 rounded text-[7px] font-black" title="Add">A</span>}
+                                                    {sm.canEdit && <span className="px-1.5 py-0.5 bg-orange-50 text-orange-400 rounded text-[7px] font-black" title="Edit">E</span>}
+                                                    {sm.canDelete && <span className="px-1.5 py-0.5 bg-rose-50 text-rose-400 rounded text-[7px] font-black" title="Delete">D</span>}
+                                                </div>
+                                            </div>
                                         )) : (
-                                            <span className="text-[10px] font-bold text-gray-300 italic">Full Access</span>
+                                            <span className="text-[10px] font-bold text-gray-300 italic uppercase">Main Access only</span>
                                         )}
                                     </div>
                                 </div>
@@ -458,26 +583,165 @@ export default function RolePermissionsPage() {
                                             )}
                                         </div>
 
+                                        {selectedMenus[menu.id]?.enabled && !menu.isCollapsible && (
+                                            <div className="ml-10 mt-4 flex items-center gap-6">
+                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedMenus[menu.id]?.canView || false}
+                                                        onChange={() => setSelectedMenus(prev => {
+                                                            const newPrev = JSON.parse(JSON.stringify(prev));
+                                                            const isChecked = !newPrev[menu.id].canView;
+                                                            newPrev[menu.id].canView = isChecked;
+                                                            if (!isChecked) {
+                                                                newPrev[menu.id].canAdd = false;
+                                                                newPrev[menu.id].canEdit = false;
+                                                                newPrev[menu.id].canDelete = false;
+                                                            }
+                                                            return newPrev;
+                                                        })}
+                                                        className="w-4 h-4 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                    />
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase">View</span>
+                                                </label>
+                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedMenus[menu.id]?.canAdd || false}
+                                                        onChange={() => setSelectedMenus(prev => {
+                                                            const newPrev = JSON.parse(JSON.stringify(prev));
+                                                            const isChecked = !newPrev[menu.id].canAdd;
+                                                            newPrev[menu.id].canAdd = isChecked;
+                                                            if (isChecked) newPrev[menu.id].canView = true;
+                                                            return newPrev;
+                                                        })}
+                                                        className="w-4 h-4 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                    />
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase">Add</span>
+                                                </label>
+                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedMenus[menu.id]?.canEdit || false}
+                                                        onChange={() => setSelectedMenus(prev => {
+                                                            const newPrev = JSON.parse(JSON.stringify(prev));
+                                                            const isChecked = !newPrev[menu.id].canEdit;
+                                                            newPrev[menu.id].canEdit = isChecked;
+                                                            if (isChecked) newPrev[menu.id].canView = true;
+                                                            return newPrev;
+                                                        })}
+                                                        className="w-4 h-4 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                    />
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase">Edit</span>
+                                                </label>
+                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedMenus[menu.id]?.canDelete || false}
+                                                        onChange={() => setSelectedMenus(prev => {
+                                                            const newPrev = JSON.parse(JSON.stringify(prev));
+                                                            const isChecked = !newPrev[menu.id].canDelete;
+                                                            newPrev[menu.id].canDelete = isChecked;
+                                                            if (isChecked) newPrev[menu.id].canView = true;
+                                                            return newPrev;
+                                                        })}
+                                                        className="w-4 h-4 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                    />
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase">Delete</span>
+                                                </label>
+                                            </div>
+                                        )}
+
                                         {selectedMenus[menu.id]?.enabled && menu.subMenus && menu.subMenus.length > 0 && (
-                                            <div className="ml-10 mt-6 pt-6 border-t border-blue-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div className="ml-10 mt-6 pt-6 border-t border-blue-100 space-y-4">
                                                 {menu.subMenus.map((submenu) => (
-                                                    <label
-                                                        key={submenu.id}
-                                                        className={`flex items-center gap-4 cursor-pointer p-3 rounded-2xl border transition-all ${selectedMenus[menu.id]?.subMenus.includes(submenu.id)
-                                                            ? 'bg-white border-blue-200 shadow-sm'
-                                                            : 'bg-transparent border-transparent'
-                                                            }`}
-                                                    >
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedMenus[menu.id]?.subMenus.includes(submenu.id) || false}
-                                                            onChange={() => toggleSubMenu(menu.id, submenu.id)}
-                                                            className="w-4 h-4 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
-                                                        />
-                                                        <span className={`text-[10px] font-bold uppercase ${selectedMenus[menu.id]?.subMenus.includes(submenu.id) ? 'text-blue-700' : 'text-gray-400'}`}>
-                                                            {submenu.title}
-                                                        </span>
-                                                    </label>
+                                                    <div key={submenu.id} className="space-y-2">
+                                                        <label
+                                                            className={`flex items-center gap-4 cursor-pointer p-3 rounded-2xl border transition-all ${selectedMenus[menu.id]?.subMenus[submenu.id]?.enabled
+                                                                ? 'bg-white border-blue-200 shadow-sm'
+                                                                : 'bg-transparent border-transparent'
+                                                                }`}
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedMenus[menu.id]?.subMenus[submenu.id]?.enabled || false}
+                                                                onChange={() => toggleSubMenu(menu.id, submenu.id)}
+                                                                className="w-4 h-4 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                            />
+                                                            <span className={`text-[10px] font-bold uppercase ${selectedMenus[menu.id]?.subMenus[submenu.id]?.enabled ? 'text-blue-700' : 'text-gray-400'}`}>
+                                                                {submenu.title}
+                                                            </span>
+                                                        </label>
+
+                                                        {selectedMenus[menu.id]?.subMenus[submenu.id]?.enabled && (
+                                                            <div className="ml-8 flex items-center gap-4">
+                                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={selectedMenus[menu.id]?.subMenus[submenu.id]?.canView || false}
+                                                                        onChange={() => setSelectedMenus(prev => {
+                                                                            const newPrev = JSON.parse(JSON.stringify(prev));
+                                                                            const isChecked = !newPrev[menu.id].subMenus[submenu.id].canView;
+                                                                            newPrev[menu.id].subMenus[submenu.id].canView = isChecked;
+                                                                            if (!isChecked) {
+                                                                                newPrev[menu.id].subMenus[submenu.id].canAdd = false;
+                                                                                newPrev[menu.id].subMenus[submenu.id].canEdit = false;
+                                                                                newPrev[menu.id].subMenus[submenu.id].canDelete = false;
+                                                                            }
+                                                                            return newPrev;
+                                                                        })}
+                                                                        className="w-3 h-3 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                                    />
+                                                                    <span className="text-[8px] font-black text-gray-400 uppercase">View</span>
+                                                                </label>
+                                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={selectedMenus[menu.id]?.subMenus[submenu.id]?.canAdd || false}
+                                                                        onChange={() => setSelectedMenus(prev => {
+                                                                            const newPrev = JSON.parse(JSON.stringify(prev));
+                                                                            const isChecked = !newPrev[menu.id].subMenus[submenu.id].canAdd;
+                                                                            newPrev[menu.id].subMenus[submenu.id].canAdd = isChecked;
+                                                                            if (isChecked) newPrev[menu.id].subMenus[submenu.id].canView = true;
+                                                                            return newPrev;
+                                                                        })}
+                                                                        className="w-3 h-3 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                                    />
+                                                                    <span className="text-[8px] font-black text-gray-400 uppercase">Add</span>
+                                                                </label>
+                                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={selectedMenus[menu.id]?.subMenus[submenu.id]?.canEdit || false}
+                                                                        onChange={() => setSelectedMenus(prev => {
+                                                                            const newPrev = JSON.parse(JSON.stringify(prev));
+                                                                            const isChecked = !newPrev[menu.id].subMenus[submenu.id].canEdit;
+                                                                            newPrev[menu.id].subMenus[submenu.id].canEdit = isChecked;
+                                                                            if (isChecked) newPrev[menu.id].subMenus[submenu.id].canView = true;
+                                                                            return newPrev;
+                                                                        })}
+                                                                        className="w-3 h-3 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                                    />
+                                                                    <span className="text-[8px] font-black text-gray-400 uppercase">Edit</span>
+                                                                </label>
+                                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={selectedMenus[menu.id]?.subMenus[submenu.id]?.canDelete || false}
+                                                                        onChange={() => setSelectedMenus(prev => {
+                                                                            const newPrev = JSON.parse(JSON.stringify(prev));
+                                                                            const isChecked = !newPrev[menu.id].subMenus[submenu.id].canDelete;
+                                                                            newPrev[menu.id].subMenus[submenu.id].canDelete = isChecked;
+                                                                            if (isChecked) newPrev[menu.id].subMenus[submenu.id].canView = true;
+                                                                            return newPrev;
+                                                                        })}
+                                                                        className="w-3 h-3 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                                    />
+                                                                    <span className="text-[8px] font-black text-gray-400 uppercase">Delete</span>
+                                                                </label>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 ))}
                                             </div>
                                         )}

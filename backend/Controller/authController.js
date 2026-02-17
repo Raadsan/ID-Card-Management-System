@@ -13,7 +13,26 @@ export const loginUser = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { role: true },
+      include: {
+        role: {
+          include: {
+            rolePermissions: {
+              include: {
+                menus: {
+                  include: {
+                    menu: true,
+                    subMenus: {
+                      include: {
+                        subMenu: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
     });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -47,10 +66,60 @@ export const loginUser = async (req, res) => {
       email: user.email,
       role: user.role.name,
       photo: user.photo,
+      permissions: user.role.rolePermissions, // Send permissions to frontend
       token,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Login failed" });
+  }
+};
+
+/* =========================
+   GET CURRENT USER
+========================= */
+export const getCurrentUser = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        role: {
+          include: {
+            rolePermissions: {
+              include: {
+                menus: {
+                  include: {
+                    menu: true,
+                    subMenus: {
+                      include: {
+                        subMenu: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role.name,
+      photo: user.photo,
+      permissions: user.role.rolePermissions,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch user profile" });
   }
 };

@@ -256,10 +256,24 @@ export const getUserMenus = async (req, res) => {
       const menu = roleMenu.menu;
 
       // Get allowed submenus for this menu
-      const allowedSubMenus = roleMenu.subMenus.map((roleSubMenu) => roleSubMenu.subMenu);
+      const allowedSubMenus = roleMenu.subMenus.map((roleSubMenu) => ({
+        ...roleSubMenu.subMenu,
+        permissions: {
+          canView: roleSubMenu.canView,
+          canAdd: roleSubMenu.canAdd,
+          canEdit: roleSubMenu.canEdit,
+          canDelete: roleSubMenu.canDelete,
+        }
+      }));
 
       return {
         ...menu,
+        permissions: {
+          canView: roleMenu.canView,
+          canAdd: roleMenu.canAdd,
+          canEdit: roleMenu.canEdit,
+          canDelete: roleMenu.canDelete,
+        },
         subMenus: allowedSubMenus,
       };
     });

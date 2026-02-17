@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/layout/DataTable";
+import { usePermission } from "@/hooks/usePermission";
 import { getRoles, deleteRole, createRole, updateRole, getRoleById } from "@/api/roleApi";
 import { Edit, Trash2, Shield, Info, Activity, Plus, AlignLeft, CheckCircle2, Loader2, Save } from "lucide-react";
 import Modal from "@/components/layout/Modal";
@@ -20,12 +21,18 @@ export default function RolesPage() {
     const [roles, setRoles] = useState<Role[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
     const [isFetching, setIsFetching] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
     const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
+
+    const { hasPermission } = usePermission();
+    const canAdd = hasPermission("Roles", "add", true);
+    const canEdit = hasPermission("Roles", "edit", true);
+    const canDelete = hasPermission("Roles", "delete", true);
 
     // Form State
     const [formData, setFormData] = useState({
