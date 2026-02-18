@@ -59,6 +59,9 @@ model RoleMenuAccess {
   canAdd            Boolean             @default(false)
   canEdit           Boolean             @default(false)
   canDelete         Boolean             @default(false)
+  canAssign         Boolean             @default(false)
+  canApprove        Boolean             @default(false)
+  canGenerate       Boolean             @default(false)
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   menu              Menu                @relation(fields: [menuId], references: [id])
@@ -77,6 +80,9 @@ model RoleSubMenuAccess {
   canAdd           Boolean        @default(false)
   canEdit          Boolean        @default(false)
   canDelete        Boolean        @default(false)
+  canAssign        Boolean        @default(false)
+  canApprove       Boolean        @default(false)
+  canGenerate      Boolean        @default(false)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   roleMenuAccess   RoleMenuAccess @relation(fields: [roleMenuAccessId], references: [id])
@@ -85,6 +91,7 @@ model RoleSubMenuAccess {
   @@unique([roleMenuAccessId, subMenuId])
   @@index([subMenuId], map: "RoleSubMenuAccess_subMenuId_fkey")
 }
+
 
 model User {
   id                 Int                  @id @default(autoincrement())

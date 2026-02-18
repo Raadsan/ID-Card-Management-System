@@ -60,6 +60,9 @@ interface RoleMenuAccess {
     canAdd: boolean;
     canEdit: boolean;
     canDelete: boolean;
+    canAssign: boolean;
+    canApprove: boolean;
+    canGenerate: boolean;
     menu: {
         id: number;
         title: string;
@@ -71,6 +74,9 @@ interface RoleMenuAccess {
         canAdd: boolean;
         canEdit: boolean;
         canDelete: boolean;
+        canAssign: boolean;
+        canApprove: boolean;
+        canGenerate: boolean;
         subMenu: {
             id: number;
             title: string;
@@ -124,6 +130,9 @@ export default function RolePermissionsPage() {
             canAdd: boolean;
             canEdit: boolean;
             canDelete: boolean;
+            canAssign: boolean;
+            canApprove: boolean;
+            canGenerate: boolean;
             subMenus: {
                 [subMenuId: number]: {
                     enabled: boolean;
@@ -131,6 +140,9 @@ export default function RolePermissionsPage() {
                     canAdd: boolean;
                     canEdit: boolean;
                     canDelete: boolean;
+                    canAssign: boolean;
+                    canApprove: boolean;
+                    canGenerate: boolean;
                 }
             };
         };
@@ -172,6 +184,9 @@ export default function RolePermissionsPage() {
                     canAdd: sm.canAdd,
                     canEdit: sm.canEdit,
                     canDelete: sm.canDelete,
+                    canAssign: sm.canAssign,
+                    canApprove: sm.canApprove,
+                    canGenerate: sm.canGenerate,
                 };
             });
 
@@ -181,6 +196,9 @@ export default function RolePermissionsPage() {
                 canAdd: ma.canAdd,
                 canEdit: ma.canEdit,
                 canDelete: ma.canDelete,
+                canAssign: ma.canAssign,
+                canApprove: ma.canApprove,
+                canGenerate: ma.canGenerate,
                 subMenus: subMenuMap,
             };
         });
@@ -231,6 +249,9 @@ export default function RolePermissionsPage() {
                     canAdd: false,
                     canEdit: false,
                     canDelete: false,
+                    canAssign: false,
+                    canApprove: false,
+                    canGenerate: false,
                     subMenus: prev[menuId]?.subMenus || {},
                 },
             };
@@ -245,6 +266,9 @@ export default function RolePermissionsPage() {
                 canAdd: false,
                 canEdit: false,
                 canDelete: false,
+                canAssign: false,
+                canApprove: false,
+                canGenerate: false,
                 subMenus: {}
             };
 
@@ -263,6 +287,9 @@ export default function RolePermissionsPage() {
                             canAdd: false,
                             canEdit: false,
                             canDelete: false,
+                            canAssign: false,
+                            canApprove: false,
+                            canGenerate: false,
                         }
                     }
                 },
@@ -274,14 +301,23 @@ export default function RolePermissionsPage() {
         const menu = menus.find((m) => m.id === menuId);
         if (!menu) return;
 
+        const isRolePerm = menu.title.toLowerCase() === "role permission";
+        const isGenerateId = menu.title.toLowerCase() === "generate-id";
+
         const subMenuMap: any = {};
         menu.subMenus.forEach(sm => {
+            const isSubRolePerm = sm.title.toLowerCase() === "role permission";
+            const isSubGenerateId = sm.title.toLowerCase() === "generate-id";
+
             subMenuMap[sm.id] = {
                 enabled: true,
                 canView: true,
                 canAdd: true,
                 canEdit: true,
                 canDelete: true,
+                canAssign: isSubRolePerm,
+                canApprove: isSubGenerateId,
+                canGenerate: isSubGenerateId,
             };
         });
 
@@ -293,6 +329,9 @@ export default function RolePermissionsPage() {
                 canAdd: true,
                 canEdit: true,
                 canDelete: true,
+                canAssign: isRolePerm,
+                canApprove: isGenerateId,
+                canGenerate: isGenerateId,
                 subMenus: subMenuMap,
             },
         }));
@@ -328,6 +367,9 @@ export default function RolePermissionsPage() {
                     canAdd: data.canAdd,
                     canEdit: data.canEdit,
                     canDelete: data.canDelete,
+                    canAssign: data.canAssign,
+                    canApprove: data.canApprove,
+                    canGenerate: data.canGenerate,
                     subMenus: Object.entries(data.subMenus)
                         .filter(([_, subData]) => subData.enabled)
                         .map(([subMenuId, subData]) => ({
@@ -336,6 +378,9 @@ export default function RolePermissionsPage() {
                             canAdd: subData.canAdd,
                             canEdit: subData.canEdit,
                             canDelete: subData.canDelete,
+                            canAssign: subData.canAssign,
+                            canApprove: subData.canApprove,
+                            canGenerate: subData.canGenerate,
                         })),
                 }));
 
@@ -444,6 +489,9 @@ export default function RolePermissionsPage() {
                                                 {ma.canAdd && <span className="text-[7px] font-black text-green-500">A</span>}
                                                 {ma.canEdit && <span className="text-[7px] font-black text-orange-500">E</span>}
                                                 {ma.canDelete && <span className="text-[7px] font-black text-rose-500">D</span>}
+                                                {ma.canAssign && ma.menu?.title.toLowerCase() === "role permission" && <span className="text-[7px] font-black text-purple-500">S</span>}
+                                                {ma.canApprove && ma.menu?.title.toLowerCase() === "generate-id" && <span className="text-[7px] font-black text-teal-500">P</span>}
+                                                {ma.canGenerate && ma.menu?.title.toLowerCase() === "generate-id" && <span className="text-[7px] font-black text-indigo-500">G</span>}
                                             </div>
                                         </div>
                                     ))}
@@ -503,6 +551,9 @@ export default function RolePermissionsPage() {
                                             {ma.canAdd && <span className="px-1.5 py-0.5 bg-green-100 text-green-600 rounded text-[8px] font-black" title="Add">A</span>}
                                             {ma.canEdit && <span className="px-1.5 py-0.5 bg-orange-100 text-orange-600 rounded text-[8px] font-black" title="Edit">E</span>}
                                             {ma.canDelete && <span className="px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded text-[8px] font-black" title="Delete">D</span>}
+                                            {ma.canAssign && ma.menu?.title.toLowerCase() === "role permission" && <span className="px-1.5 py-0.5 bg-purple-100 text-purple-600 rounded text-[8px] font-black" title="Assign">S</span>}
+                                            {ma.canApprove && ma.menu?.title.toLowerCase() === "generate-id" && <span className="px-1.5 py-0.5 bg-teal-100 text-teal-600 rounded text-[8px] font-black" title="Approve">P</span>}
+                                            {ma.canGenerate && ma.menu?.title.toLowerCase() === "generate-id" && <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 rounded text-[8px] font-black" title="Generate">G</span>}
                                         </div>
                                     </div>
                                     <div className="pl-4 space-y-2">
@@ -516,6 +567,9 @@ export default function RolePermissionsPage() {
                                                     {sm.canAdd && <span className="px-1.5 py-0.5 bg-green-50 text-green-400 rounded text-[7px] font-black" title="Add">A</span>}
                                                     {sm.canEdit && <span className="px-1.5 py-0.5 bg-orange-50 text-orange-400 rounded text-[7px] font-black" title="Edit">E</span>}
                                                     {sm.canDelete && <span className="px-1.5 py-0.5 bg-rose-50 text-rose-400 rounded text-[7px] font-black" title="Delete">D</span>}
+                                                    {sm.canAssign && sm.subMenu?.title.toLowerCase() === "role permission" && <span className="px-1.5 py-0.5 bg-purple-50 text-purple-400 rounded text-[7px] font-black" title="Assign">S</span>}
+                                                    {sm.canApprove && sm.subMenu?.title.toLowerCase() === "generate-id" && <span className="px-1.5 py-0.5 bg-teal-50 text-teal-400 rounded text-[7px] font-black" title="Approve">P</span>}
+                                                    {sm.canGenerate && sm.subMenu?.title.toLowerCase() === "generate-id" && <span className="px-1.5 py-0.5 bg-indigo-50 text-indigo-400 rounded text-[7px] font-black" title="Generate">G</span>}
                                                 </div>
                                             </div>
                                         )) : (
@@ -597,6 +651,9 @@ export default function RolePermissionsPage() {
                                                                 newPrev[menu.id].canAdd = false;
                                                                 newPrev[menu.id].canEdit = false;
                                                                 newPrev[menu.id].canDelete = false;
+                                                                newPrev[menu.id].canAssign = false;
+                                                                newPrev[menu.id].canApprove = false;
+                                                                newPrev[menu.id].canGenerate = false;
                                                             }
                                                             return newPrev;
                                                         })}
@@ -649,6 +706,57 @@ export default function RolePermissionsPage() {
                                                     />
                                                     <span className="text-[10px] font-black text-gray-400 uppercase">Delete</span>
                                                 </label>
+                                                {menu.title.toLowerCase() === "role permission" && (
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedMenus[menu.id]?.canAssign || false}
+                                                            onChange={() => setSelectedMenus(prev => {
+                                                                const newPrev = JSON.parse(JSON.stringify(prev));
+                                                                const isChecked = !newPrev[menu.id].canAssign;
+                                                                newPrev[menu.id].canAssign = isChecked;
+                                                                if (isChecked) newPrev[menu.id].canView = true;
+                                                                return newPrev;
+                                                            })}
+                                                            className="w-4 h-4 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                        />
+                                                        <span className="text-[10px] font-black text-gray-400 uppercase">Assign</span>
+                                                    </label>
+                                                )}
+                                                {menu.title.toLowerCase() === "generate-id" && (
+                                                    <>
+                                                        <label className="flex items-center gap-2 cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedMenus[menu.id]?.canApprove || false}
+                                                                onChange={() => setSelectedMenus(prev => {
+                                                                    const newPrev = JSON.parse(JSON.stringify(prev));
+                                                                    const isChecked = !newPrev[menu.id].canApprove;
+                                                                    newPrev[menu.id].canApprove = isChecked;
+                                                                    if (isChecked) newPrev[menu.id].canView = true;
+                                                                    return newPrev;
+                                                                })}
+                                                                className="w-4 h-4 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                            />
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase">Approve</span>
+                                                        </label>
+                                                        <label className="flex items-center gap-2 cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedMenus[menu.id]?.canGenerate || false}
+                                                                onChange={() => setSelectedMenus(prev => {
+                                                                    const newPrev = JSON.parse(JSON.stringify(prev));
+                                                                    const isChecked = !newPrev[menu.id].canGenerate;
+                                                                    newPrev[menu.id].canGenerate = isChecked;
+                                                                    if (isChecked) newPrev[menu.id].canView = true;
+                                                                    return newPrev;
+                                                                })}
+                                                                className="w-4 h-4 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                            />
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase">Generate</span>
+                                                        </label>
+                                                    </>
+                                                )}
                                             </div>
                                         )}
 
@@ -687,6 +795,9 @@ export default function RolePermissionsPage() {
                                                                                 newPrev[menu.id].subMenus[submenu.id].canAdd = false;
                                                                                 newPrev[menu.id].subMenus[submenu.id].canEdit = false;
                                                                                 newPrev[menu.id].subMenus[submenu.id].canDelete = false;
+                                                                                newPrev[menu.id].subMenus[submenu.id].canAssign = false;
+                                                                                newPrev[menu.id].subMenus[submenu.id].canApprove = false;
+                                                                                newPrev[menu.id].subMenus[submenu.id].canGenerate = false;
                                                                             }
                                                                             return newPrev;
                                                                         })}
@@ -739,6 +850,57 @@ export default function RolePermissionsPage() {
                                                                     />
                                                                     <span className="text-[8px] font-black text-gray-400 uppercase">Delete</span>
                                                                 </label>
+                                                                {submenu.title.toLowerCase() === "role permission" && (
+                                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={selectedMenus[menu.id]?.subMenus[submenu.id]?.canAssign || false}
+                                                                            onChange={() => setSelectedMenus(prev => {
+                                                                                const newPrev = JSON.parse(JSON.stringify(prev));
+                                                                                const isChecked = !newPrev[menu.id].subMenus[submenu.id].canAssign;
+                                                                                newPrev[menu.id].subMenus[submenu.id].canAssign = isChecked;
+                                                                                if (isChecked) newPrev[menu.id].subMenus[submenu.id].canView = true;
+                                                                                return newPrev;
+                                                                            })}
+                                                                            className="w-3 h-3 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                                        />
+                                                                        <span className="text-[8px] font-black text-gray-400 uppercase">Assign</span>
+                                                                    </label>
+                                                                )}
+                                                                {submenu.title.toLowerCase() === "generate-id" && (
+                                                                    <>
+                                                                        <label className="flex items-center gap-2 cursor-pointer">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={selectedMenus[menu.id]?.subMenus[submenu.id]?.canApprove || false}
+                                                                                onChange={() => setSelectedMenus(prev => {
+                                                                                    const newPrev = JSON.parse(JSON.stringify(prev));
+                                                                                    const isChecked = !newPrev[menu.id].subMenus[submenu.id].canApprove;
+                                                                                    newPrev[menu.id].subMenus[submenu.id].canApprove = isChecked;
+                                                                                    if (isChecked) newPrev[menu.id].subMenus[submenu.id].canView = true;
+                                                                                    return newPrev;
+                                                                                })}
+                                                                                className="w-3 h-3 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                                            />
+                                                                            <span className="text-[8px] font-black text-gray-400 uppercase">Approve</span>
+                                                                        </label>
+                                                                        <label className="flex items-center gap-2 cursor-pointer">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={selectedMenus[menu.id]?.subMenus[submenu.id]?.canGenerate || false}
+                                                                                onChange={() => setSelectedMenus(prev => {
+                                                                                    const newPrev = JSON.parse(JSON.stringify(prev));
+                                                                                    const isChecked = !newPrev[menu.id].subMenus[submenu.id].canGenerate;
+                                                                                    newPrev[menu.id].subMenus[submenu.id].canGenerate = isChecked;
+                                                                                    if (isChecked) newPrev[menu.id].subMenus[submenu.id].canView = true;
+                                                                                    return newPrev;
+                                                                                })}
+                                                                                className="w-3 h-3 rounded border-2 border-gray-300 text-blue-500 focus:ring-0 transition-all cursor-pointer"
+                                                                            />
+                                                                            <span className="text-[8px] font-black text-gray-400 uppercase">Generate</span>
+                                                                        </label>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
@@ -761,8 +923,8 @@ export default function RolePermissionsPage() {
                             {isSubmitting ? "Synchronizing..." : "Synchronize Mandate"}
                         </button>
                     </div>
-                </form>
-            </Modal>
+                </form >
+            </Modal >
 
             <DeleteConfirmModal
                 isOpen={isDeleteModalOpen}
@@ -787,6 +949,6 @@ export default function RolePermissionsPage() {
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
             `}</style>
-        </div>
+        </div >
     );
 }

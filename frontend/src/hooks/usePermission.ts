@@ -8,6 +8,9 @@ interface SubMenuPermission {
     canAdd: boolean;
     canEdit: boolean;
     canDelete: boolean;
+    canAssign: boolean;
+    canApprove: boolean;
+    canGenerate: boolean;
     subMenu: {
         title: string;
         url: string;
@@ -20,6 +23,9 @@ interface MenuPermission {
     canAdd: boolean;
     canEdit: boolean;
     canDelete: boolean;
+    canAssign: boolean;
+    canApprove: boolean;
+    canGenerate: boolean;
     menu: {
         title: string;
         url?: string;
@@ -85,10 +91,10 @@ export const usePermission = () => {
     /**
      * Check if user has specific permission for a module
      * @param moduleName - The name of the menu or submenu (e.g., "Departments", "Users")
-     * @param action - The action to check: 'view', 'add', 'edit', 'delete'
+     * @param action - The action to check: 'view', 'add', 'edit', 'delete', 'assign', 'approve', 'generate'
      * @param isSubMenu - Whether the module is a submenu (true) or a main menu (false) (default: false)
      */
-    const hasPermission = (moduleName: string, action: 'view' | 'add' | 'edit' | 'delete', isSubMenu: boolean = false): boolean => {
+    const hasPermission = (moduleName: string, action: 'view' | 'add' | 'edit' | 'delete' | 'assign' | 'approve' | 'generate', isSubMenu: boolean = false): boolean => {
         if (!permissions) return false;
 
         // Normalize inputs
@@ -103,6 +109,9 @@ export const usePermission = () => {
                 case 'add': return menu.canAdd;
                 case 'edit': return menu.canEdit;
                 case 'delete': return menu.canDelete;
+                case 'assign': return menu.canAssign;
+                case 'approve': return menu.canApprove;
+                case 'generate': return menu.canGenerate;
             }
         }
 
@@ -115,6 +124,9 @@ export const usePermission = () => {
                     case 'add': return sub.canAdd;
                     case 'edit': return sub.canEdit;
                     case 'delete': return sub.canDelete;
+                    case 'assign': return sub.canAssign;
+                    case 'approve': return sub.canApprove;
+                    case 'generate': return sub.canGenerate;
                 }
             }
         }

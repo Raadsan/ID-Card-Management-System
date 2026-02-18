@@ -18,6 +18,9 @@ export const createRolePermissions = async (req, res) => {
             canAdd: menu.canAdd !== undefined ? menu.canAdd : false,
             canEdit: menu.canEdit !== undefined ? menu.canEdit : false,
             canDelete: menu.canDelete !== undefined ? menu.canDelete : false,
+            canAssign: menu.canAssign !== undefined ? menu.canAssign : false,
+            canApprove: menu.canApprove !== undefined ? menu.canApprove : false,
+            canGenerate: menu.canGenerate !== undefined ? menu.canGenerate : false,
             subMenus: {
               create: menu.subMenus.map(sub => ({
                 subMenuId: Number(sub.subMenuId),
@@ -25,6 +28,9 @@ export const createRolePermissions = async (req, res) => {
                 canAdd: sub.canAdd !== undefined ? sub.canAdd : false,
                 canEdit: sub.canEdit !== undefined ? sub.canEdit : false,
                 canDelete: sub.canDelete !== undefined ? sub.canDelete : false,
+                canAssign: sub.canAssign !== undefined ? sub.canAssign : false,
+                canApprove: sub.canApprove !== undefined ? sub.canApprove : false,
+                canGenerate: sub.canGenerate !== undefined ? sub.canGenerate : false,
               }))
             }
           }))
@@ -155,6 +161,9 @@ export const updateRolePermissions = async (req, res) => {
             canAdd: menu.canAdd !== undefined ? menu.canAdd : false,
             canEdit: menu.canEdit !== undefined ? menu.canEdit : false,
             canDelete: menu.canDelete !== undefined ? menu.canDelete : false,
+            canAssign: menu.canAssign !== undefined ? menu.canAssign : false,
+            canApprove: menu.canApprove !== undefined ? menu.canApprove : false,
+            canGenerate: menu.canGenerate !== undefined ? menu.canGenerate : false,
             subMenus: {
               create: menu.subMenus.map(sub => ({
                 subMenuId: Number(sub.subMenuId),
@@ -162,6 +171,9 @@ export const updateRolePermissions = async (req, res) => {
                 canAdd: sub.canAdd !== undefined ? sub.canAdd : false,
                 canEdit: sub.canEdit !== undefined ? sub.canEdit : false,
                 canDelete: sub.canDelete !== undefined ? sub.canDelete : false,
+                canAssign: sub.canAssign !== undefined ? sub.canAssign : false,
+                canApprove: sub.canApprove !== undefined ? sub.canApprove : false,
+                canGenerate: sub.canGenerate !== undefined ? sub.canGenerate : false,
               })),
             },
           })),

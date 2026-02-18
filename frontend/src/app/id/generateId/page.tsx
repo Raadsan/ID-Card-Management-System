@@ -17,8 +17,8 @@ export default function GenerateIdPage() {
     const [error, setError] = useState<string | null>(null);
 
     const { hasPermission } = usePermission();
-    const canAdd = hasPermission("Generate ID", "add", true);
-    const canEdit = hasPermission("Generate ID", "edit", true);
+    const canGenerate = hasPermission("generate-id", "generate", true);
+    const canApprove = hasPermission("generate-id", "approve", true);
 
     const fetchIdCards = async () => {
         try {
@@ -124,7 +124,7 @@ export default function GenerateIdPage() {
                         </div>
                     </div>
 
-                    {canAdd && (
+                    {canGenerate && (
                         <button
                             onClick={() => setIsModalOpen(true)}
                             className="px-6 py-3 bg-[#1B1555] text-white rounded-lg font-medium hover:bg-[#141040] transition-colors flex items-center gap-2"
@@ -240,7 +240,7 @@ export default function GenerateIdPage() {
                                                 >
                                                     View
                                                 </button>
-                                                {canEdit && (card.status === 'created' || card.status === 'lost' || card.status === 'expired') && (
+                                                {canApprove && (card.status === 'created' || card.status === 'lost' || card.status === 'expired') && (
                                                     <button
                                                         onClick={() => handleApprove(card.id)}
                                                         className="px-3 py-1.5 text-sm font-medium text-white bg-[#16BCF8] rounded-lg hover:bg-[#009ED9] transition-colors shadow-sm"
@@ -248,7 +248,7 @@ export default function GenerateIdPage() {
                                                         Approve
                                                     </button>
                                                 )}
-                                                {canEdit && card.status === 'ready_to_print' && (
+                                                {canApprove && card.status === 'ready_to_print' && (
                                                     <button
                                                         onClick={() => handlePrint(card.id)}
                                                         className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm"
