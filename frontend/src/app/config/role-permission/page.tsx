@@ -106,6 +106,7 @@ export default function RolePermissionsPage() {
     const canAdd = hasPermission("Role Permission", "add", true);
     const canEdit = hasPermission("Role Permission", "edit", true);
     const canDelete = hasPermission("Role Permission", "delete", true);
+    const canAssign = hasPermission("Role Permission", "assign", true);
 
     // MessageBox State
     const [msgBox, setMsgBox] = useState<{
@@ -431,17 +432,19 @@ export default function RolePermissionsPage() {
                     <h1 className="text-2xl font-bold text-gray-800">Role Permissions</h1>
                     <p className="text-sm text-gray-500">Manage security mandates and module access</p>
                 </div>
-                <button
-                    onClick={() => {
-                        setSelectedRoleId("");
-                        setSelectedMenus({});
-                        setShowModal(true);
-                    }}
-                    className="flex items-center gap-2 rounded-xl bg-[#1B1555] px-6 py-3 text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all"
-                >
-                    <Plus size={18} />
-                    Assign Role-Permission
-                </button>
+                {canAssign && (
+                    <button
+                        onClick={() => {
+                            setSelectedRoleId("");
+                            setSelectedMenus({});
+                            setShowModal(true);
+                        }}
+                        className="flex items-center gap-2 rounded-xl bg-[#1B1555] px-6 py-3 text-white font-bold text-sm shadow-lg hover:shadow-xl transition-all"
+                    >
+                        <Plus size={18} />
+                        Assign Role-Permission
+                    </button>
+                )}
             </div>
 
             {loading ? (
