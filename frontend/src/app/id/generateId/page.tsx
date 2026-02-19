@@ -187,7 +187,7 @@ export default function GenerateIdPage() {
                                                     <User className="h-5 w-5" />
                                                 </div>
                                                 <div className="text-sm font-medium text-gray-900">
-                                                    {card.employee?.user?.fullName || "N/A"}
+                                                    {card.employee?.fullName || "N/A"}
                                                 </div>
                                             </div>
                                         </td>

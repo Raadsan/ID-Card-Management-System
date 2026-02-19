@@ -6,6 +6,7 @@ import DataTable from "./DataTable";
 import { getEmployees } from "@/api/employeeApi";
 import { getAllIdGenerates } from "@/api/generateIdApi";
 import { getDepartments } from "@/api/departmentApi";
+import { getCategories } from "@/api/categoryApi";
 
 export default function DashboardContent() {
     const [employees, setEmployees] = useState<any[]>([]);
@@ -23,6 +24,7 @@ export default function DashboardContent() {
     });
     const [transactions, setTransactions] = useState<any[]>([]);
     const [chartData, setChartData] = useState<any[]>([]);
+    const [categoryStats, setCategoryStats] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [hasMounted, setHasMounted] = useState(false);
 
@@ -34,10 +36,11 @@ export default function DashboardContent() {
         const fetchDashboardData = async () => {
             try {
                 setLoading(true);
-                const [employeesData, idCardsData, departmentsData] = await Promise.all([
+                const [employeesData, idCardsData, departmentsData, categoriesData] = await Promise.all([
                     getEmployees(),
                     getAllIdGenerates(),
-                    getDepartments()
+                    getDepartments(),
+                    getCategories()
                 ]);
 
                 // Set top 5 employees for the table

@@ -79,9 +79,7 @@ export const getDepartmentTransfers = async (req, res) => {
   try {
     const transfers = await prisma.departmentTransfer.findMany({
       include: {
-        employee: {
-          include: { user: true }
-        },
+        employee: true,
         fromDepartment: true,
         toDepartment: true,
         authorizedBy: true, // 👈 Included Authorizing User
@@ -102,9 +100,7 @@ export const getDepartmentTransferById = async (req, res) => {
     const transfer = await prisma.departmentTransfer.findUnique({
       where: { id: Number(id) },
       include: {
-        employee: {
-          include: { user: true }
-        },
+        employee: true,
         fromDepartment: true,
         toDepartment: true,
         authorizedBy: true, // 👈 Included Authorizing User

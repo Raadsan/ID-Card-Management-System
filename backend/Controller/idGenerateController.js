@@ -59,7 +59,6 @@ export const getAllIdGenerates = async (req, res) => {
             include: {
                 employee: {
                     include: {
-                        user: true,
                         department: true
                     },
                 },
@@ -135,7 +134,7 @@ export const getIdGenerateById = async (req, res) => {
         const data = await prisma.idGenerate.findUnique({
             where: { id: Number(id) },
             include: {
-                employee: { include: { user: true, department: true } },
+                employee: { include: { department: true } },
                 template: true,
             },
         });
@@ -227,7 +226,7 @@ export const verifyQrCode = async (req, res) => {
         const data = await prisma.idGenerate.findUnique({
             where: { qrCode },
             include: {
-                employee: { include: { user: true, department: true } },
+                employee: { include: { department: true } },
                 template: true,
             },
         });

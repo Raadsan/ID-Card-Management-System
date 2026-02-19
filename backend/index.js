@@ -21,6 +21,7 @@ import employeeReportRoutes from "./Routes/report/employeeReportRoutes.js";
 import departmentReportRoutes from "./Routes/report/departmentReportRoutes.js";
 import departmentTransferReportRoutes from "./Routes/report/departmentTransferReportRoutes.js";
 import idCardReportRoutes from "./Routes/report/idCardReportRoutes.js";
+import categoryRoutes from "./Routes/categoryRoutes.js";
 import job from "./config/cron.js";
 
 
@@ -70,6 +71,7 @@ app.use("/api/department-report", departmentReportRoutes);
 app.use("/api/department-transfer-report", departmentTransferReportRoutes);
 app.use("/api/id-card-report", idCardReportRoutes);
 app.use("/api/audit-logs", auditLogRoutes);
+app.use("/api/category", categoryRoutes);
 
 async function startServer() {
   try {

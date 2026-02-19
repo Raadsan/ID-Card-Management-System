@@ -106,7 +106,6 @@ model User {
   gender             String?
   photo              String?
   transfersPerformed DepartmentTransfer[] @relation("TransfersPerformed")
-  employee           Employee?
   role               Role                 @relation(fields: [roleId], references: [id])
 
   // 👇 ADD THESE
@@ -119,20 +118,30 @@ model User {
 
 model Employee {
   id           Int                  @id @default(autoincrement())
+  fullName     String
+  email        String               @unique
+  phone        String?
   address      String?
   dob          DateTime?
+  nationality  String?
+  photo        String?
+  gender       String?
   status       String               @default("active")
   departmentId Int
+  sectionId    Int?
+  categoryId   Int?
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
   title        String?
-  userId       Int                  @unique
   transfers    DepartmentTransfer[]
   department   Department           @relation(fields: [departmentId], references: [id])
-  user         User                 @relation(fields: [userId], references: [id])
+  section      DepartmentSection?   @relation(fields: [sectionId], references: [id])
+  category     Category?            @relation(fields: [categoryId], references: [id])
   idGenerates  IdGenerate[]
 
   @@index([departmentId], map: "Employee_departmentId_fkey")
+  @@index([sectionId], map: "Employee_sectionId_fkey")
+  @@index([categoryId], map: "Employee_categoryId_fkey")
 }
 
 model Department {
@@ -155,6 +164,7 @@ model DepartmentSection {
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  employees    Employee[]
 
   @@index([departmentId], map: "DepartmentSection_departmentId_fkey")
 }
@@ -250,4 +260,14 @@ model AuditLog {
   user       User       @relation(fields: [userId], references: [id])
 
   @@index([userId], map: "AuditLog_userId_fkey")
+}
+
+
+model Category {
+  id Int @id @default(autoincrement())
+  name String
+  description String?
+  employees   Employee[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

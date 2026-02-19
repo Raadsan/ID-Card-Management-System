@@ -73,11 +73,13 @@ const ViewEmployeeModal: React.FC<ViewEmployeeModalProps> = ({ isOpen, onClose, 
         return `${age} years`;
     };
 
-    const InfoBox = ({ label, value, isAccent = false, className = "" }: any) => (
-        <div className={`bg-white p-3 rounded-xl border border-gray-100 shadow-sm ${className}`}>
-            <div className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">{label}</div>
-            <div className={`text-sm font-bold truncate ${isAccent ? 'text-blue-500' : 'text-[#1B1555]'}`}>
-                {value || 'N/A'}
+    const InfoBox = ({ label, value, icon, className = "" }: any) => (
+        <div className={`space-y-1.5 ${className}`}>
+            <label className="text-[11px] font-bold uppercase text-[#1B1555]/60 flex items-center gap-2 mb-1">
+                {icon} {label}
+            </label>
+            <div className="w-full rounded-xl border border-gray-100 p-3.5 text-sm font-bold bg-gray-50/30 text-[#1B1555] backdrop-blur-[2px] transition-all hover:border-[#16BCF8]/30">
+                {value || '—'}
             </div>
         </div>
     );
@@ -106,10 +108,10 @@ const ViewEmployeeModal: React.FC<ViewEmployeeModalProps> = ({ isOpen, onClose, 
         };
 
         return (
-            <div className="space-y-2 w-full">
-                <span className="text-xs font-bold text-gray-500 block text-center uppercase tracking-wider">{isFront ? 'Front Side' : 'Back Side'}</span>
+            <div className="space-y-3 w-full group">
+                <span className="text-[10px] font-black text-gray-400 block text-center uppercase tracking-widest">{isFront ? 'ID Front View' : 'ID Back View'}</span>
                 <div
-                    className="relative w-full rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-xl"
+                    className="relative w-full rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-lg transition-transform hover:scale-[1.02]"
                     style={{
                         aspectRatio: `${width} / ${height}`,
                         containerType: 'size'
@@ -125,14 +127,14 @@ const ViewEmployeeModal: React.FC<ViewEmployeeModalProps> = ({ isOpen, onClose, 
                             {positions.photo && (
                                 <div className="absolute overflow-hidden" style={getPosStyles(positions.photo)}>
                                     <img
-                                        src={getImageUrl(employee.user?.photo) || '/placeholder-user.png'}
+                                        src={getImageUrl(employee.photo) || '/placeholder-user.png'}
                                         alt=""
                                         className="w-full h-full object-cover"
                                     />
                                 </div>
                             )}
                             <div className="absolute whitespace-nowrap overflow-hidden " style={{ ...getPosStyles(positions.fullName), textOverflow: 'ellipsis' }}>
-                                {employee.user?.fullName}
+                                {employee.fullName}
                             </div>
                             <div className="absolute whitespace-nowrap overflow-hidden" style={{ ...getPosStyles(positions.title), textOverflow: 'ellipsis' }}>
                                 {employee.title || 'Staff'}
@@ -175,65 +177,75 @@ const ViewEmployeeModal: React.FC<ViewEmployeeModalProps> = ({ isOpen, onClose, 
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="View Employee Profile" maxWidth="max-w-5xl">
-            <div className="px-8 py-8 space-y-10">
+        <Modal isOpen={isOpen} onClose={onClose} title="Employee Details Profile" maxWidth="max-w-5xl">
+            <div className="px-2 py-4 space-y-8 h-full">
                 {/* Personal Information Block */}
-                <div className="bg-indigo-50/20 p-8 rounded-2xl border border-indigo-100/50 space-y-6">
-                    <div className="flex items-center gap-3 text-[#1B1555] font-black uppercase tracking-[0.15em] text-[12px]">
-                        <User size={16} className="text-indigo-400" /> Personal Information
+                <div className="bg-white/40 backdrop-blur-md p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+                    <div className="flex items-center gap-2.5 text-[#16BCF8] font-bold text-sm">
+                        <User size={18} /> Personal Information
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <InfoBox label="Full Name" value={employee.user?.fullName} className="p-4" />
-                        <InfoBox label="Email" value={employee.user?.email} className="p-4" />
-                        <InfoBox label="Phone" value={employee.user?.phone} className="p-4" />
-                        <InfoBox label="Age" value={calculateAge(employee.dob)} isAccent className="p-4" />
-                        <InfoBox label="Gender" value={employee.user?.gender} className="p-4" />
-                        <InfoBox label="Date of Birth" value={formatDate(employee.dob)} className="p-4" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                        <InfoBox label="Full Name" value={employee.fullName} />
+                        <InfoBox label="Email Address" value={employee.email} />
+                        <InfoBox label="Phone Number" value={employee.phone} />
+                        <InfoBox label="Gender" value={employee.gender} />
+                        <InfoBox label="Date of Birth" value={formatDate(employee.dob)} />
+                        <InfoBox label="Current Age" value={calculateAge(employee.dob)} />
                     </div>
                 </div>
 
                 {/* Professional Information Block */}
-                <div className="bg-rose-50/20 p-8 rounded-2xl border border-rose-100/50 space-y-6">
-                    <div className="flex items-center gap-3 text-[#1B1555] font-black uppercase tracking-[0.15em] text-[12px]">
-                        <Briefcase size={16} className="text-rose-400" /> Professional Information
+                <div className="bg-white/40 backdrop-blur-md p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+                    <div className="flex items-center gap-2.5 text-[#16BCF8] font-bold text-sm">
+                        <Briefcase size={18} /> Professional Information
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <InfoBox label="Job Title" value={employee.title} isAccent className="p-4" />
-                        <InfoBox label="Department" value={employee.department?.departmentName} className="p-4" />
-                        <InfoBox label="System Role" value={employee.user?.role?.name} className="p-4" />
-                        <InfoBox label="Status" value={employee.status} className="p-4" />
-                        <InfoBox label="Join Date" value={formatDate(employee.createdAt)} className="p-4" />
-                    </div>
-                </div>
-
-                {/* Location Block */}
-                <div className="bg-emerald-50/20 p-8 rounded-2xl border border-emerald-100/50 space-y-6">
-                    <div className="flex items-center gap-3 text-[#1B1555] font-black uppercase tracking-[0.15em] text-[12px]">
-                        <MapPin size={16} className="text-emerald-400" /> Location & Additional Details
-                    </div>
-                    <div className="space-y-6">
-                        <InfoBox label="Office Address" value={employee.address} className="w-full p-4" />
-                        <InfoBox label="Department Overview" value="Information regarding the specific department and reporting lines." className="w-full p-4" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-5">
+                        <InfoBox label="Job Title" value={employee.title} />
+                        <InfoBox label="Department" value={employee.department?.departmentName} />
+                        <InfoBox label="Section" value={employee.section?.name} />
+                        <InfoBox label="Category" value={employee.category?.name} />
+                        <InfoBox label="Join Date" value={formatDate(employee.createdAt)} />
+                        <InfoBox label="Employment Status" value={employee.status} />
                     </div>
                 </div>
 
-                {/* Template Backgrounds Block */}
-                <div className="bg-gray-50/50 p-8 rounded-2xl border border-gray-100 space-y-8">
-                    <div className="flex items-center gap-3 text-gray-500 font-black uppercase tracking-[0.15em] text-[12px]">
-                        <ImageIcon size={16} /> Template Backgrounds
+                {/* Location & Template Block */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-1 space-y-6">
+                        <div className="bg-white/40 backdrop-blur-md p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6 h-full font-bold">
+                            <div className="flex items-center gap-2.5 text-[#16BCF8] font-bold text-sm">
+                                <MapPin size={18} /> Office Location
+                            </div>
+                            <InfoBox label="Nationality" value={employee.nationality} />
+                            <InfoBox label="Home Address" value={employee.address} className="h-full" />
+                        </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
-                        {renderIdCard(true)}
-                        {renderIdCard(false)}
+
+                    <div className="lg:col-span-2">
+                        <div className="bg-[#1B1555]/[0.02] p-6 rounded-3xl border border-gray-100 space-y-6">
+                            <div className="flex items-center gap-2.5 text-gray-400 font-bold text-xs uppercase tracking-widest">
+                                <ImageIcon size={18} /> ID Card Visual Preview
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {renderIdCard(true)}
+                                {renderIdCard(false)}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex justify-end pt-4">
+                <div className="flex justify-end gap-3 pt-4 sticky bottom-0 bg-white py-4 -mx-2 px-2 border-t border-gray-50/50">
                     <button
                         onClick={onClose}
-                        className="px-10 py-3 bg-white border border-gray-200 text-gray-400 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
+                        className="px-8 py-3 bg-gray-100/50 text-gray-500 text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-gray-100 transition-all active:scale-95"
                     >
-                        Close profile
+                        Close Profile
+                    </button>
+                    <button
+                        onClick={() => window.print()}
+                        className="px-8 py-3 bg-[#1B1555] text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-[#16BCF8] transition-all active:scale-95 shadow-xl shadow-indigo-500/10 flex items-center gap-2"
+                    >
+                        <Printer size={16} /> Print Details
                     </button>
                 </div>
             </div>

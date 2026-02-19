@@ -93,4 +93,5 @@ export const TABLE_NAMES = {
     REPORT_DEPARTMENT: "DepartmentReport",
     REPORT_EMPLOYEE: "EmployeeReport",
     REPORT_TRANSFER: "DepartmentTransferReport",
+    CATEGORY: "Category",
 };

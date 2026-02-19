@@ -11,6 +11,9 @@ import Modal from "@/components/layout/Modal";
 import DeleteConfirmModal from "@/components/layout/ConfirmDeleteModel";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
 import { getImageUrl } from "@/utils/url";
+import Swal from "sweetalert2";
+import { removeBackground } from "@imgly/background-removal";
+import { Loader2 } from "lucide-react";
 
 // Define the User type based on your API response
 interface User {
@@ -34,6 +37,7 @@ export default function UsersPage() {
     const [userToEdit, setUserToEdit] = useState<User | null>(null);
     const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [isRemovingBg, setIsRemovingBg] = useState(false);
 
     const { hasPermission } = usePermission();
 
@@ -163,15 +167,49 @@ export default function UsersPage() {
         setPhotoPreview(null);
     };
 
-    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
+        if (!file) return;
+
+        const result = await Swal.fire({
+            title: "Background Removal",
+            text: "Do you want to remove the background from this photo?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Yes, remove it!",
+            cancelButtonText: "Keep original",
+            confirmButtonColor: "#16BCF8",
+            cancelButtonColor: "#1B1555",
+            customClass: {
+                popup: 'rounded-3xl border-none shadow-2xl',
+                confirmButton: 'rounded-xl px-6 py-3 font-bold text-sm uppercase tracking-widest',
+                cancelButton: 'rounded-xl px-6 py-3 font-bold text-sm uppercase tracking-widest'
+            }
+        });
+
+        if (result.isConfirmed) {
+            try {
+                setIsRemovingBg(true);
+                const blob = await removeBackground(file);
+                const processedFile = new File([blob], file.name, { type: "image/png" });
+                setSelectedPhoto(processedFile);
+                setPhotoPreview(URL.createObjectURL(processedFile));
+            } catch (error) {
+                console.error("Background removal failed:", error);
+                setMsgBox({
+                    isOpen: true,
+                    title: "Processing Error",
+                    message: "Failed to remove background. Using original photo.",
+                    type: "error"
+                });
+                setSelectedPhoto(file);
+                setPhotoPreview(URL.createObjectURL(file));
+            } finally {
+                setIsRemovingBg(false);
+            }
+        } else {
             setSelectedPhoto(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPhotoPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            setPhotoPreview(URL.createObjectURL(file));
         }
     };
 
@@ -490,6 +528,12 @@ export default function UsersPage() {
                                     ) : (
                                         <UserCircle size={32} className="text-gray-300" />
                                     )}
+                                    {isRemovingBg && (
+                                        <div className="absolute inset-0 bg-[#1B1555]/60 flex flex-col items-center justify-center text-white p-2">
+                                            <Loader2 className="animate-spin mb-2" size={24} />
+                                            <span className="text-[10px] font-black uppercase text-center">Removing...</span>
+                                        </div>
+                                    )}
                                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                         <ImageIcon className="text-white w-6 h-6" />
                                     </div>
@@ -658,6 +702,12 @@ export default function UsersPage() {
                                         <img src={photoPreview} alt="Preview" className="h-full w-full object-cover" />
                                     ) : (
                                         <UserCircle size={32} className="text-gray-300" />
+                                    )}
+                                    {isRemovingBg && (
+                                        <div className="absolute inset-0 bg-[#1B1555]/60 flex flex-col items-center justify-center text-white p-2 text-center">
+                                            <Loader2 className="animate-spin mb-2" size={24} />
+                                            <span className="text-[10px] font-black uppercase">Processing...</span>
+                                        </div>
                                     )}
                                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                         <ImageIcon className="text-white w-6 h-6" />

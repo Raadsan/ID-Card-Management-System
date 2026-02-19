@@ -11,13 +11,10 @@ import { IdCardPreview, DEFAULT_POSITIONS, IdTemplatePositions } from "./IdTempl
 
 interface Employee {
     id: number;
-    user: {
-        id: number;
-        fullName: string;
-        email: string;
-        phone?: string;
-        photo?: string;
-    };
+    fullName: string;
+    email: string;
+    phone?: string;
+    photo?: string;
     department: {
         id: number;
         departmentName: string;
@@ -237,7 +234,7 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                             <option value="">-- Choose Employee --</option>
                                             {filteredEmployees.map(emp => (
                                                 <option key={emp.id} value={emp.id}>
-                                                    {emp.user.fullName} — {emp.department.departmentName}
+                                                    {emp.fullName} — {emp.department.departmentName}
                                                 </option>
                                             ))}
                                         </select>
@@ -309,7 +306,7 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                         <div>
                                             <p className="text-sm font-medium text-blue-900">Ready to Preview</p>
                                             <p className="text-sm text-blue-700 mt-1">
-                                                Creating card for <span className="font-bold">{selectedEmployee.user.fullName}</span> using <span className="font-bold">{selectedTemplate.name}</span> layout.
+                                                Creating card for <span className="font-bold">{selectedEmployee.fullName}</span> using <span className="font-bold">{selectedTemplate.name}</span> layout.
                                             </p>
                                         </div>
                                     </div>
@@ -404,7 +401,7 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                                     }}
                                                 >
                                                     <img
-                                                        src={getImageUrl(selectedEmployee?.user.photo) || '/placeholder-user.png'}
+                                                        src={getImageUrl(selectedEmployee?.photo) || '/placeholder-user.png'}
                                                         alt=""
                                                         className="w-full h-full"
                                                         style={{ objectFit: (positions.photo as any).objectFit || 'cover' }}
@@ -427,7 +424,7 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                                         letterSpacing: '2px',
                                                     }}
                                                 >
-                                                    {selectedEmployee?.user.fullName}
+                                                    {selectedEmployee?.fullName}
                                                 </div>
 
                                                 {/* Title */}

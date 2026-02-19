@@ -105,7 +105,7 @@ export const createUser = async (req, res) => {
 export const getUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      include: { role: true, employee: true },
+      include: { role: true },
       orderBy: { id: "asc" },
     });
     res.json(users);
@@ -253,7 +253,6 @@ export const deleteUser = async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { id },
       include: {
-        employee: true,
         idsCreated: { take: 1 },
         idsPrinted: { take: 1 },
         transfersPerformed: { take: 1 },
@@ -265,7 +264,6 @@ export const deleteUser = async (req, res) => {
 
     // 2️⃣ Check for related records (Foreign Key Constraints)
     const relatedRecords = [];
-    if (user.employee) relatedRecords.push("Shaqaale (Employee)");
     if (user.idsCreated.length > 0 || user.idsPrinted.length > 0) relatedRecords.push("ID Cards");
     if (user.transfersPerformed.length > 0) relatedRecords.push("Wareejin (Transfers)");
     if (user.auditLogs.length > 0) relatedRecords.push("Logs");

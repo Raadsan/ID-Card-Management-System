@@ -318,7 +318,7 @@ export default function PrintIdPage() {
                                                     <User className="h-5 w-5" />
                                                 </div>
                                                 <div className="text-sm font-medium text-gray-900">
-                                                    {card.employee?.user?.fullName || "N/A"}
+                                                    {card.employee?.fullName || "N/A"}
                                                 </div>
                                             </div>
                                         </td>
@@ -443,7 +443,7 @@ export default function PrintIdPage() {
                         <h3 className="text-xl font-bold text-gray-900 mb-2">Print Confirmation</h3>
                         <p className="text-gray-600 mb-2">Did you print the ID of employee</p>
                         <p className="text-lg font-bold text-blue-600 mb-6">
-                            "{idCards.find(c => c.id === printedCardId)?.employee?.user?.fullName || 'Unknown'}"?
+                            "{idCards.find(c => c.id === printedCardId)?.employee?.fullName || 'Unknown'}"?
                         </p>
                         <div className="flex gap-4">
                             <button
@@ -552,7 +552,7 @@ export default function PrintIdPage() {
                                                         height: `${pos.photo.height}px`
                                                     }}>
                                                     <img
-                                                        src={getImageUrl(cardToPrint.employee?.user?.photo) || ""}
+                                                        src={getImageUrl(cardToPrint.employee?.photo) || ""}
                                                         className="w-full h-full"
                                                         style={{ objectFit: (pos.photo as any).objectFit || 'cover' }}
                                                         crossOrigin="anonymous"
@@ -570,7 +570,7 @@ export default function PrintIdPage() {
                                                         textTransform: 'uppercase',
                                                         letterSpacing: `${(pos.fullName as any).letterSpacing || 0}px`
                                                     }}>
-                                                    {cardToPrint.employee?.user?.fullName}
+                                                    {cardToPrint.employee?.fullName}
                                                 </div>
                                                 <div className="absolute whitespace-nowrap overflow-hidden"
                                                     style={{

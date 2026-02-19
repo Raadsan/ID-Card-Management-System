@@ -4,38 +4,25 @@ import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../utils/audi
 /* =========================
    CREATE EMPLOYEE
 ========================= */
-
-
-
 export const createEmployee = async (req, res) => {
     try {
         const {
+            fullName,
+            email,
+            phone,
             address,
             dob,
+            nationality,
+            gender,
             status,
             title,
             departmentId,
-            userId,
+            sectionId,
+            categoryId,
         } = req.body;
 
-        if (!departmentId || !userId) {
-            return res.status(400).json({ message: "Missing required fields" });
-        }
-
-        const user = await prisma.user.findUnique({
-            where: { id: Number(userId) },
-        });
-        if (!user) {
-            return res.status(400).json({ message: "Invalid userId" });
-        }
-
-        const existingEmployee = await prisma.employee.findUnique({
-            where: { userId: Number(userId) },
-        });
-        if (existingEmployee) {
-            return res.status(409).json({
-                message: "This user is already assigned as an employee",
-            });
+        if (!fullName || !email || !departmentId) {
+            return res.status(400).json({ message: "Missing required fields: fullName, email, and departmentId" });
         }
 
         const department = await prisma.department.findUnique({
@@ -45,18 +32,38 @@ export const createEmployee = async (req, res) => {
             return res.status(400).json({ message: "Invalid departmentId" });
         }
 
+        if (categoryId) {
+            const category = await prisma.category.findUnique({
+                where: { id: Number(categoryId) },
+            });
+            if (!category) {
+                return res.status(400).json({ message: "Invalid categoryId" });
+            }
+        }
+
+        // Photo URL from Multer/Cloudinary if applicable
+        const photo = req.file ? req.file.path : null;
+
         const employee = await prisma.employee.create({
             data: {
-                userId: Number(userId),
+                fullName,
+                email,
+                phone,
                 address,
-                title,
                 dob: dob ? new Date(dob) : null,
+                nationality,
+                gender,
+                photo,
+                title,
                 status: status || "active",
                 departmentId: Number(departmentId),
+                sectionId: sectionId ? Number(sectionId) : null,
+                categoryId: categoryId ? Number(categoryId) : null,
             },
             include: {
                 department: true,
-                user: true
+                section: true,
+                category: true
             },
         });
 
@@ -66,14 +73,14 @@ export const createEmployee = async (req, res) => {
             action: AUDIT_ACTIONS.CREATE,
             tableName: TABLE_NAMES.EMPLOYEE,
             recordId: employee.id,
-            newData: { userId, address, title, dob, status: status || "active", departmentId },
+            newData: { fullName, email, departmentId, sectionId, categoryId },
             ipAddress: getClientIp(req),
         });
 
         res.status(201).json(employee);
     } catch (error) {
         if (error.code === "P2002") {
-            return res.status(409).json({ message: "Employee already exists" });
+            return res.status(409).json({ message: "Email already exists for another employee" });
         }
         res.status(500).json({
             message: "Failed to create employee",
@@ -85,16 +92,14 @@ export const createEmployee = async (req, res) => {
 /* =========================
    GET ALL EMPLOYEES
 ========================= */
-
 export const getAllEmployees = async (req, res) => {
     try {
         const { limit } = req.query;
         const employees = await prisma.employee.findMany({
             include: {
                 department: true,
-                user: {
-                    include: { role: true }
-                },
+                section: true,
+                category: true,
                 transfers: true,
                 idGenerates: true
             },
@@ -110,13 +115,12 @@ export const getAllEmployees = async (req, res) => {
 /* =========================
    GET EMPLOYEE BY ID
 ========================= */
-
 export const getEmployeeById = async (req, res) => {
     try {
         const { id } = req.params;
         const employee = await prisma.employee.findUnique({
             where: { id: Number(id) },
-            include: { department: true, user: true }
+            include: { department: true, section: true, category: true }
         });
         if (!employee) return res.status(404).json({ message: "Employee not found" });
         res.status(200).json(employee);
@@ -128,41 +132,59 @@ export const getEmployeeById = async (req, res) => {
 /* =========================
    UPDATE EMPLOYEE
 ========================= */
-
 export const updateEmployee = async (req, res) => {
     try {
         const { id } = req.params;
-        const { dob, departmentId, userId, title, address, status } = req.body;
+        const {
+            fullName,
+            email,
+            phone,
+            address,
+            dob,
+            nationality,
+            gender,
+            status,
+            title,
+            departmentId,
+            sectionId,
+            categoryId
+        } = req.body;
 
-        // Get old data
         const oldEmployee = await prisma.employee.findUnique({ where: { id: Number(id) } });
+        if (!oldEmployee) return res.status(404).json({ message: "Employee not found" });
 
         const updateData = {};
+        if (fullName) updateData.fullName = fullName;
+        if (email) updateData.email = email;
+        if (phone !== undefined) updateData.phone = phone;
+        if (address !== undefined) updateData.address = address;
         if (dob) updateData.dob = new Date(dob);
-        if (departmentId) updateData.departmentId = Number(departmentId);
-        if (userId) updateData.userId = Number(userId);
-        if (title) updateData.title = title;
-        if (address) updateData.address = address;
+        if (nationality !== undefined) updateData.nationality = nationality;
+        if (gender !== undefined) updateData.gender = gender;
         if (status) updateData.status = status;
+        if (title !== undefined) updateData.title = title;
+        if (departmentId) updateData.departmentId = Number(departmentId);
+        if (sectionId !== undefined) updateData.sectionId = sectionId ? Number(sectionId) : null;
+        if (categoryId !== undefined) updateData.categoryId = categoryId ? Number(categoryId) : null;
+
+        if (req.file) {
+            updateData.photo = req.file.path;
+        }
 
         const employee = await prisma.employee.update({
             where: { id: Number(id) },
             data: updateData,
-            include: { department: true, user: true }
+            include: { department: true, section: true, category: true }
         });
 
-        // Log audit
         await logAudit({
             userId: req.user?.id,
             action: AUDIT_ACTIONS.UPDATE,
             tableName: TABLE_NAMES.EMPLOYEE,
             recordId: Number(id),
             oldData: {
-                userId: oldEmployee.userId,
-                address: oldEmployee.address,
-                title: oldEmployee.title,
-                dob: oldEmployee.dob,
-                status: oldEmployee.status,
+                fullName: oldEmployee.fullName,
+                email: oldEmployee.email,
                 departmentId: oldEmployee.departmentId
             },
             newData: updateData,
@@ -179,66 +201,45 @@ export const updateEmployee = async (req, res) => {
 /* ========================= 
    DELETE EMPLOYEE
 ========================= */
-
 export const deleteEmployee = async (req, res) => {
     try {
         const id = Number(req.params.id);
-        const employeeId = Number(id);
 
-        // 1️⃣ Check if employee exists and has relations
         const employee = await prisma.employee.findUnique({
-            where: { id: employeeId },
+            where: { id },
             include: {
                 idGenerates: { take: 1 },
                 transfers: { take: 1 }
             }
         });
 
-        if (!employee) return res.status(404).json({ message: "Shaqaalahan lama helin" });
+        if (!employee) return res.status(404).json({ message: "Employee not found" });
 
-        // 2️⃣ Check for related records
         const relatedRecords = [];
         if (employee.idGenerates.length > 0) relatedRecords.push("ID Cards");
-        if (employee.transfers.length > 0) relatedRecords.push("Wareejin (Transfers)");
+        if (employee.transfers.length > 0) relatedRecords.push("Transfers");
 
         if (relatedRecords.length > 0) {
-            const tableList = relatedRecords.join(" iyo ");
             return res.status(400).json({
-                message: `Ma tirtiri kartid shaqaalahan sababtoo ah waxaa jira ${tableList} ku xiran. Fadlan marka hore ka saar xogtaas.`
+                message: `Cannot delete employee because there are ${relatedRecords.join(" and ")} attached.`
             });
         }
 
-        // 3️⃣ Perform Delete
-        await prisma.employee.delete({
-            where: { id: employeeId }
-        });
+        await prisma.employee.delete({ where: { id } });
 
-        // Log audit
         await logAudit({
             userId: req.user?.id,
             action: AUDIT_ACTIONS.DELETE,
             tableName: TABLE_NAMES.EMPLOYEE,
-            recordId: employeeId,
-            oldData: {
-                userId: employee.userId,
-                address: employee.address,
-                title: employee.title,
-                departmentId: employee.departmentId,
-                status: employee.status
-            },
+            recordId: id,
+            oldData: { fullName: employee.fullName, email: employee.email },
             ipAddress: getClientIp(req),
         });
 
-        res.status(200).json({ message: "Shaqaalaha waa la tirtiray si guul ah" });
+        res.status(200).json({ message: "Employee deleted successfully" });
     } catch (error) {
         console.error("Delete Employee Error:", error);
-
-        if (error.code === "P2003") {
-            return res.status(400).json({
-                message: "Ma tirtiri kartid shaqaalahan sababtoo ah waxaa jira xog kale oo ku xiran."
-            });
-        }
-
-        res.status(500).json({ message: "Wuu ku guuldareystay tirtirista shaqaalaha.", error: error.message });
+        res.status(500).json({ message: "Failed to delete employee", error: error.message });
     }
 };
+

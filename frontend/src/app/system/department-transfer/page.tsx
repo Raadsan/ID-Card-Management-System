@@ -20,10 +20,8 @@ interface Transfer {
     reason?: string;
     employee: {
         id: number;
-        user: {
-            fullName: string;
-            photo?: string;
-        };
+        fullName: string;
+        photo?: string;
     };
     fromDepartment: {
         departmentName: string;
@@ -129,7 +127,7 @@ export default function DepartmentTransferPage() {
     const handleViewHistory = (empId: number) => {
         const history = groupedTransfers[empId] || [];
         setHistoryTransfers(history);
-        setSelectedEmployeeName(history[0]?.employee?.user?.fullName || "Employee");
+        setSelectedEmployeeName(history[0]?.employee?.fullName || "Employee");
         setIsHistoryModalOpen(true);
     };
 
@@ -301,7 +299,7 @@ export default function DepartmentTransferPage() {
             setMsgBox({
                 isOpen: true,
                 title: "Success",
-                message: `Transfer record for "${transferToDelete.employee?.user?.fullName}" has been deleted.`,
+                message: `Transfer record for "${transferToDelete.employee?.fullName}" has been deleted.`,
                 type: "success",
             });
             fetchTransfers();
@@ -361,18 +359,18 @@ export default function DepartmentTransferPage() {
             },
             {
                 label: "Full Name",
-                key: "employee.user.fullName",
+                key: "employee.fullName",
                 render: (row: Transfer) => (
                     <div className="flex items-center gap-3 text-[#1B1555] font-semibold">
                         <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-100">
                             <img
-                                src={getImageUrl(row.employee?.user?.photo) || "/placeholder-user.png"}
+                                src={getImageUrl(row.employee?.photo) || "/placeholder-user.png"}
                                 alt=""
                                 className="h-full w-full object-cover"
                                 onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-user.png" }}
                             />
                         </div>
-                        <span>{row.employee?.user?.fullName}</span>
+                        <span>{row.employee?.fullName}</span>
                     </div>
                 ),
             },
@@ -478,7 +476,7 @@ export default function DepartmentTransferPage() {
                                                 <option value="">Search employee roster...</option>
                                                 {employeesList.map((emp) => (
                                                     <option key={emp.id} value={emp.id}>
-                                                        {emp.user?.fullName}
+                                                        {emp.fullName}
                                                     </option>
                                                 ))}
                                             </select>
@@ -601,7 +599,7 @@ export default function DepartmentTransferPage() {
                                             <User size={12} className="text-[#16BCF8]" /> Assigned Employee
                                         </label>
                                         <div className="w-full rounded-xl border border-gray-200 p-3 text-sm font-bold text-gray-500 bg-gray-50/50">
-                                            {employeesList.find(emp => emp.id.toString() === formData.employeeId)?.user?.fullName || "Not Specified"}
+                                            {employeesList.find(emp => emp.id.toString() === formData.employeeId)?.fullName || "Not Specified"}
                                         </div>
                                     </div>
 
@@ -699,8 +697,8 @@ export default function DepartmentTransferPage() {
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleConfirmDelete}
-                itemName={`${transferToDelete?.employee?.user?.fullName}'s Transfer`}
-                message={`Are you sure you want to delete the transfer record for "${transferToDelete?.employee?.user?.fullName}"? This action is permanent.`}
+                itemName={`${transferToDelete?.employee?.fullName}'s Transfer`}
+                message={`Are you sure you want to delete the transfer record for "${transferToDelete?.employee?.fullName}"? This action is permanent.`}
             />
 
             <MessageBox
