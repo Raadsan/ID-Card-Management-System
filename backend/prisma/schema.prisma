@@ -64,8 +64,8 @@ model RoleMenuAccess {
   canGenerate       Boolean             @default(false)
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
-  menu              Menu                @relation(fields: [menuId], references: [id])
-  rolePermissions   RolePermissions     @relation(fields: [rolePermissionsId], references: [id])
+  menu              Menu            @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  rolePermissions   RolePermissions @relation(fields: [rolePermissionsId], references: [id], onDelete: Cascade)
   subMenus          RoleSubMenuAccess[]
 
   @@unique([rolePermissionsId, menuId])
@@ -85,8 +85,8 @@ model RoleSubMenuAccess {
   canGenerate      Boolean        @default(false)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-  roleMenuAccess   RoleMenuAccess @relation(fields: [roleMenuAccessId], references: [id])
-  subMenu          SubMenu        @relation(fields: [subMenuId], references: [id])
+  roleMenuAccess   RoleMenuAccess @relation(fields: [roleMenuAccessId], references: [id], onDelete: Cascade)
+  subMenu          SubMenu        @relation(fields: [subMenuId], references: [id], onDelete: Cascade)
 
   @@unique([roleMenuAccessId, subMenuId])
   @@index([subMenuId], map: "RoleSubMenuAccess_subMenuId_fkey")
@@ -139,12 +139,24 @@ model Department {
   id             Int                  @id @default(autoincrement())
   departmentName String               @unique
   description    String?
+  sections       DepartmentSection[]
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
   transfersFrom  DepartmentTransfer[] @relation("FromDepartment")
   transfersTo    DepartmentTransfer[] @relation("ToDepartment")
   employees      Employee[]
   idGenerates    IdGenerate[]
+}
+
+model DepartmentSection {
+  id           Int        @id @default(autoincrement())
+  name         String
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([departmentId], map: "DepartmentSection_departmentId_fkey")
 }
 
 model DepartmentTransfer {
