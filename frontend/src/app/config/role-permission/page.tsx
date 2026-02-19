@@ -174,34 +174,61 @@ export default function RolePermissionsPage() {
 
     const handleEdit = (perm: RolePermission) => {
         setSelectedRoleId(perm.roleId);
-        const menuMap: any = {};
 
-        perm.menus.forEach((ma) => {
+        // 1. Initialize with ALL available menus and submenus (enabled: false)
+        const menuMap: any = {};
+        menus.forEach(menu => {
             const subMenuMap: any = {};
-            ma.subMenus.forEach((sm) => {
-                subMenuMap[sm.subMenuId] = {
-                    enabled: true,
-                    canView: sm.canView,
-                    canAdd: sm.canAdd,
-                    canEdit: sm.canEdit,
-                    canDelete: sm.canDelete,
-                    canAssign: sm.canAssign,
-                    canApprove: sm.canApprove,
-                    canGenerate: sm.canGenerate,
+            menu.subMenus.forEach(submenu => {
+                subMenuMap[submenu.id] = {
+                    enabled: false,
+                    canView: false,
+                    canAdd: false,
+                    canEdit: false,
+                    canDelete: false,
+                    canAssign: false,
+                    canApprove: false,
+                    canGenerate: false,
                 };
             });
-
-            menuMap[ma.menuId] = {
-                enabled: true,
-                canView: ma.canView,
-                canAdd: ma.canAdd,
-                canEdit: ma.canEdit,
-                canDelete: ma.canDelete,
-                canAssign: ma.canAssign,
-                canApprove: ma.canApprove,
-                canGenerate: ma.canGenerate,
+            menuMap[menu.id] = {
+                enabled: false,
+                canView: false,
+                canAdd: false,
+                canEdit: false,
+                canDelete: false,
+                canAssign: false,
+                canApprove: false,
+                canGenerate: false,
                 subMenus: subMenuMap,
             };
+        });
+
+        // 2. Overlay existing permissions
+        perm.menus.forEach((ma) => {
+            if (menuMap[ma.menuId]) {
+                menuMap[ma.menuId].enabled = true;
+                menuMap[ma.menuId].canView = ma.canView;
+                menuMap[ma.menuId].canAdd = ma.canAdd;
+                menuMap[ma.menuId].canEdit = ma.canEdit;
+                menuMap[ma.menuId].canDelete = ma.canDelete;
+                menuMap[ma.menuId].canAssign = ma.canAssign;
+                menuMap[ma.menuId].canApprove = ma.canApprove;
+                menuMap[ma.menuId].canGenerate = ma.canGenerate;
+
+                ma.subMenus.forEach((sm) => {
+                    if (menuMap[ma.menuId].subMenus[sm.subMenuId]) {
+                        menuMap[ma.menuId].subMenus[sm.subMenuId].enabled = true;
+                        menuMap[ma.menuId].subMenus[sm.subMenuId].canView = sm.canView;
+                        menuMap[ma.menuId].subMenus[sm.subMenuId].canAdd = sm.canAdd;
+                        menuMap[ma.menuId].subMenus[sm.subMenuId].canEdit = sm.canEdit;
+                        menuMap[ma.menuId].subMenus[sm.subMenuId].canDelete = sm.canDelete;
+                        menuMap[ma.menuId].subMenus[sm.subMenuId].canAssign = sm.canAssign;
+                        menuMap[ma.menuId].subMenus[sm.subMenuId].canApprove = sm.canApprove;
+                        menuMap[ma.menuId].subMenus[sm.subMenuId].canGenerate = sm.canGenerate;
+                    }
+                });
+            }
         });
 
         setSelectedMenus(menuMap);

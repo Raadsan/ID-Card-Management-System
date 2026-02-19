@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import DataTable from "@/components/layout/DataTable";
 import { usePermission } from "@/hooks/usePermission";
 import { getDepartments, deleteDepartment, createDepartment, updateDepartment, getDepartmentById } from "@/api/departmentApi";
-import { Edit, Trash2, Briefcase, AlignLeft, Shield, CheckCircle2, Loader2, Save, Activity, Plus } from "lucide-react";
+import { Edit, Trash2, Briefcase, AlignLeft, Shield, CheckCircle2, Loader2, Save, Activity, Plus, Eye } from "lucide-react";
 import Modal from "@/components/layout/Modal";
 import DeleteConfirmModal from "@/components/layout/ConfirmDeleteModel";
 import MessageBox, { MessageBoxType } from "@/components/MessageBox";
@@ -14,6 +14,7 @@ interface Department {
     id: number;
     departmentName: string;
     description: string;
+    sections?: { id: number; name: string }[];
 }
 
 export default function DepartmentsPage() {
@@ -24,13 +25,20 @@ export default function DepartmentsPage() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [viewDept, setViewDept] = useState<Department | null>(null);
     const [selectedDepartmentId, setSelectedDepartmentId] = useState<number | null>(null);
     const [deptToDelete, setDeptToDelete] = useState<Department | null>(null);
 
     // Form State
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        departmentName: string;
+        description: string;
+        sections: string[];
+    }>({
         departmentName: "",
         description: "",
+        sections: [],
     });
 
     // MessageBox State
@@ -80,6 +88,7 @@ export default function DepartmentsPage() {
                 setFormData({
                     departmentName: dept.departmentName || "",
                     description: dept.description || "",
+                    sections: (dept.sections || []).map((s: any) => s.name),
                 });
             }
         } catch (err) {
@@ -101,7 +110,7 @@ export default function DepartmentsPage() {
     };
 
     const handleAddDepartment = () => {
-        setFormData({ departmentName: "", description: "" });
+        setFormData({ departmentName: "", description: "", sections: [""] });
         setIsAddModalOpen(true);
     };
 
@@ -110,6 +119,25 @@ export default function DepartmentsPage() {
         setIsEditModalOpen(true);
     };
 
+    const handleViewSections = (department: Department) => {
+        setViewDept(department);
+        setIsViewModalOpen(true);
+    };
+
+    const handleSectionChange = (index: number, value: string) => {
+        const newSections = [...formData.sections];
+        newSections[index] = value;
+        setFormData(prev => ({ ...prev, sections: newSections }));
+    };
+
+    const addSectionField = () => {
+        setFormData(prev => ({ ...prev, sections: [...prev.sections, ""] }));
+    };
+
+    const removeSectionField = (index: number) => {
+        const newSections = formData.sections.filter((_, i) => i !== index);
+        setFormData(prev => ({ ...prev, sections: newSections.length > 0 ? newSections : [""] }));
+    };
     const handleAddSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -242,6 +270,13 @@ export default function DepartmentsPage() {
                 align: "center",
                 render: (row: Department) => (
                     <div className="flex items-center justify-center gap-2">
+                        <button
+                            onClick={() => handleViewSections(row)}
+                            className="p-1.5 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
+                            title="View Sections"
+                        >
+                            <Eye className="h-4 w-4" />
+                        </button>
                         {canEdit && (
                             <button
                                 onClick={() => handleEdit(row)}
@@ -306,10 +341,45 @@ export default function DepartmentsPage() {
                                 value={formData.description}
                                 onChange={handleFormChange}
                                 placeholder="Briefly describe the department's mandate..."
-                                rows={4}
+                                rows={2}
                                 className="w-full rounded-xl border border-gray-200 p-4 text-sm font-semibold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 resize-none"
                                 required
                             />
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                    <AlignLeft size={12} className="text-[#16BCF8]" /> Sections
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={addSectionField}
+                                    className="text-[10px] font-bold text-[#16BCF8] hover:text-[#16BCF8]/80 flex items-center gap-1 uppercase tracking-wider"
+                                >
+                                    <Plus size={10} /> Add Section
+                                </button>
+                            </div>
+                            <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                                {formData.sections.map((section, index) => (
+                                    <div key={index} className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={section}
+                                            onChange={(e) => handleSectionChange(index, e.target.value)}
+                                            placeholder={`Section ${index + 1} (e.g. IT, Admin)`}
+                                            className="flex-1 rounded-xl border border-gray-200 p-3 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeSectionField(index)}
+                                            className="p-3 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                     <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-100 pt-6 px-2">
@@ -366,10 +436,45 @@ export default function DepartmentsPage() {
                                     value={formData.description}
                                     onChange={handleFormChange}
                                     placeholder="Update department mandate..."
-                                    rows={4}
+                                    rows={2}
                                     className="w-full rounded-xl border border-gray-200 p-4 text-sm font-semibold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 resize-none"
                                     required
                                 />
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                        <AlignLeft size={12} className="text-[#16BCF8]" /> Sections
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={addSectionField}
+                                        className="text-[10px] font-bold text-[#16BCF8] hover:text-[#16BCF8]/80 flex items-center gap-1 uppercase tracking-wider"
+                                    >
+                                        <Plus size={10} /> Add Section
+                                    </button>
+                                </div>
+                                <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                                    {formData.sections.map((section, index) => (
+                                        <div key={index} className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={section}
+                                                onChange={(e) => handleSectionChange(index, e.target.value)}
+                                                placeholder={`Section ${index + 1}`}
+                                                className="flex-1 rounded-xl border border-gray-200 p-3 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeSectionField(index)}
+                                                className="p-3 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                         <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-100 pt-6 px-2">
@@ -400,6 +505,51 @@ export default function DepartmentsPage() {
                 itemName={deptToDelete?.departmentName}
                 message={`Are you sure you want to delete the "${deptToDelete?.departmentName}" department? This will also remove all associated employees and history history.`}
             />
+
+            {/* View Sections Modal */}
+            <Modal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} title={`Sections: ${viewDept?.departmentName}`} maxWidth="max-w-lg">
+                <div className="p-4 space-y-4">
+                    <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2.5 bg-[#16BCF8]/10 rounded-xl">
+                                <Activity className="text-[#16BCF8] h-5 w-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-black uppercase tracking-widest text-[#1B1555]/40">Department Sections</h3>
+                                <p className="text-lg font-bold text-[#1B1555]">{viewDept?.departmentName}</p>
+                            </div>
+                        </div>
+
+                        <div className="h-px bg-gray-100 mb-6" />
+
+                        <div className="space-y-3">
+                            {viewDept?.sections && viewDept.sections.length > 0 ? (
+                                <div className="grid grid-cols-1 gap-2">
+                                    {viewDept.sections.map((section, idx) => (
+                                        <div key={idx} className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[#16BCF8]" />
+                                            <span className="text-sm font-bold text-gray-700">{section.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                                    <p className="text-sm font-bold text-gray-400">No sections defined.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <button
+                            onClick={() => setIsViewModalOpen(false)}
+                            className="rounded-xl px-10 py-3 text-sm font-black text-white uppercase tracking-[0.15em] bg-[#1B1555] hover:bg-[#1B1555]/90 transition-all active:scale-95 shadow-lg shadow-[#1B1555]/20"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </Modal>
 
             <MessageBox
                 isOpen={msgBox.isOpen}

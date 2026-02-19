@@ -95,50 +95,79 @@ export const updateMenu = async (req, res) => {
       include: { subMenus: true }
     });
 
-    // If subMenus array is provided, we need to replace existing submenus
+    if (!oldMenu) {
+      return res.status(404).json({ message: "Menu not found" });
+    }
+
+    // Smart update for subMenus
+    const subMenuOperations = [];
+
     if (subMenus !== undefined) {
-      // First, get all existing submenus for this menu
-      const existingSubMenus = await prisma.subMenu.findMany({
-        where: { menuId: id },
-        select: { id: true },
-      });
+      if (isCollapsible) {
+        const incomingSubMenuIds = subMenus.filter(sm => sm.id).map(sm => sm.id);
+        const existingSubMenuIds = oldMenu.subMenus.map(sm => sm.id);
 
-      const subMenuIds = existingSubMenus.map((sm) => sm.id);
+        // 1. Identify submenus to delete (those in database but not in request)
+        const subMenusToDelete = existingSubMenuIds.filter(id => !incomingSubMenuIds.includes(id));
 
-      // Delete role-submenu access records first (to avoid foreign key constraint)
-      if (subMenuIds.length > 0) {
-        await prisma.roleSubMenuAccess.deleteMany({
-          where: { subMenuId: { in: subMenuIds } },
-        });
+        // Note: roleSubMenuAccess will be deleted via Cascade when SubMenu is deleted
+        if (subMenusToDelete.length > 0) {
+          subMenuOperations.push(
+            prisma.subMenu.deleteMany({
+              where: { id: { in: subMenusToDelete } }
+            })
+          );
+        }
+
+        // 2. Identify submenus to update or create
+        for (const sm of subMenus) {
+          if (sm.id) {
+            // Update existing
+            subMenuOperations.push(
+              prisma.subMenu.update({
+                where: { id: sm.id },
+                data: { title: sm.title, url: sm.url }
+              })
+            );
+          } else {
+            // Create new
+            subMenuOperations.push(
+              prisma.subMenu.create({
+                data: {
+                  title: sm.title,
+                  url: sm.url,
+                  menuId: id
+                }
+              })
+            );
+          }
+        }
+      } else {
+        // If not collapsible, delete all submenus
+        subMenuOperations.push(
+          prisma.subMenu.deleteMany({
+            where: { menuId: id }
+          })
+        );
       }
-
-      // Now delete the submenus
-      await prisma.subMenu.deleteMany({
-        where: { menuId: id },
-      });
     }
 
-    // Update the menu and create new submenus
-    const updateData = {};
-    if (title) updateData.title = title;
-    if (icon) updateData.icon = icon;
-    if (url) updateData.url = url;
-    if (isCollapsible !== undefined) updateData.isCollapsible = isCollapsible;
+    const updateData = {
+      title,
+      icon,
+      url: isCollapsible ? null : url, // URL usually null if collapsible
+      isCollapsible
+    };
 
-    if (subMenus !== undefined && subMenus.length > 0) {
-      updateData.subMenus = {
-        create: subMenus.map((sm) => ({
-          title: sm.title,
-          url: sm.url,
-        })),
-      };
-    }
-
-    const menu = await prisma.menu.update({
-      where: { id },
-      data: updateData,
-      include: { subMenus: true },
-    });
+    // Execute everything in a transaction
+    const [updatedMenu] = await prisma.$transaction([
+      prisma.menu.update({
+        where: { id },
+        data: updateData,
+        include: { subMenus: true }
+      }),
+      ...subMenuOperations
+    ]);
 
     // Log audit
     await logAudit({
@@ -153,11 +182,11 @@ export const updateMenu = async (req, res) => {
         isCollapsible: oldMenu.isCollapsible,
         subMenus: oldMenu.subMenus
       },
-      newData: updateData,
+      newData: { ...updateData, subMenus },
       ipAddress: getClientIp(req),
     });
 
-    res.json(menu);
+    res.json(updatedMenu);
   } catch (error) {
     console.error("Update menu error:", error);
     if (error.code === "P2002") {
@@ -182,6 +211,10 @@ export const deleteMenu = async (req, res) => {
       include: { subMenus: true }
     });
 
+    if (!menu) {
+      return res.status(404).json({ message: "Menu not found" });
+    }
+
     await prisma.menu.delete({ where: { id } });
 
     // Log audit
@@ -194,18 +227,23 @@ export const deleteMenu = async (req, res) => {
         title: menu.title,
         icon: menu.icon,
         url: menu.url,
-        isCollapsible: menu.isCollapsible
+        isCollapsible: menu.isCollapsible,
+        subMenus: menu.subMenus.map(sm => sm.title)
       },
       ipAddress: getClientIp(req),
     });
 
     res.json({ message: "Menu deleted successfully" });
   } catch (error) {
-    console.error(error);
+    console.error("Delete menu error:", error);
     if (error.code === "P2025") {
       return res.status(404).json({ message: "Menu not found" });
     }
-    res.status(500).json({ message: "Failed to delete menu" });
+    // Prisma check for restricted deletions
+    if (error.code === "P2003") {
+      return res.status(400).json({ message: "Cannot delete menu because it is referenced by other records." });
+    }
+    res.status(500).json({ message: "Failed to delete menu", error: error.message });
   }
 };
 
