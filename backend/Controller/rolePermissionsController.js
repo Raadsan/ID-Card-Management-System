@@ -21,6 +21,7 @@ export const createRolePermissions = async (req, res) => {
             canAssign: menu.canAssign !== undefined ? menu.canAssign : false,
             canApprove: menu.canApprove !== undefined ? menu.canApprove : false,
             canGenerate: menu.canGenerate !== undefined ? menu.canGenerate : false,
+            canLost: menu.canLost !== undefined ? menu.canLost : false,
             subMenus: {
               create: menu.subMenus.map(sub => ({
                 subMenuId: Number(sub.subMenuId),
@@ -31,6 +32,7 @@ export const createRolePermissions = async (req, res) => {
                 canAssign: sub.canAssign !== undefined ? sub.canAssign : false,
                 canApprove: sub.canApprove !== undefined ? sub.canApprove : false,
                 canGenerate: sub.canGenerate !== undefined ? sub.canGenerate : false,
+                canLost: sub.canLost !== undefined ? sub.canLost : false,
               }))
             }
           }))
@@ -164,6 +166,7 @@ export const updateRolePermissions = async (req, res) => {
             canAssign: menu.canAssign !== undefined ? menu.canAssign : false,
             canApprove: menu.canApprove !== undefined ? menu.canApprove : false,
             canGenerate: menu.canGenerate !== undefined ? menu.canGenerate : false,
+            canLost: menu.canLost !== undefined ? menu.canLost : false,
             subMenus: {
               create: menu.subMenus.map(sub => ({
                 subMenuId: Number(sub.subMenuId),
@@ -174,6 +177,7 @@ export const updateRolePermissions = async (req, res) => {
                 canAssign: sub.canAssign !== undefined ? sub.canAssign : false,
                 canApprove: sub.canApprove !== undefined ? sub.canApprove : false,
                 canGenerate: sub.canGenerate !== undefined ? sub.canGenerate : false,
+                canLost: sub.canLost !== undefined ? sub.canLost : false,
               })),
             },
           })),

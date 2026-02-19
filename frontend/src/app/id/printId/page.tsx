@@ -26,8 +26,9 @@ export default function PrintIdPage() {
     const [error, setError] = useState<string | null>(null);
 
     const { hasPermission } = usePermission();
-    const canEdit = hasPermission("Print ID", "edit", true);
-    const canDelete = hasPermission("Print ID", "delete", true);
+    const canEdit = hasPermission("print-ids", "edit", true);
+    const canDelete = hasPermission("print-ids", "delete", true);
+    const canLost = hasPermission("print-ids", "lost", true);
     const [cardToPrint, setCardToPrint] = useState<IdGenerate | null>(null);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [pendingPrintId, setPendingPrintId] = useState<number | null>(null);
@@ -397,7 +398,7 @@ export default function PrintIdPage() {
                                                         No Print Permission
                                                     </div>
                                                 )}
-                                                {card.status === 'printed' && canEdit && (
+                                                {card.status === 'printed' && canLost && (
                                                     <button
                                                         onClick={() => handleMarkAsLost(card.id)}
                                                         className="px-3 py-2 text-xs font-bold text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-all shadow-md shadow-amber-100 flex items-center gap-2"

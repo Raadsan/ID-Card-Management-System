@@ -62,6 +62,7 @@ model RoleMenuAccess {
   canAssign         Boolean             @default(false)
   canApprove        Boolean             @default(false)
   canGenerate       Boolean             @default(false)
+  canLost           Boolean             @default(false)
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   menu              Menu            @relation(fields: [menuId], references: [id], onDelete: Cascade)
@@ -83,6 +84,7 @@ model RoleSubMenuAccess {
   canAssign        Boolean        @default(false)
   canApprove       Boolean        @default(false)
   canGenerate      Boolean        @default(false)
+  canLost          Boolean        @default(false)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   roleMenuAccess   RoleMenuAccess @relation(fields: [roleMenuAccessId], references: [id], onDelete: Cascade)

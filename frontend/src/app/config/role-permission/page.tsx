@@ -134,6 +134,7 @@ export default function RolePermissionsPage() {
             canAssign: boolean;
             canApprove: boolean;
             canGenerate: boolean;
+            canLost: boolean;
             subMenus: {
                 [subMenuId: number]: {
                     enabled: boolean;
@@ -144,6 +145,7 @@ export default function RolePermissionsPage() {
                     canAssign: boolean;
                     canApprove: boolean;
                     canGenerate: boolean;
+                    canLost: boolean;
                 }
             };
         };
@@ -189,6 +191,7 @@ export default function RolePermissionsPage() {
                     canAssign: false,
                     canApprove: false,
                     canGenerate: false,
+                    canLost: false,
                 };
             });
             menuMap[menu.id] = {
@@ -200,6 +203,7 @@ export default function RolePermissionsPage() {
                 canAssign: false,
                 canApprove: false,
                 canGenerate: false,
+                canLost: false,
                 subMenus: subMenuMap,
             };
         });
@@ -215,6 +219,7 @@ export default function RolePermissionsPage() {
                 menuMap[ma.menuId].canAssign = ma.canAssign;
                 menuMap[ma.menuId].canApprove = ma.canApprove;
                 menuMap[ma.menuId].canGenerate = ma.canGenerate;
+                menuMap[ma.menuId].canLost = (ma as any).canLost ?? false;
 
                 ma.subMenus.forEach((sm) => {
                     if (menuMap[ma.menuId].subMenus[sm.subMenuId]) {
@@ -226,6 +231,7 @@ export default function RolePermissionsPage() {
                         menuMap[ma.menuId].subMenus[sm.subMenuId].canAssign = sm.canAssign;
                         menuMap[ma.menuId].subMenus[sm.subMenuId].canApprove = sm.canApprove;
                         menuMap[ma.menuId].subMenus[sm.subMenuId].canGenerate = sm.canGenerate;
+                        menuMap[ma.menuId].subMenus[sm.subMenuId].canLost = (sm as any).canLost ?? false;
                     }
                 });
             }
@@ -280,6 +286,7 @@ export default function RolePermissionsPage() {
                     canAssign: false,
                     canApprove: false,
                     canGenerate: false,
+                    canLost: false,
                     subMenus: prev[menuId]?.subMenus || {},
                 },
             };
@@ -297,6 +304,7 @@ export default function RolePermissionsPage() {
                 canAssign: false,
                 canApprove: false,
                 canGenerate: false,
+                canLost: false,
                 subMenus: {}
             };
 
@@ -318,6 +326,7 @@ export default function RolePermissionsPage() {
                             canAssign: false,
                             canApprove: false,
                             canGenerate: false,
+                            canLost: false,
                         }
                     }
                 },
@@ -336,6 +345,7 @@ export default function RolePermissionsPage() {
         menu.subMenus.forEach(sm => {
             const isSubRolePerm = sm.title.toLowerCase() === "role permission";
             const isSubGenerateId = sm.title.toLowerCase() === "generate-id";
+            const isSubPrintIds = sm.title.toLowerCase() === "print-ids";
 
             subMenuMap[sm.id] = {
                 enabled: true,
@@ -346,6 +356,7 @@ export default function RolePermissionsPage() {
                 canAssign: isSubRolePerm,
                 canApprove: isSubGenerateId,
                 canGenerate: isSubGenerateId,
+                canLost: isSubPrintIds,
             };
         });
 
@@ -360,6 +371,7 @@ export default function RolePermissionsPage() {
                 canAssign: isRolePerm,
                 canApprove: isGenerateId,
                 canGenerate: isGenerateId,
+                canLost: false,
                 subMenus: subMenuMap,
             },
         }));
@@ -398,6 +410,7 @@ export default function RolePermissionsPage() {
                     canAssign: data.canAssign,
                     canApprove: data.canApprove,
                     canGenerate: data.canGenerate,
+                    canLost: data.canLost,
                     subMenus: Object.entries(data.subMenus)
                         .filter(([_, subData]) => subData.enabled)
                         .map(([subMenuId, subData]) => ({
@@ -409,6 +422,7 @@ export default function RolePermissionsPage() {
                             canAssign: subData.canAssign,
                             canApprove: subData.canApprove,
                             canGenerate: subData.canGenerate,
+                            canLost: subData.canLost,
                         })),
                 }));
 
@@ -828,6 +842,7 @@ export default function RolePermissionsPage() {
                                                                                 newPrev[menu.id].subMenus[submenu.id].canAssign = false;
                                                                                 newPrev[menu.id].subMenus[submenu.id].canApprove = false;
                                                                                 newPrev[menu.id].subMenus[submenu.id].canGenerate = false;
+                                                                                newPrev[menu.id].subMenus[submenu.id].canLost = false;
                                                                             }
                                                                             return newPrev;
                                                                         })}
@@ -930,6 +945,23 @@ export default function RolePermissionsPage() {
                                                                             <span className="text-[8px] font-black text-gray-400 uppercase">Generate</span>
                                                                         </label>
                                                                     </>
+                                                                )}
+                                                                {submenu.title.toLowerCase() === "print-ids" && (
+                                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={selectedMenus[menu.id]?.subMenus[submenu.id]?.canLost || false}
+                                                                            onChange={() => setSelectedMenus(prev => {
+                                                                                const newPrev = JSON.parse(JSON.stringify(prev));
+                                                                                const isChecked = !newPrev[menu.id].subMenus[submenu.id].canLost;
+                                                                                newPrev[menu.id].subMenus[submenu.id].canLost = isChecked;
+                                                                                if (isChecked) newPrev[menu.id].subMenus[submenu.id].canView = true;
+                                                                                return newPrev;
+                                                                            })}
+                                                                            className="w-3 h-3 rounded border-2 border-amber-400 text-amber-500 focus:ring-0 transition-all cursor-pointer"
+                                                                        />
+                                                                        <span className="text-[8px] font-black text-amber-500 uppercase">Lost</span>
+                                                                    </label>
                                                                 )}
                                                             </div>
                                                         )}
