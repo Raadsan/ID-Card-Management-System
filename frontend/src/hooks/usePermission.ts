@@ -99,11 +99,13 @@ export const usePermission = () => {
     const hasPermission = (moduleName: string, action: 'view' | 'add' | 'edit' | 'delete' | 'assign' | 'approve' | 'generate' | 'lost', isSubMenu: boolean = false): boolean => {
         if (!permissions) return false;
 
-        // Normalize inputs
-        const targetName = moduleName.toLowerCase();
+        // Normalize: lowercase + strip hyphens, underscores, and spaces so
+        // "ID Template", "ID-Template", "ID_Template" all match the same DB entry
+        const normalize = (s: string) => s.toLowerCase().replace(/[-_\s]/g, "");
+        const targetName = normalize(moduleName);
 
         // 1. Check Main Menus
-        const menu = permissions.menus.find(m => m.menu?.title.toLowerCase() === targetName);
+        const menu = permissions.menus.find(m => normalize(m.menu?.title ?? "") === targetName);
 
         if (menu && !isSubMenu) {
             switch (action) {
@@ -120,7 +122,7 @@ export const usePermission = () => {
 
         // 2. Check Sub Menus (if not found as main menu or explicitly searching for submenu)
         for (const m of permissions.menus) {
-            const sub = m.subMenus.find(s => s.subMenu?.title.toLowerCase() === targetName);
+            const sub = m.subMenus.find(s => normalize(s.subMenu?.title ?? "") === targetName);
             if (sub) {
                 switch (action) {
                     case 'view': return sub.canView;

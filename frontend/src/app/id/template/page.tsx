@@ -19,9 +19,9 @@ export default function IdTemplatesPage() {
     const [selectedTemplate, setSelectedTemplate] = useState<IdCardTemplate | null>(null);
 
     const { hasPermission } = usePermission();
-    const canAdd = hasPermission("ID Template", "add", true);
-    const canEdit = hasPermission("ID Template", "edit", true);
-    const canDelete = hasPermission("ID Template", "delete", true);
+    const canAdd = hasPermission("ID-Template", "add", true);
+    const canEdit = hasPermission("ID-Template", "edit", true);
+    const canDelete = hasPermission("ID-Template", "delete", true);
 
     // MessageBox State
     const [msgBox, setMsgBox] = useState<{
