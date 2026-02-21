@@ -4,7 +4,7 @@ import { logAudit, getClientIp, AUDIT_ACTIONS, TABLE_NAMES } from "../utils/audi
 // Create a new transfer and automatically update employee department
 export const createDepartmentTransfer = async (req, res) => {
   try {
-    const { employeeId, fromDepartmentId, toDepartmentId, transferDate, reason } = req.body;
+    const { employeeId, fromDepartmentId, toDepartmentId, toSectionId, toTitle, transferDate, reason } = req.body;
     // Read authorized user ID from token
     const authorizedById = req.user?.id;
 
@@ -24,22 +24,39 @@ export const createDepartmentTransfer = async (req, res) => {
         throw new Error(`CRITICAL: Your session ID (${authorizedById}) is not recognized by the central system. Authentication refresh required.`);
       }
 
+      // 0.1️⃣ Get current employee data to capture "From" state
+      const employee = await tx.employee.findUnique({
+        where: { id: Number(employeeId) }
+      });
+
+      if (!employee) {
+        throw new Error("Employee not found");
+      }
+
       // 1️⃣ Create the transfer record
       const transfer = await tx.departmentTransfer.create({
         data: {
           employeeId: Number(employeeId),
           fromDepartmentId: Number(fromDepartmentId),
           toDepartmentId: Number(toDepartmentId),
+          fromSectionId: employee.sectionId,
+          toSectionId: toSectionId ? Number(toSectionId) : null,
+          fromTitle: employee.title,
+          toTitle: toTitle || employee.title, // Use current title if not changing
           authorizedById: Number(authorizedById),
           transferDate: new Date(transferDate),
           reason: reason || "",
         },
       });
 
-      // 2️⃣ Update employee's department
+      // 2️⃣ Update employee's department, section, and title
       const updatedEmployee = await tx.employee.update({
         where: { id: Number(employeeId) },
-        data: { departmentId: Number(toDepartmentId) },
+        data: {
+          departmentId: Number(toDepartmentId),
+          sectionId: toSectionId ? Number(toSectionId) : null,
+          title: toTitle || employee.title
+        },
       });
 
       // 3️⃣ Mark existing active ID cards as 'replaced' and store their original department
@@ -82,6 +99,8 @@ export const getDepartmentTransfers = async (req, res) => {
         employee: true,
         fromDepartment: true,
         toDepartment: true,
+        fromSection: true,
+        toSection: true,
         authorizedBy: true, // 👈 Included Authorizing User
       },
       orderBy: { transferDate: "desc" },
@@ -103,6 +122,8 @@ export const getDepartmentTransferById = async (req, res) => {
         employee: true,
         fromDepartment: true,
         toDepartment: true,
+        fromSection: true,
+        toSection: true,
         authorizedBy: true, // 👈 Included Authorizing User
       },
     });
@@ -118,7 +139,7 @@ export const getDepartmentTransferById = async (req, res) => {
 export const updateDepartmentTransfer = async (req, res) => {
   try {
     const { id } = req.params;
-    const { employeeId, fromDepartmentId, toDepartmentId, transferDate, reason } = req.body;
+    const { employeeId, fromDepartmentId, toDepartmentId, fromSectionId, toSectionId, fromTitle, toTitle, transferDate, reason } = req.body;
 
     // Get old data
     const oldTransfer = await prisma.departmentTransfer.findUnique({ where: { id: Number(id) } });
@@ -131,15 +152,24 @@ export const updateDepartmentTransfer = async (req, res) => {
           employeeId: Number(employeeId),
           fromDepartmentId: Number(fromDepartmentId),
           toDepartmentId: Number(toDepartmentId),
+          fromSectionId: fromSectionId ? Number(fromSectionId) : null,
+          toSectionId: toSectionId ? Number(toSectionId) : null,
+          fromTitle: fromTitle,
+          toTitle: toTitle,
           transferDate: new Date(transferDate),
           reason: reason || "",
         },
       });
 
-      // Update employee's department
+      // Update employee's department, section, and title
+      // Note: In an update, we assume we might want to sync the employee to the latest state of this transfer
       const updatedEmployee = await tx.employee.update({
         where: { id: Number(employeeId) },
-        data: { departmentId: Number(toDepartmentId) },
+        data: {
+          departmentId: Number(toDepartmentId),
+          sectionId: toSectionId ? Number(toSectionId) : null,
+          title: toTitle
+        },
       });
 
       return { transfer, updatedEmployee };

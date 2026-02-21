@@ -121,7 +121,7 @@ model User {
 model Employee {
   id           Int                  @id @default(autoincrement())
   fullName     String
-  email        String               @unique
+  email        String
   phone        String?
   address      String?
   dob          DateTime?
@@ -160,36 +160,46 @@ model Department {
 }
 
 model DepartmentSection {
-  id           Int        @id @default(autoincrement())
+  id           Int                  @id @default(autoincrement())
   name         String
   departmentId Int
-  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  department   Department           @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
   employees    Employee[]
+  transfersFromSection DepartmentTransfer[] @relation("FromSection")
+  transfersToSection   DepartmentTransfer[] @relation("ToSection")
 
   @@index([departmentId], map: "DepartmentSection_departmentId_fkey")
 }
 
 model DepartmentTransfer {
-  id               Int        @id @default(autoincrement())
+  id               Int                @id @default(autoincrement())
   employeeId       Int
   fromDepartmentId Int
   toDepartmentId   Int
   transferDate     DateTime
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
   authorizedById   Int?
   reason           String?
-  authorizedBy     User?      @relation("TransfersPerformed", fields: [authorizedById], references: [id])
-  employee         Employee   @relation(fields: [employeeId], references: [id])
-  fromDepartment   Department @relation("FromDepartment", fields: [fromDepartmentId], references: [id])
-  toDepartment     Department @relation("ToDepartment", fields: [toDepartmentId], references: [id])
+  fromSectionId    Int?
+  fromTitle        String?
+  toSectionId      Int?
+  toTitle          String?
+  authorizedBy     User?              @relation("TransfersPerformed", fields: [authorizedById], references: [id])
+  employee         Employee           @relation(fields: [employeeId], references: [id])
+  fromDepartment   Department         @relation("FromDepartment", fields: [fromDepartmentId], references: [id])
+  toDepartment     Department         @relation("ToDepartment", fields: [toDepartmentId], references: [id])
+  fromSection      DepartmentSection? @relation("FromSection", fields: [fromSectionId], references: [id])
+  toSection        DepartmentSection? @relation("ToSection", fields: [toSectionId], references: [id])
 
   @@index([authorizedById], map: "DepartmentTransfer_authorizedById_fkey")
   @@index([employeeId], map: "DepartmentTransfer_employeeId_fkey")
   @@index([fromDepartmentId], map: "DepartmentTransfer_fromDepartmentId_fkey")
   @@index([toDepartmentId], map: "DepartmentTransfer_toDepartmentId_fkey")
+  @@index([fromSectionId], map: "DepartmentTransfer_fromSectionId_fkey")
+  @@index([toSectionId], map: "DepartmentTransfer_toSectionId_fkey")
 }
 
 model IdCardTemplate {

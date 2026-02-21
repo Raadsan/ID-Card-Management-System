@@ -29,6 +29,14 @@ interface Transfer {
     toDepartment: {
         departmentName: string;
     };
+    fromSection?: {
+        name: string;
+    };
+    toSection?: {
+        name: string;
+    };
+    fromTitle?: string;
+    toTitle?: string;
     authorizedBy?: {
         fullName: string;
         photo?: string;
@@ -65,6 +73,10 @@ export default function DepartmentTransferPage() {
         employeeId: "",
         fromDepartmentId: "",
         toDepartmentId: "",
+        fromSectionId: "",
+        toSectionId: "",
+        fromTitle: "",
+        toTitle: "",
         transferDate: new Date().toISOString().split('T')[0],
         reason: "",
     });
@@ -165,6 +177,10 @@ export default function DepartmentTransferPage() {
                     employeeId: transferData.employeeId?.toString() || "",
                     fromDepartmentId: transferData.fromDepartmentId?.toString() || "",
                     toDepartmentId: transferData.toDepartmentId?.toString() || "",
+                    fromSectionId: transferData.fromSectionId?.toString() || "",
+                    toSectionId: transferData.toSectionId?.toString() || "",
+                    fromTitle: transferData.fromTitle || "",
+                    toTitle: transferData.toTitle || "",
                     transferDate: transferData.transferDate ? new Date(transferData.transferDate).toISOString().split('T')[0] : "",
                     reason: transferData.reason || "",
                 });
@@ -189,6 +205,9 @@ export default function DepartmentTransferPage() {
             ...prev,
             employeeId: empId,
             fromDepartmentId: employee?.departmentId?.toString() || "",
+            fromSectionId: employee?.sectionId?.toString() || "",
+            fromTitle: employee?.title || "",
+            toTitle: employee?.title || "", // Default to current title
         }));
     };
 
@@ -215,15 +234,6 @@ export default function DepartmentTransferPage() {
 
     const handleAddSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (formData.fromDepartmentId === formData.toDepartmentId) {
-            setMsgBox({
-                isOpen: true,
-                title: "Invalid Transfer",
-                message: "Target department must be different from origin.",
-                type: "error",
-            });
-            return;
-        }
 
         try {
             setIsSubmitting(true);
@@ -231,6 +241,8 @@ export default function DepartmentTransferPage() {
                 employeeId: Number(formData.employeeId),
                 fromDepartmentId: Number(formData.fromDepartmentId),
                 toDepartmentId: Number(formData.toDepartmentId),
+                toSectionId: formData.toSectionId ? Number(formData.toSectionId) : null,
+                toTitle: formData.toTitle,
                 transferDate: formData.transferDate,
                 reason: formData.reason,
             });
@@ -263,6 +275,10 @@ export default function DepartmentTransferPage() {
                 employeeId: Number(formData.employeeId),
                 fromDepartmentId: Number(formData.fromDepartmentId),
                 toDepartmentId: Number(formData.toDepartmentId),
+                fromSectionId: formData.fromSectionId ? Number(formData.fromSectionId) : null,
+                toSectionId: formData.toSectionId ? Number(formData.toSectionId) : null,
+                fromTitle: formData.fromTitle,
+                toTitle: formData.toTitle,
                 transferDate: formData.transferDate,
                 reason: formData.reason,
             });
@@ -342,6 +358,10 @@ export default function DepartmentTransferPage() {
             employeeId: "",
             fromDepartmentId: "",
             toDepartmentId: "",
+            fromSectionId: "",
+            toSectionId: "",
+            fromTitle: "",
+            toTitle: "",
             transferDate: new Date().toISOString().split('T')[0],
             reason: "",
         });
@@ -385,7 +405,12 @@ export default function DepartmentTransferPage() {
                 label: "To Department",
                 key: "toDepartment.departmentName",
                 render: (row: Transfer) => (
-                    <span className="text-emerald-500 font-medium">{row.toDepartment?.departmentName || "---"}</span>
+                    <div className="flex flex-col">
+                        <span className="text-emerald-500 font-medium">{row.toDepartment?.departmentName || "---"}</span>
+                        <span className="text-[10px] font-bold text-blue-400 uppercase tracking-tight">
+                            {row.toTitle || "No Title"} • {row.toSection?.name || "No Section"}
+                        </span>
+                    </div>
                 ),
             },
             {
@@ -503,42 +528,99 @@ export default function DepartmentTransferPage() {
 
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                                        <div className="space-y-2">
-                                            <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
-                                                <Briefcase size={12} className="text-rose-400" /> Origin
-                                            </label>
-                                            <div className="w-full rounded-xl border border-rose-100 p-3 text-sm font-bold text-rose-600 bg-rose-50/30">
-                                                {departmentsList.find(d => d.id.toString() === formData.fromDepartmentId)?.departmentName || "---"}
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                                    <Briefcase size={12} className="text-rose-400" /> Origin Department
+                                                </label>
+                                                <div className="w-full rounded-xl border border-rose-100 p-3 text-sm font-bold text-rose-600 bg-rose-50/30">
+                                                    {departmentsList.find(d => d.id.toString() === formData.fromDepartmentId)?.departmentName || "---"}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                                    <Shield size={12} className="text-rose-400" /> Origin Title
+                                                </label>
+                                                <div className="w-full rounded-xl border border-rose-100 p-3 text-sm font-bold text-rose-600 bg-rose-50/30">
+                                                    {formData.fromTitle || "---"}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                                    <Activity size={12} className="text-rose-400" /> Origin Section
+                                                </label>
+                                                <div className="w-full rounded-xl border border-rose-100 p-3 text-sm font-bold text-rose-600 bg-rose-50/30">
+                                                    {departmentsList.find(d => d.id.toString() === formData.fromDepartmentId)?.sections?.find((s: any) => s.id.toString() === formData.fromSectionId)?.name || "---"}
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
-                                                <Briefcase size={12} className="text-[#16BCF8]" /> Destination *
-                                            </label>
-                                            <div className="relative group">
-                                                <select
-                                                    name="toDepartmentId"
-                                                    value={formData.toDepartmentId}
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                                    <Briefcase size={12} className="text-[#16BCF8]" /> Destination Department *
+                                                </label>
+                                                <div className="relative group">
+                                                    <select
+                                                        name="toDepartmentId"
+                                                        value={formData.toDepartmentId}
+                                                        onChange={handleFormChange}
+                                                        className="w-full appearance-none rounded-xl border border-gray-200 p-3 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 cursor-pointer pr-10"
+                                                        required
+                                                    >
+                                                        <option value="">Select target...</option>
+                                                        {departmentsList.map((dept) => (
+                                                            <option key={dept.id} value={dept.id}>
+                                                                {dept.departmentName}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-[#16BCF8] transition-colors">
+                                                        <ChevronDown size={18} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                                    <Shield size={12} className="text-[#16BCF8]" /> New Title *
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="toTitle"
+                                                    value={formData.toTitle}
                                                     onChange={handleFormChange}
-                                                    className="w-full appearance-none rounded-xl border border-gray-200 p-3 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 cursor-pointer pr-10"
+                                                    placeholder="Enter new title..."
+                                                    className="w-full rounded-xl border border-gray-200 p-3 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30"
                                                     required
-                                                >
-                                                    <option value="">Select target...</option>
-                                                    {departmentsList.map((dept) => (
-                                                        <option key={dept.id} value={dept.id}>
-                                                            {dept.departmentName}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-[#16BCF8] transition-colors">
-                                                    <ChevronDown size={18} />
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                                    <Activity size={12} className="text-[#16BCF8]" /> New Section
+                                                </label>
+                                                <div className="relative group">
+                                                    <select
+                                                        name="toSectionId"
+                                                        value={formData.toSectionId}
+                                                        onChange={handleFormChange}
+                                                        className="w-full appearance-none rounded-xl border border-gray-200 p-3 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 cursor-pointer pr-10"
+                                                    >
+                                                        <option value="">Select section...</option>
+                                                        {departmentsList.find(d => d.id.toString() === formData.toDepartmentId)?.sections?.map((sec: any) => (
+                                                            <option key={sec.id} value={sec.id}>
+                                                                {sec.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-[#16BCF8] transition-colors">
+                                                        <ChevronDown size={18} />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 pt-2">
                                         <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
                                             <MessageSquare size={12} className="text-[#16BCF8]" /> Operational Reason
                                         </label>
@@ -620,42 +702,99 @@ export default function DepartmentTransferPage() {
 
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                                        <div className="space-y-2">
-                                            <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
-                                                <Briefcase size={12} className="text-rose-400" /> Origin
-                                            </label>
-                                            <div className="w-full rounded-xl border border-rose-100 p-3 text-sm font-bold text-rose-600 bg-rose-50/30">
-                                                {departmentsList.find(d => d.id.toString() === formData.fromDepartmentId)?.departmentName || "---"}
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                                    <Briefcase size={12} className="text-rose-400" /> Origin Department
+                                                </label>
+                                                <div className="w-full rounded-xl border border-rose-100 p-3 text-sm font-bold text-rose-600 bg-rose-50/30">
+                                                    {departmentsList.find(d => d.id.toString() === formData.fromDepartmentId)?.departmentName || "---"}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                                    <Shield size={12} className="text-rose-400" /> Origin Title
+                                                </label>
+                                                <div className="w-full rounded-xl border border-rose-100 p-3 text-sm font-bold text-rose-600 bg-rose-50/30">
+                                                    {formData.fromTitle || "---"}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                                    <Activity size={12} className="text-rose-400" /> Origin Section
+                                                </label>
+                                                <div className="w-full rounded-xl border border-rose-100 p-3 text-sm font-bold text-rose-600 bg-rose-50/30">
+                                                    {departmentsList.find(d => d.id.toString() === formData.fromDepartmentId)?.sections?.find((s: any) => s.id.toString() === formData.fromSectionId)?.name || "---"}
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
-                                                <Briefcase size={12} className="text-[#16BCF8]" /> Destination *
-                                            </label>
-                                            <div className="relative group">
-                                                <select
-                                                    name="toDepartmentId"
-                                                    value={formData.toDepartmentId}
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                                    <Briefcase size={12} className="text-[#16BCF8]" /> Destination Department *
+                                                </label>
+                                                <div className="relative group">
+                                                    <select
+                                                        name="toDepartmentId"
+                                                        value={formData.toDepartmentId}
+                                                        onChange={handleFormChange}
+                                                        className="w-full appearance-none rounded-xl border border-gray-200 p-3 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 cursor-pointer pr-10"
+                                                        required
+                                                    >
+                                                        <option value="">Select target...</option>
+                                                        {departmentsList.map((dept) => (
+                                                            <option key={dept.id} value={dept.id}>
+                                                                {dept.departmentName}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-[#16BCF8] transition-colors">
+                                                        <ChevronDown size={18} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                                    <Shield size={12} className="text-[#16BCF8]" /> New Title *
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="toTitle"
+                                                    value={formData.toTitle}
                                                     onChange={handleFormChange}
-                                                    className="w-full appearance-none rounded-xl border border-gray-200 p-3 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 cursor-pointer pr-10"
+                                                    placeholder="Update title..."
+                                                    className="w-full rounded-xl border border-gray-200 p-3 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30"
                                                     required
-                                                >
-                                                    <option value="">Select target...</option>
-                                                    {departmentsList.map((dept) => (
-                                                        <option key={dept.id} value={dept.id}>
-                                                            {dept.departmentName}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-[#16BCF8] transition-colors">
-                                                    <ChevronDown size={18} />
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
+                                                    <Activity size={12} className="text-[#16BCF8]" /> New Section
+                                                </label>
+                                                <div className="relative group">
+                                                    <select
+                                                        name="toSectionId"
+                                                        value={formData.toSectionId}
+                                                        onChange={handleFormChange}
+                                                        className="w-full appearance-none rounded-xl border border-gray-200 p-3 text-sm font-bold transition-all focus:border-[#16BCF8] focus:outline-none focus:ring-4 focus:ring-[#16BCF8]/5 bg-gray-50/30 cursor-pointer pr-10"
+                                                    >
+                                                        <option value="">Select section...</option>
+                                                        {departmentsList.find(d => d.id.toString() === formData.toDepartmentId)?.sections?.map((sec: any) => (
+                                                            <option key={sec.id} value={sec.id}>
+                                                                {sec.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-[#16BCF8] transition-colors">
+                                                        <ChevronDown size={18} />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 pt-2">
                                         <label className="text-[11px] font-black uppercase tracking-[0.05em] text-[#1B1555]/60 flex items-center gap-2">
                                             <MessageSquare size={12} className="text-[#16BCF8]" /> Operational Reason
                                         </label>
@@ -724,8 +863,8 @@ export default function DepartmentTransferPage() {
                             <thead className="bg-[#1B1555]/5">
                                 <tr>
                                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#1B1555]/60">Date</th>
-                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#1B1555]/60">From Department</th>
-                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#1B1555]/60">To Department</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#1B1555]/60">Origin</th>
+                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#1B1555]/60">Destination</th>
                                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#1B1555]/60">Reason</th>
                                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#1B1555]/60">Authorized By</th>
                                 </tr>
@@ -740,14 +879,24 @@ export default function DepartmentTransferPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-sm font-semibold text-rose-500 bg-rose-50 px-3 py-1 rounded-lg border border-rose-100">
-                                                {t.fromDepartment?.departmentName}
-                                            </span>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-sm font-semibold text-rose-500 bg-rose-50 px-3 py-1 rounded-lg border border-rose-100 text-center">
+                                                    {t.fromDepartment?.departmentName}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-gray-400 px-2 uppercase tracking-tight">
+                                                    {t.fromTitle || "No Title"} • {t.fromSection?.name || "No Section"}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-sm font-semibold text-emerald-500 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
-                                                {t.toDepartment?.departmentName}
-                                            </span>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-sm font-semibold text-emerald-500 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100 text-center">
+                                                    {t.toDepartment?.departmentName}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-blue-400 px-2 uppercase tracking-tight">
+                                                    {t.toTitle || "No Title"} • {t.toSection?.name || "No Section"}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <p className="text-xs text-gray-500 italic max-w-xs">{t.reason || "No documentation"}</p>
