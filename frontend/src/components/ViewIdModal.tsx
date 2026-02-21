@@ -28,10 +28,11 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
     const [showFront, setShowFront] = useState(true);
     const [scale, setScale] = useState(0.8);
     const [positions, setPositions] = useState({
-        photo: { x: 88, y: 130, width: 220, height: 215, objectFit: 'fill' as 'cover' | 'fill' | 'contain' },
+        photo: { x: 88, y: 255, width: 220, height: 215, objectFit: 'fill' as 'cover' | 'fill' | 'contain' },
         fullName: { x: 355, y: 284, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
         title: { x: 353, y: 348, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
         department: { x: 355, y: 415, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
+        category: { x: 355, y: 460, fontSize: 20, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
         idNumber: { x: 83, y: 479, fontSize: 27, color: "#000000ff", fontWeight: "bold", textAlign: "left", letterSpacing: 0 },
         issueDate: { x: 353, y: 488, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
         expiryDate: { x: 640, y: 491, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
@@ -159,7 +160,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 left: `${positions.fullName.x}px`,
                                                 top: `${positions.fullName.y}px`,
                                                 fontSize: `${(positions.fullName as any).fontSize || 27}px`,
-                                                fontWeight: (positions.fullName as any).fontWeight || 'normal',
+                                                fontWeight: 'normal',
                                                 textAlign: (positions.fullName as any).textAlign || 'left',
                                                 color: positions.fullName.color,
                                                 maxWidth: `${(idCard.template?.width || 1000) - positions.fullName.x - 20}px`,
@@ -167,7 +168,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 letterSpacing: `${(positions.fullName as any).letterSpacing || 0}px`,
                                             }}
                                         >
-                                            {idCard.employee?.user.fullName}
+                                            {idCard.employee?.fullName}
                                         </div>
                                         <div
                                             className="absolute whitespace-nowrap overflow-hidden"
@@ -201,21 +202,23 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                         >
                                             {idCard.employee?.department?.departmentName || idCard.department?.departmentName || 'N/A'}
                                         </div>
+                                        {/* Category */}
                                         <div
                                             className="absolute whitespace-nowrap overflow-hidden"
                                             style={{
                                                 ...ID_TEXT_STYLE,
-                                                left: `${(positions as any).issueDate?.x || 0}px`,
-                                                top: `${(positions as any).issueDate?.y || 0}px`,
-                                                fontSize: `${(positions as any).issueDate?.fontSize || 18}px`,
-                                                fontWeight: (positions as any).issueDate?.fontWeight || 'normal',
-                                                textAlign: (positions as any).issueDate?.textAlign || 'left',
-                                                color: (positions as any).issueDate?.color || '#000000',
-                                                maxWidth: `${(idCard.template?.width || 1000) - ((positions as any).issueDate?.x || 0) - 20}px`,
-                                                textOverflow: 'ellipsis'
+                                                left: `${(positions as any).category?.x ?? 355}px`,
+                                                top: `${(positions as any).category?.y ?? 460}px`,
+                                                fontSize: `${(positions as any).category?.fontSize || 20}px`,
+                                                fontWeight: (positions as any).category?.fontWeight || 'normal',
+                                                textAlign: (positions as any).category?.textAlign || 'left',
+                                                color: (positions as any).category?.color || '#000000',
+                                                maxWidth: `${(idCard.template?.width || 1000) - ((positions as any).category?.x ?? 355) - 20}px`,
+                                                textOverflow: 'ellipsis',
+                                                letterSpacing: `${(positions as any).category?.letterSpacing || 0}px`,
                                             }}
                                         >
-                                            ISSUE: {idCard.issueDate ? new Date(idCard.issueDate).toLocaleDateString() : '01/01/2026'}
+                                            {(idCard.employee as any)?.category?.name || ''}
                                         </div>
                                         <div
                                             className="absolute whitespace-nowrap overflow-hidden"
@@ -234,13 +237,14 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                             EXP: {idCard.expiryDate ? new Date(idCard.expiryDate).toLocaleDateString() : '31/12/2026'}
                                         </div>
                                         <div
-                                            className="absolute whitespace-nowrap overflow-visible barcode"
+                                            className="absolute whitespace-nowrap overflow-visible"
                                             style={{
-                                                left: `${positions.photo.x}px`,
+                                                left: `${(positions.idNumber as any).x ?? positions.photo.x}px`,
+                                                top: `${(positions.idNumber as any).y ?? 479}px`,
                                                 fontSize: `${(positions.idNumber as any).fontSize || 27}px`,
                                                 fontWeight: (positions.idNumber as any).fontWeight || 'bold',
                                                 fontFamily: 'monospace',
-                                                textAlign: (positions.idNumber as any).textAlign || 'center',
+                                                textAlign: (positions.idNumber as any).textAlign || 'left',
                                                 color: (positions.idNumber as any).color || '#000000',
                                             }}
                                         >
