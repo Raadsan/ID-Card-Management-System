@@ -59,10 +59,10 @@ export default function DashboardContent() {
 
                 // Calculate gender distribution
                 const genderCounts = {
-                    male: employeesData.filter((emp: any) => emp.user?.gender?.toLowerCase() === 'male').length,
-                    female: employeesData.filter((emp: any) => emp.user?.gender?.toLowerCase() === 'female').length,
+                    male: employeesData.filter((emp: any) => emp.gender?.toLowerCase() === 'male').length,
+                    female: employeesData.filter((emp: any) => emp.gender?.toLowerCase() === 'female').length,
                     other: employeesData.filter((emp: any) => {
-                        const gender = emp.user?.gender?.toLowerCase();
+                        const gender = emp.gender?.toLowerCase();
                         return gender && gender !== 'male' && gender !== 'female';
                     }).length
                 };
@@ -74,7 +74,7 @@ export default function DashboardContent() {
                     .slice(0, 5)
                     .map((id: any) => ({
                         id: id.id,
-                        name: `${id.employee?.user?.fullName || "ID Request"}`,
+                        name: `${id.employee?.fullName || "ID Request"}`,
                         employeeId: `EMP-${id.employee?.id?.toString().padStart(4, '0')}`,
                         status: id.status,
                         date: id.createdAt,
@@ -122,9 +122,9 @@ export default function DashboardContent() {
         },
         {
             label: "FULL NAME",
-            key: "user.fullName",
+            key: "fullName",
             render: (row: any) => (
-                <span className="font-semibold text-gray-900">{row.user?.fullName}</span>
+                <span className="font-semibold text-gray-900">{row.fullName}</span>
             )
         },
         {

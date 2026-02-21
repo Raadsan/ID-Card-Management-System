@@ -19,6 +19,7 @@ import MessageBox, { MessageBoxType } from "@/components/MessageBox";
 import { getImageUrl } from "@/utils/url";
 import Swal from "sweetalert2";
 import { removeBackground } from "@imgly/background-removal";
+import countryList from 'react-select-country-list';
 
 // Updated Employee interface
 interface Employee {
@@ -76,7 +77,7 @@ export default function EmployeesPage() {
         phone: "",
         address: "",
         dob: "",
-        nationality: "",
+        nationality: "Somalia",
         gender: "Male",
         status: "active",
         title: "",
@@ -87,6 +88,8 @@ export default function EmployeesPage() {
 
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+    const countryOptions = useMemo(() => countryList().getData(), []);
 
     // MessageBox State
     const [msgBox, setMsgBox] = useState<{
@@ -233,7 +236,7 @@ export default function EmployeesPage() {
             phone: "",
             address: "",
             dob: "",
-            nationality: "",
+            nationality: "Somalia",
             gender: "Male",
             status: "active",
             title: "",
@@ -489,7 +492,19 @@ export default function EmployeesPage() {
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-black uppercase text-gray-400 flex items-center gap-2 mb-1"><Globe size={12} className="text-[#16BCF8]" /> Nationality</label>
-                                <input name="nationality" value={formData.nationality} onChange={handleFormChange} placeholder="Somali" className="w-full rounded-xl border border-gray-100 p-3 text-sm font-bold bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#16BCF8]/5 focus:border-[#16BCF8] outline-none transition-all" />
+                                <select
+                                    name="nationality"
+                                    value={formData.nationality}
+                                    onChange={handleFormChange}
+                                    className="w-full rounded-xl border border-gray-100 p-3 text-sm font-bold bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-[#16BCF8]/5 focus:border-[#16BCF8] outline-none transition-all"
+                                >
+                                    <option value="">Select Nationality</option>
+                                    {countryOptions.map((country: any) => (
+                                        <option key={country.value} value={country.label}>
+                                            {country.label}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                     </div>
