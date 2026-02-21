@@ -19,7 +19,7 @@ export interface IdGenerate {
     updatedAt: string;
     employee?: any;
     template?: any;
-    department?: any;
+    zdepartment?: any;
     createdBy?: any;
     printedBy?: any;
 }

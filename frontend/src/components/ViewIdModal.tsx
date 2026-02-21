@@ -147,7 +147,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                             }}
                                         >
                                             <img
-                                                src={getImageUrl(idCard.employee?.user?.photo) || '/placeholder-user.png'}
+                                                src={getImageUrl(idCard.employee?.photo) || '/placeholder-user.png'}
                                                 alt=""
                                                 className="w-full h-full"
                                                 style={{ objectFit: (positions.photo as any).objectFit || 'cover' }}
@@ -192,21 +192,22 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 ...ID_TEXT_STYLE,
                                                 left: `${positions.department.x}px`,
                                                 top: `${positions.department.y}px`,
-                                                fontSize: `${(positions.department as any).fontSize || 27}px`,
+                                                fontSize: `${(positions.department as any).fontSize || 20}px`,
                                                 fontWeight: (positions.department as any).fontWeight || 'normal',
-                                                textAlign: (positions.department as any).textAlign || 'left',
+                                                textAlign: (positions.department as any).textAlign || 'center',
                                                 color: positions.department.color,
+                                                letterSpacing: `${ 1}px`,
                                                 maxWidth: `${(idCard.template?.width || 1000) - positions.department.x - 20}px`,
                                                 textOverflow: 'ellipsis'
                                             }}
                                         >
-                                            {idCard.employee?.department?.departmentName || idCard.department?.departmentName || 'N/A'}
+                                            {idCard.employee?.department?.departmentName ||  'N/A'}
                                         </div>
                                         {/* Category */}
                                         <div
                                             className="absolute whitespace-nowrap overflow-hidden"
                                             style={{
-                                                ...ID_TEXT_STYLE,
+                                                ...ID_TEXT_STYLE,   
                                                 left: `${(positions as any).category?.x ?? 355}px`,
                                                 top: `${(positions as any).category?.y ?? 460}px`,
                                                 fontSize: `${(positions as any).category?.fontSize || 20}px`,
@@ -215,7 +216,7 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                                 color: (positions as any).category?.color || '#000000',
                                                 maxWidth: `${(idCard.template?.width || 1000) - ((positions as any).category?.x ?? 355) - 20}px`,
                                                 textOverflow: 'ellipsis',
-                                                letterSpacing: `${(positions as any).category?.letterSpacing || 0}px`,
+                                                letterSpacing: `${ 1}px`,
                                             }}
                                         >
                                             {(idCard.employee as any)?.category?.name || ''}
@@ -237,15 +238,16 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                             EXP: {idCard.expiryDate ? new Date(idCard.expiryDate).toLocaleDateString() : '31/12/2026'}
                                         </div>
                                         <div
-                                            className="absolute whitespace-nowrap overflow-visible"
+                                            className="absolute whitespace-nowrap overflow-visible "
                                             style={{
-                                                left: `${(positions.idNumber as any).x ?? positions.photo.x}px`,
-                                                top: `${(positions.idNumber as any).y ?? 479}px`,
+                                                left: `${positions.idNumber.x}px`,
+                                                top: `${positions.idNumber.y}px`,
                                                 fontSize: `${(positions.idNumber as any).fontSize || 27}px`,
                                                 fontWeight: (positions.idNumber as any).fontWeight || 'bold',
                                                 fontFamily: 'monospace',
                                                 textAlign: (positions.idNumber as any).textAlign || 'left',
                                                 color: (positions.idNumber as any).color || '#000000',
+                                                letterSpacing: `${(positions.idNumber as any).letterSpacing || 0}px`
                                             }}
                                         >
                                             SPA01{idCard.employee?.id?.toString().padStart(4, '0') || '0000'}/26
@@ -324,8 +326,18 @@ export default function ViewIdModal({ isOpen, onClose, idCard, onPrint }: ViewId
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Employee Name</p>
-                                    <p className="text-sm font-semibold text-gray-900">{idCard.employee?.user?.fullName || 'N/A'}</p>
+                                    <p className="text-sm font-semibold text-gray-900">{idCard.employee?.fullName || 'N/A'}</p>
                                     <p className="text-xs text-gray-500">{idCard.employee?.title || 'Staff'}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 bg-indigo-50 rounded-lg">
+                                    <CreditCard className="w-4 h-4 text-indigo-600" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Category</p>
+                                    <p className="text-sm font-semibold text-gray-900">{idCard.employee?.category?.name || 'N/A'}</p>
                                 </div>
                             </div>
 

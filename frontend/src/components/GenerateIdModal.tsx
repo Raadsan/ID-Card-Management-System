@@ -21,6 +21,10 @@ interface Employee {
     };
     status: string;
     title?: string;
+    category?: {
+        id: number;
+        name: string;
+    };
     transfers: any[];
     idGenerates: any[];
 }
@@ -65,14 +69,14 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
         // 1. Only include active employees
         if (emp.status !== "active") return false;
 
-        // 2. Only display employees who don't have ANY id-card records yet
-        // (This includes 'created', 'ready_to_print', 'printed', and 'replaced')
-        const hasIdHistory = emp.idGenerates && emp.idGenerates.length > 0;
+        // 2. Hide employees who already have a valid or pending ID for their CURRENT department
+        // Valid statuses: 'created', 'ready_to_print', 'printed'
+        const hasActiveIdForCurrentDept = emp.idGenerates && emp.idGenerates.some(id =>
+            ['created', 'ready_to_print', 'printed'].includes(id.status) &&
+            id.departmentId === emp.department?.id
+        );
 
-        // 3. Remove employees who have transferred departments
-        const hasTransferHistory = emp.transfers && emp.transfers.length > 0;
-
-        return !hasIdHistory && !hasTransferHistory;
+        return !hasActiveIdForCurrentDept;
     });
 
     const selectedEmployee = employees.find(e => e.id.toString() === selectedEmployeeId) || null;
@@ -406,7 +410,7 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                                         left: `${positions.fullName.x}px`,
                                                         top: `${positions.fullName.y}px`,
                                                         fontSize: `${(positions.fullName as any).fontSize || 24}px`,
-                                                        fontWeight:'normal',
+                                                        fontWeight: 'normal',
                                                         textAlign: (positions.fullName as any).textAlign || 'left',
                                                         color: positions.fullName.color,
                                                         maxWidth: `${(selectedTemplate?.width || 350) - positions.fullName.x - 20}px`,
@@ -466,10 +470,10 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                                         color: (positions as any).category?.color || '#000000',
                                                         maxWidth: `${(selectedTemplate?.width || 1000) - ((positions as any).category?.x ?? 355) - 20}px`,
                                                         textOverflow: 'ellipsis',
-                                                        letterSpacing: `${(positions as any).category?.letterSpacing || 0}px`,
+                                                        letterSpacing: `${1}px`,
                                                     }}
                                                 >
-                                                    {(selectedEmployee as any)?.category?.name || ''}
+                                                    {selectedEmployee?.category?.name || ''}
                                                 </div>
 
 
@@ -493,42 +497,39 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
 
                                                 {/* ID Number (Centered under photo logic) */}
                                                 <div
-                                                    className="absolute whitespace-nowrap overflow-hidden"
+                                                    className="absolute whitespace-nowrap overflow-visible "
                                                     style={{
-                                                        ...ID_TEXT_STYLE,
-                                                        left: `${positions.photo.x}px`,
+                                                        left: `${positions.idNumber.x}px`,
                                                         top: `${positions.idNumber.y}px`,
-                                                        width: `${positions.photo.width}px`,
-                                                        fontSize: `22px`,
-                                                        fontWeight: 'bold',
-                                                        textAlign: 'center',
+                                                        fontSize: `${(positions.idNumber as any).fontSize || 27}px`,
+                                                        fontWeight: (positions.idNumber as any).fontWeight || 'bold',
                                                         fontFamily: 'monospace',
-                                                        color: positions.idNumber.color,
-                                                        maxWidth: `${positions.photo.width}px`,
-                                                        textOverflow: 'ellipsis'
+                                                        textAlign: (positions.idNumber as any).textAlign || 'left',
+                                                        color: (positions.idNumber as any).color || '#000000',
+                                                        letterSpacing: `${(positions.idNumber as any).letterSpacing || 0}px`
                                                     }}
                                                 >
-                                                    S/N: SPA01{selectedEmployee?.id.toString().padStart(4, '0') || '0000'}/26
+                                                    SPA01{selectedEmployee?.id.toString().padStart(4, '0') || '0000'}/26
                                                 </div>
                                             </>
                                         )}
 
                                         {/* Back Side - QR Code Placeholder */}
                                         {!showFront && positions.qrCode && (
-                                                <div
-                                                    className="absolute overflow-hidden flex items-center justify-center p-1 bg-white border border-dashed border-gray-300"
-                                                    style={{
-                                                        left: `${positions.qrCode.x}px`,
-                                                        top: `${positions.qrCode.y}px`,
-                                                        width: `${positions.qrCode.width}px`,
-                                                        height: `${positions.qrCode.height}px`,
-                                                    }}
-                                                >
-                                                    <div className="flex flex-col items-center justify-center text-center opacity-50">
-                                                        <QrCode className="w-8 h-8 text-gray-400 mb-1" />
-                                                        <span className="text-[6px] font-bold text-gray-400 uppercase">QR Will Generate</span>
-                                                    </div>
+                                            <div
+                                                className="absolute overflow-hidden flex items-center justify-center p-1 bg-white border border-dashed border-gray-300"
+                                                style={{
+                                                    left: `${positions.qrCode.x}px`,
+                                                    top: `${positions.qrCode.y}px`,
+                                                    width: `${positions.qrCode.width}px`,
+                                                    height: `${positions.qrCode.height}px`,
+                                                }}
+                                            >
+                                                <div className="flex flex-col items-center justify-center text-center opacity-50">
+                                                    <QrCode className="w-8 h-8 text-gray-400 mb-1" />
+                                                    <span className="text-[6px] font-bold text-gray-400 uppercase">QR Will Generate</span>
                                                 </div>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

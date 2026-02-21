@@ -249,6 +249,7 @@ export default function ReadyIdsPage() {
                                 <tr className="bg-[#1B1555] border-b border-gray-200">
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">ID</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Employee</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Category</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Template</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Issue Date</th>
@@ -273,6 +274,11 @@ export default function ReadyIdsPage() {
                                                     {card.employee?.fullName || "N/A"}
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-sm text-gray-600 font-medium">
+                                                {card.employee?.category?.name || "N/A"}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm text-gray-600">
@@ -473,6 +479,7 @@ export default function ReadyIdsPage() {
                                             fullName: layout.fullName || { x: 355, y: 284, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
                                             title: layout.title || { x: 353, y: 348, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
                                             department: layout.department || { x: 355, y: 415, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
+                                            category: layout.category || { x: 355, y: 460, fontSize: 20, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
                                             idNumber: layout.idNumber || { x: 83, y: 479, fontSize: 27, color: "#000000ff", fontWeight: "bold", textAlign: "left", letterSpacing: 0 },
                                             issueDate: layout.issueDate || { x: 353, y: 488, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
                                             expiryDate: layout.expiryDate || { x: 640, y: 491, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
@@ -538,6 +545,20 @@ export default function ReadyIdsPage() {
                                                 </div>
                                                 <div className="absolute whitespace-nowrap overflow-hidden"
                                                     style={{
+                                                        left: `${pos.category?.x ?? 355}px`,
+                                                        top: `${pos.category?.y ?? 460}px`,
+                                                        fontSize: `${pos.category?.fontSize || 20}px`,
+                                                        color: pos.category?.color || '#000000ff',
+                                                        fontFamily: 'Outfit, sans-serif',
+                                                        fontWeight: (pos.category as any).fontWeight || 'normal',
+                                                        textAlign: (pos.category as any).textAlign || 'left',
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: `${(pos.category as any).letterSpacing || 0}px`
+                                                    }}>
+                                                    {cardToPrint.employee?.category?.name || ''}
+                                                </div>
+                                                <div className="absolute whitespace-nowrap overflow-hidden"
+                                                    style={{
                                                         left: `${pos.issueDate.x}px`,
                                                         top: `${pos.issueDate.y}px`,
                                                         fontSize: `${pos.issueDate.fontSize}px`,
@@ -564,7 +585,7 @@ export default function ReadyIdsPage() {
                                                     }}>
                                                     {cardToPrint.expiryDate ? new Date(cardToPrint.expiryDate).toLocaleDateString() : 'N/A'}
                                                 </div>
-                                                <div className="absolute whitespace-nowrap overflow-visible barcode"
+                                                <div className="absolute whitespace-nowrap overflow-visible"
                                                     style={{
                                                         left: `${pos.idNumber.x}px`,
                                                         top: `${pos.idNumber.y}px`,
