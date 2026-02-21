@@ -12,6 +12,26 @@ const api = axios.create({
     },
 });
 
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            // Handle unauthorized access
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+        }
+
+        // Enhance network errors
+        if (error.message === "Network Error") {
+            console.error("❌ Backend server might not be running or is unreachable.");
+        } else if (error.response?.status === 503) {
+            console.error("❌ Live Backend (Render) is currently unavailable (503). Check Render logs.");
+        }
+
+        return Promise.reject(error);
+    }
+);
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
     (config) => {
