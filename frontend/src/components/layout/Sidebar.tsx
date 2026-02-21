@@ -143,11 +143,11 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
                 <div className="flex h-full flex-col px-3 pt-2 pb-4">
                     {/* Header / Logo */}
                     <div className="mb-2 flex items-center justify-between pl-2.5 pr-2 border-b border-white/10 pb-4">
-                        <div className="flex items-center justify-center w-full py-2">
-                            <div className="w-48 h-20 flex items-center justify-center">
+                        <Link href="/dashboard" className="flex items-center justify-center w-full py-2 group">
+                            <div className="w-48 h-20 flex items-center justify-center transition-transform group-hover:scale-105">
                                 <img src="/logo.png" alt="Logo" className="w-full h-full object-contain rounded-lg" />
                             </div>
-                        </div>
+                        </Link>
                         <button
                             onClick={onClose}
                             className="rounded-lg p-1 text-white/70 hover:bg-white/10 lg:hidden ml-2"

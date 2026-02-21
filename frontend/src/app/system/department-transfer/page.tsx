@@ -250,7 +250,7 @@ export default function DepartmentTransferPage() {
             setMsgBox({
                 isOpen: true,
                 title: "Success",
-                message: "Employee transfer recorded successfully.",
+                message: "Department transfer recorded successfully.",
                 type: "success",
             });
             fetchTransfers();
@@ -460,12 +460,12 @@ export default function DepartmentTransferPage() {
     return (
         <div className="p-6 space-y-6 bg-gray-50/30 min-h-screen">
             <DataTable
-                title="Department Transfers"
+                title="Department Transfer"
                 columns={columns}
                 data={displayData}
                 loading={loading}
                 onAddClick={canAdd ? handleAddTransfer : undefined}
-                addButtonLabel="Transfer Employee"
+                addButtonLabel="Transfer"
             />
 
             {/* Add Transfer Modal */}
