@@ -538,6 +538,7 @@ export default function PrintIdPage() {
                                             fullName: layout.fullName || { x: 355, y: 284, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
                                             title: layout.title || { x: 353, y: 348, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
                                             department: layout.department || { x: 355, y: 415, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
+                                            category: layout.category || { x: 355, y: 460, fontSize: 20, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
                                             idNumber: layout.idNumber || { x: 83, y: 479, fontSize: 27, color: "#000000ff", fontWeight: "bold", textAlign: "left", letterSpacing: 0 },
                                             issueDate: layout.issueDate || { x: 353, y: 488, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
                                             expiryDate: layout.expiryDate || { x: 640, y: 491, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left", letterSpacing: 0 },
@@ -603,6 +604,20 @@ export default function PrintIdPage() {
                                                 </div>
                                                 <div className="absolute whitespace-nowrap overflow-hidden"
                                                     style={{
+                                                        left: `${pos.category.x}px`,
+                                                        top: `${pos.category.y}px`,
+                                                        fontSize: `${pos.category.fontSize}px`,
+                                                        color: (pos.category as any).color || '#000000ff',
+                                                        fontFamily: 'Outfit, sans-serif',
+                                                        fontWeight: (pos.category as any).fontWeight || 'normal',
+                                                        textAlign: (pos.category as any).textAlign || 'left',
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: `${(pos.category as any).letterSpacing || 0}px`
+                                                    }}>
+                                                    {(cardToPrint.employee as any)?.category?.name || ''}
+                                                </div>
+                                                <div className="absolute whitespace-nowrap overflow-hidden"
+                                                    style={{
                                                         left: `${pos.issueDate.x}px`,
                                                         top: `${pos.issueDate.y}px`,
                                                         fontSize: `${pos.issueDate.fontSize}px`,
@@ -629,7 +644,7 @@ export default function PrintIdPage() {
                                                     }}>
                                                     {cardToPrint.expiryDate ? new Date(cardToPrint.expiryDate).toLocaleDateString() : 'N/A'}
                                                 </div>
-                                                <div className="absolute whitespace-nowrap overflow-visible barcode"
+                                                <div className="absolute whitespace-nowrap overflow-visible"
                                                     style={{
                                                         left: `${pos.idNumber.x}px`,
                                                         top: `${pos.idNumber.y}px`,
@@ -678,19 +693,19 @@ export default function PrintIdPage() {
                                         const qrPos = layout.qrCode || { x: 169, y: 404, width: 90, height: 90 };
 
                                         return (
-                                            <div className="absolute bg-white/80 p-1 rounded-lg"
-                                                style={{
-                                                    left: `${qrPos.x}px`,
-                                                    top: `${qrPos.y}px`,
-                                                    width: `${qrPos.width}px`,
-                                                    height: `${qrPos.height}px`
-                                                }}>
-                                                <QRCodeSVG
-                                                    value={`${window.location.origin}/verify/${cardToPrint.qrCode}`}
-                                                    width="100%"
-                                                    height="100%"
-                                                />
-                                            </div>
+                                                <div className="absolute bg-white/80 p-1 rounded-lg"
+                                                    style={{
+                                                        left: `${qrPos.x}px`,
+                                                        top: `${qrPos.y}px`,
+                                                        width: `${qrPos.width}px`,
+                                                        height: `${qrPos.height}px`
+                                                    }}>
+                                                    <QRCodeSVG
+                                                        value={`${window.location.origin}/verify/${cardToPrint.qrCode}`}
+                                                        width="100%"
+                                                        height="100%"
+                                                    />
+                                                </div>
                                         );
                                     } catch (e) {
                                         return null;

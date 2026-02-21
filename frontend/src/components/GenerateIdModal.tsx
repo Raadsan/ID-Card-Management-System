@@ -52,7 +52,6 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
     // Form Data
     const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("");
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
-    const [issueDate, setIssueDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [expiryDate, setExpiryDate] = useState<string>("");
 
 
@@ -161,7 +160,6 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
             await createIdGenerate({
                 employeeId: Number(selectedEmployeeId),
                 templateId: Number(selectedTemplateId),
-                issueDate,
                 expiryDate
             });
             handleClose();
@@ -274,15 +272,7 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                 {/* Date Inputs */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
                                     <div className="space-y-3">
-                                        <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
-                                            <Calendar className="w-4 h-4 text-amber-500" /> Issue Date
-                                        </label>
-                                        <input
-                                            type="date"
-                                            value={issueDate}
-                                            onChange={(e) => setIssueDate(e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all text-gray-700 shadow-sm"
-                                        />
+
                                     </div>
                                     <div className="space-y-3">
                                         <label className="flex items-center gap-2 text-sm font-bold text-gray-700 uppercase tracking-wide">
@@ -416,7 +406,7 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                                         left: `${positions.fullName.x}px`,
                                                         top: `${positions.fullName.y}px`,
                                                         fontSize: `${(positions.fullName as any).fontSize || 24}px`,
-                                                        fontWeight: (positions.fullName as any).fontWeight || 'normal',
+                                                        fontWeight:'normal',
                                                         textAlign: (positions.fullName as any).textAlign || 'left',
                                                         color: positions.fullName.color,
                                                         maxWidth: `${(selectedTemplate?.width || 350) - positions.fullName.x - 20}px`,
@@ -463,23 +453,25 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
                                                     {selectedEmployee?.department.departmentName}
                                                 </div>
 
-                                                {/* Issue Date */}
+                                                {/* Category */}
                                                 <div
                                                     className="absolute whitespace-nowrap overflow-hidden"
                                                     style={{
                                                         ...ID_TEXT_STYLE,
-                                                        left: `${(positions as any).issueDate?.x || 0}px`,
-                                                        top: `${(positions as any).issueDate?.y || 0}px`,
-                                                        fontSize: `${(positions as any).issueDate?.fontSize || 16}px`,
-                                                        fontWeight: (positions as any).issueDate?.fontWeight || 'normal',
-                                                        textAlign: (positions as any).issueDate?.textAlign || 'left',
-                                                        color: (positions as any).issueDate?.color || '#000000',
-                                                        maxWidth: `${(selectedTemplate?.width || 350) - ((positions as any).issueDate?.x || 0) - 20}px`,
-                                                        textOverflow: 'ellipsis'
+                                                        left: `${(positions as any).category?.x ?? 355}px`,
+                                                        top: `${(positions as any).category?.y ?? 460}px`,
+                                                        fontSize: `${(positions as any).category?.fontSize || 20}px`,
+                                                        fontWeight: (positions as any).category?.fontWeight || 'normal',
+                                                        textAlign: (positions as any).category?.textAlign || 'left',
+                                                        color: (positions as any).category?.color || '#000000',
+                                                        maxWidth: `${(selectedTemplate?.width || 1000) - ((positions as any).category?.x ?? 355) - 20}px`,
+                                                        textOverflow: 'ellipsis',
+                                                        letterSpacing: `${(positions as any).category?.letterSpacing || 0}px`,
                                                     }}
                                                 >
-                                                    ISSUE: {issueDate ? new Date(issueDate).toLocaleDateString() : '01/01/2026'}
+                                                    {(selectedEmployee as any)?.category?.name || ''}
                                                 </div>
+
 
                                                 {/* Expiry Date */}
                                                 <div
@@ -523,20 +515,20 @@ export default function GenerateIdModal({ isOpen, onClose }: GenerateIdModalProp
 
                                         {/* Back Side - QR Code Placeholder */}
                                         {!showFront && positions.qrCode && (
-                                            <div
-                                                className="absolute overflow-hidden flex items-center justify-center p-1 bg-white border border-dashed border-gray-300"
-                                                style={{
-                                                    left: `${positions.qrCode.x}px`,
-                                                    top: `${positions.qrCode.y}px`,
-                                                    width: `${positions.qrCode.width}px`,
-                                                    height: `${positions.qrCode.height}px`,
-                                                }}
-                                            >
-                                                <div className="flex flex-col items-center justify-center text-center opacity-50">
-                                                    <QrCode className="w-8 h-8 text-gray-400 mb-1" />
-                                                    <span className="text-[6px] font-bold text-gray-400 uppercase">QR Will Generate</span>
+                                                <div
+                                                    className="absolute overflow-hidden flex items-center justify-center p-1 bg-white border border-dashed border-gray-300"
+                                                    style={{
+                                                        left: `${positions.qrCode.x}px`,
+                                                        top: `${positions.qrCode.y}px`,
+                                                        width: `${positions.qrCode.width}px`,
+                                                        height: `${positions.qrCode.height}px`,
+                                                    }}
+                                                >
+                                                    <div className="flex flex-col items-center justify-center text-center opacity-50">
+                                                        <QrCode className="w-8 h-8 text-gray-400 mb-1" />
+                                                        <span className="text-[6px] font-bold text-gray-400 uppercase">QR Will Generate</span>
+                                                    </div>
                                                 </div>
-                                            </div>
                                         )}
                                     </div>
                                 </div>

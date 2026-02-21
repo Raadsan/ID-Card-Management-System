@@ -12,6 +12,7 @@ export const DEFAULT_POSITIONS = {
     fullName: { x: 355, y: 284, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
     title: { x: 353, y: 348, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
     department: { x: 355, y: 415, fontSize: 27, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
+    category: { x: 355, y: 460, fontSize: 20, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
     idNumber: { x: 83, y: 479, fontSize: 27, color: "#000000ff", fontWeight: "bold", textAlign: "left" as TextAlign, letterSpacing: 0 },
     issueDate: { x: 353, y: 488, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
     expiryDate: { x: 640, y: 491, fontSize: 18, color: "#000000ff", fontWeight: "normal", textAlign: "left" as TextAlign, letterSpacing: 0 },
@@ -32,6 +33,7 @@ interface IdCardPreviewProps {
         fullName?: string;
         title?: string;
         department?: string;
+        category?: string;
         idNumber?: string;
         issueDate?: string;
         expiryDate?: string;
@@ -67,6 +69,7 @@ export const IdCardPreview: React.FC<IdCardPreviewProps> = ({
         fullName: 'Full Name',
         title: 'Position',
         department: 'Department',
+        category: 'ID Category',
         idNumber: 'ID Number',
         issueDate: 'Issue Date',
         expiryDate: 'Expiry Date',
@@ -136,7 +139,7 @@ export const IdCardPreview: React.FC<IdCardPreviewProps> = ({
                                     { key: 'fullName', label: 'Full Name', value: currentValues.fullName, tagColor: 'bg-green-500', hoverBorder: 'hover:border-green-500/50', resizeColor: 'bg-green-500' },
                                     { key: 'title', label: 'Job Title', value: currentValues.title, tagColor: 'bg-indigo-500', hoverBorder: 'hover:border-indigo-500/50', resizeColor: 'bg-indigo-500' },
                                     { key: 'department', label: 'Department', value: currentValues.department, tagColor: 'bg-purple-500', hoverBorder: 'hover:border-purple-500/50', resizeColor: 'bg-purple-500' },
-                                    { key: 'issueDate', label: 'Issue Date', value: currentValues.issueDate, tagColor: 'bg-blue-400', hoverBorder: 'hover:border-blue-400/50', resizeColor: 'bg-blue-400' },
+                                    { key: 'category', label: 'ID Category', value: currentValues.category, tagColor: 'bg-teal-500', hoverBorder: 'hover:border-teal-500/50', resizeColor: 'bg-teal-500' },
                                     { key: 'expiryDate', label: 'Expiry Date', value: currentValues.expiryDate, tagColor: 'bg-pink-500', hoverBorder: 'hover:border-pink-500/50', resizeColor: 'bg-pink-500' },
                                 ].map((item) => (
                                     <div
@@ -183,7 +186,7 @@ export const IdCardPreview: React.FC<IdCardPreviewProps> = ({
                                     }}
                                 >
                                     {isEditable && <span className="absolute -top-7 left-0 text-[10px] font-black text-white bg-orange-500 px-2 py-0.5 rounded shadow-sm opacity-0 group-hover/field:opacity-100 transition-opacity uppercase tracking-widest">SERIAL / ID NO</span>}
-                                    <div className="barcode" style={{ fontSize: `${(positions.idNumber.fontSize || 27) * 1.4}px`, fontWeight: 'normal' }}>
+                                    <div className="" style={{ fontSize: `${(positions.idNumber.fontSize || 27) * 1.4}px`, fontWeight: 'normal' }}>
                                         SPA010024/26
                                     </div>
                                     {isEditable && onResizeStart && (
@@ -386,6 +389,7 @@ export const LayoutEditor: React.FC<LayoutEditorProps> = ({
                     { key: 'fullName', label: 'Full Name', icon: <FileText className="w-3 h-3 text-green-500" />, focusColor: 'focus:border-green-500', bgColor: 'bg-green-100', borderColor: 'border-green-200', textColor: 'text-green-700' },
                     { key: 'title', label: 'Job Title', icon: <User className="w-3 h-3 text-indigo-500" />, focusColor: 'focus:border-indigo-500', bgColor: 'bg-indigo-100', borderColor: 'border-indigo-200', textColor: 'text-indigo-700' },
                     { key: 'department', label: 'Department', icon: <MapPin className="w-3 h-3 text-purple-500" />, focusColor: 'focus:border-purple-500', bgColor: 'bg-purple-100', borderColor: 'border-purple-200', textColor: 'text-purple-700' },
+                    { key: 'category', label: 'ID Category (Nooca)', icon: <CreditCard className="w-3 h-3 text-teal-500" />, focusColor: 'focus:border-teal-500', bgColor: 'bg-teal-100', borderColor: 'border-teal-200', textColor: 'text-teal-700' },
                     { key: 'issueDate', label: 'Issue Date', icon: <FileText className="w-3 h-3 text-blue-400" />, focusColor: 'focus:border-blue-400', bgColor: 'bg-blue-100', borderColor: 'border-blue-200', textColor: 'text-blue-700' },
                     { key: 'expiryDate', label: 'Expiry Date', icon: <FileText className="w-3 h-3 text-pink-500" />, focusColor: 'focus:border-pink-500', bgColor: 'bg-pink-100', borderColor: 'border-pink-200', textColor: 'text-pink-700' },
                     { key: 'idNumber', label: 'ID Number', icon: <CreditCard className="w-3 h-3 text-orange-500" />, focusColor: 'focus:border-orange-500', bgColor: 'bg-orange-100', borderColor: 'border-orange-200', textColor: 'text-orange-700' },
