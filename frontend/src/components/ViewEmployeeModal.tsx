@@ -148,9 +148,7 @@ const ViewEmployeeModal: React.FC<ViewEmployeeModalProps> = ({ isOpen, onClose, 
                             <div
                                 className="absolute whitespace-nowrap overflow-visible barcode text-center"
                                 style={{
-                                    left: `${(positions.photo.x / width) * 100}%`,
-                                    top: `${(positions.idNumber.y / height) * 100}%`,
-                                    width: `${(positions.photo.width / width) * 100}%`,
+                                    ...getPosStyles(positions.idNumber),
                                     fontSize: '5cqw',
                                     color: positions.idNumber.color || '#000000',
                                     fontWeight: 'normal',

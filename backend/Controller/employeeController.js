@@ -164,8 +164,8 @@ export const updateEmployee = async (req, res) => {
         if (status) updateData.status = status;
         if (title !== undefined) updateData.title = title;
         if (departmentId) updateData.departmentId = Number(departmentId);
-        if (sectionId !== undefined) updateData.sectionId = sectionId ? Number(sectionId) : null;
-        if (categoryId !== undefined) updateData.categoryId = categoryId ? Number(categoryId) : null;
+        if (sectionId !== undefined) updateData.sectionId = (sectionId && !isNaN(Number(sectionId))) ? Number(sectionId) : null;
+        if (categoryId !== undefined) updateData.categoryId = (categoryId && !isNaN(Number(categoryId))) ? Number(categoryId) : null;
 
         if (req.file) {
             updateData.photo = req.file.path;
@@ -194,7 +194,10 @@ export const updateEmployee = async (req, res) => {
         res.status(200).json(employee);
     } catch (error) {
         console.error("Update Employee Error:", error);
-        res.status(500).json({ message: "Failed to update employee", error: error.message });
+        if (error.code === "P2002") {
+            return res.status(409).json({ message: "Email already exists for another employee" });
+        }
+        res.status(500).json({ message: "Failed to update employee profile", error: error.message });
     }
 };
 

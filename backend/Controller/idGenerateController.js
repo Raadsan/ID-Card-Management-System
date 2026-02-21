@@ -59,7 +59,8 @@ export const getAllIdGenerates = async (req, res) => {
             include: {
                 employee: {
                     include: {
-                        department: true
+                        department: true,
+                        category: true
                     },
                 },
                 template: true,
@@ -134,7 +135,7 @@ export const getIdGenerateById = async (req, res) => {
         const data = await prisma.idGenerate.findUnique({
             where: { id: Number(id) },
             include: {
-                employee: { include: { department: true } },
+                employee: { include: { department: true, category: true } },
                 template: true,
             },
         });
@@ -190,7 +191,8 @@ export const printIdGenerate = async (req, res) => {
                 employee: {
                     include: {
                         user: true,
-                        department: true
+                        department: true,
+                        category: true
                     }
                 },
                 template: true
@@ -226,7 +228,7 @@ export const verifyQrCode = async (req, res) => {
         const data = await prisma.idGenerate.findUnique({
             where: { qrCode },
             include: {
-                employee: { include: { department: true } },
+                employee: { include: { department: true, category: true } },
                 template: true,
             },
         });
@@ -290,7 +292,8 @@ export const markAsLost = async (req, res) => {
                 employee: {
                     include: {
                         user: true,
-                        department: true
+                        department: true,
+                        category: true
                     }
                 },
                 template: true,
@@ -317,7 +320,8 @@ export const markAsLost = async (req, res) => {
                 employee: {
                     include: {
                         user: true,
-                        department: true
+                        department: true,
+                        category: true
                     }
                 },
                 template: true,
