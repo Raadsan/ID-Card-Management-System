@@ -84,14 +84,15 @@ export default function DashboardContent() {
                 // Process chart data for last 6 months
                 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                 const now = new Date();
-                const last6Months: { label: string; month: number; year: number; revenue: number }[] = [];
+                const last6Months: { label: string; month: number; year: number; created: number; printed: number }[] = [];
                 for (let i = 5; i >= 0; i--) {
                     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                     last6Months.push({
                         label: months[d.getMonth()],
                         month: d.getMonth(),
                         year: d.getFullYear(),
-                        revenue: 0
+                        created: 0,
+                        printed: 0
                     });
                 }
 
@@ -100,7 +101,11 @@ export default function DashboardContent() {
                     const monthLabel = months[d.getMonth()];
                     const chartMonth = last6Months.find(m => m.label === monthLabel && m.year === d.getFullYear());
                     if (chartMonth) {
-                        chartMonth.revenue += 1;
+                        if (id.status === "created" || id.status === "ready_to_print") {
+                            chartMonth.created += 1;
+                        } else if (id.status === "printed") {
+                            chartMonth.printed += 1;
+                        }
                     }
                 });
                 setChartData(last6Months);
@@ -426,84 +431,206 @@ export default function DashboardContent() {
                 </div>
             </div>
 
-            {/* Category Chart Section */}
-            <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-                <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">Employee By Category</h3>
-                </div>
-                <div className="h-[300px] w-full relative">
-                    {!hasMounted ? (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg animate-pulse">
-                            <span className="text-gray-400 text-sm">Loading chart...</span>
+            {/* Charts Row */}
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+                {/* Monthly ID Statistics Line Chart */}
+                <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+                    <div className="mb-6 flex items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900">Monthly ID Statistics</h3>
+                            <p className="text-xs text-gray-500 mt-1">ID Creation vs Printing Trends</p>
                         </div>
-                    ) : (
-                        <div className="w-full h-full">
-                            <svg viewBox="0 0 1000 300" preserveAspectRatio="none" className="w-full h-full overflow-visible">
-                                {/* Grid Lines */}
-                                {[0, 25, 50, 75, 100].map((tick) => (
-                                    <g key={tick}>
-                                        <line
-                                            x1="40"
-                                            y1={250 - (tick * 2)}
-                                            x2="980"
-                                            y2={250 - (tick * 2)}
-                                            stroke="#f3f4f6"
-                                            strokeWidth="1"
-                                        />
-                                        <text
-                                            x="30"
-                                            y={255 - (tick * 2)}
-                                            textAnchor="end"
-                                            className="text-[10px] fill-gray-400 font-medium"
-                                        >
-                                            {tick}
-                                        </text>
-                                    </g>
-                                ))}
-
-                                {/* Bars */}
-                                {categoryStats.map((item, index) => {
-                                    const maxVal = 100;
-                                    const barHeight = (item.count / maxVal) * 200;
-                                    const barWidth = 800 / Math.max(categoryStats.length, 5);
-                                    const xPos = 40 + (index * (barWidth + 20));
+                        <div className="flex items-center gap-4 text-xs font-medium">
+                            <div className="flex items-center gap-1.5">
+                                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                                <span className="text-gray-600">Created</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="h-2 w-2 rounded-full bg-rose-500"></span>
+                                <span className="text-gray-600">Printed</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="h-[300px] w-full relative">
+                        {!hasMounted ? (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg animate-pulse">
+                                <span className="text-gray-400 text-sm">Loading chart...</span>
+                            </div>
+                        ) : (
+                            <div className="w-full h-full">
+                                {(() => {
+                                    const maxDataValue = Math.max(...chartData.map(d => Math.max(Number(d.created) || 0, Number(d.printed) || 0)), 5);
+                                    const chartMaxVal = Math.ceil(maxDataValue / 4) * 4; // Round for 4 intervals
+                                    const ticks = [0, chartMaxVal * 0.25, chartMaxVal * 0.5, chartMaxVal * 0.75, chartMaxVal];
+                                    const scaleY = 200 / chartMaxVal;
+                                    const stepX = 920 / Math.max(chartData.length - 1, 1);
 
                                     return (
-                                        <g key={index} className="group">
-                                            <rect
-                                                x={xPos}
-                                                y={250 - barHeight}
-                                                width={barWidth}
-                                                height={barHeight}
-                                                fill="#1B1555"
-                                                rx="2"
-                                                className="transition-all duration-300 group-hover:fill-[#16BCF8]"
-                                            />
-                                            <text
-                                                x={xPos + barWidth / 2}
-                                                y="275"
-                                                textAnchor="middle"
-                                                className="text-[12px] fill-gray-600 font-medium"
-                                            >
-                                                {item.name}
-                                            </text>
-                                            <text
-                                                x={xPos + barWidth / 2}
-                                                y={240 - barHeight}
-                                                textAnchor="middle"
-                                                className="text-[10px] fill-gray-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                {item.count}
-                                            </text>
-                                        </g>
-                                    );
-                                })}
+                                        <svg viewBox="0 0 1000 300" preserveAspectRatio="none" className="w-full h-full overflow-visible">
+                                            {/* Grid Lines */}
+                                            {ticks.map((tick) => (
+                                                <g key={tick}>
+                                                    <line x1="40" y1={250 - (tick * scaleY)} x2="960" y2={250 - (tick * scaleY)} stroke="#f3f4f6" strokeWidth="1" />
+                                                    <text x="30" y={254 - (tick * scaleY)} textAnchor="end" className="text-[10px] fill-gray-400 font-medium">{Math.round(tick)}</text>
+                                                </g>
+                                            ))}
 
-                                {/* Axis */}
-                                <line x1="40" y1="250" x2="980" y2="250" stroke="#e5e7eb" strokeWidth="1" />
-                            </svg>
-                        </div>
-                    )}
+                                            {/* Line Chart for Created */}
+                                            {(() => {
+                                                if (chartData.length < 2) return null;
+                                                const points = chartData.map((d, i) => {
+                                                    const x = 40 + (i * stepX);
+                                                    const y = 250 - ((Number(d.created) || 0) * scaleY);
+                                                    return `${x},${y}`;
+                                                }).join(" ");
+
+                                                return (
+                                                    <polyline
+                                                        fill="none"
+                                                        stroke="#3b82f6"
+                                                        strokeWidth="3"
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        points={points}
+                                                        className="transition-all duration-1000"
+                                                    />
+                                                );
+                                            })()}
+
+                                            {/* Line Chart for Printed */}
+                                            {(() => {
+                                                if (chartData.length < 2) return null;
+                                                const points = chartData.map((d, i) => {
+                                                    const x = 40 + (i * stepX);
+                                                    const y = 250 - ((Number(d.printed) || 0) * scaleY);
+                                                    return `${x},${y}`;
+                                                }).join(" ");
+
+                                                return (
+                                                    <polyline
+                                                        fill="none"
+                                                        stroke="#f43f5e"
+                                                        strokeWidth="3"
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        points={points}
+                                                        className="transition-all duration-1000"
+                                                    />
+                                                );
+                                            })()}
+
+                                            {/* Data Points and Labels */}
+                                            {chartData.map((d, i) => {
+                                                const x = 40 + (i * stepX);
+                                                const createdY = 250 - ((Number(d.created) || 0) * scaleY);
+                                                const printedY = 250 - ((Number(d.printed) || 0) * scaleY);
+                                                return (
+                                                    <g key={i}>
+                                                        <circle cx={x} cy={createdY} r="4" fill="white" stroke="#3b82f6" strokeWidth="2" />
+                                                        <circle cx={x} cy={printedY} r="4" fill="white" stroke="#f43f5e" strokeWidth="2" />
+                                                        <text x={x} y="275" textAnchor="middle" className="text-[12px] fill-gray-600 font-medium">{d.label}</text>
+                                                    </g>
+                                                );
+                                            })}
+
+                                            {/* Axis */}
+                                            <line x1="40" y1="250" x2="960" y2="250" stroke="#e5e7eb" strokeWidth="1" />
+                                        </svg>
+                                    );
+                                })()}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Category Chart Section */}
+                <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+                    <div className="mb-6">
+                        <h3 className="text-lg font-semibold text-gray-900">Employee By Category</h3>
+                        <p className="text-xs text-gray-500 mt-1">Staff distribution by role</p>
+                    </div>
+                    <div className="h-[300px] w-full relative">
+                        {!hasMounted ? (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg animate-pulse">
+                                <span className="text-gray-400 text-sm">Loading chart...</span>
+                            </div>
+                        ) : (
+                            <div className="w-full h-full">
+                                {(() => {
+                                    const maxCatValue = Math.max(...categoryStats.map(item => item.count), 5);
+                                    const chartMaxVal = Math.ceil(maxCatValue / 4) * 4;
+                                    const ticks = [0, chartMaxVal * 0.25, chartMaxVal * 0.5, chartMaxVal * 0.75, chartMaxVal];
+                                    const scaleY = 200 / chartMaxVal;
+
+                                    return (
+                                        <svg viewBox="0 0 1000 300" preserveAspectRatio="none" className="w-full h-full overflow-visible">
+                                            {/* Grid Lines */}
+                                            {ticks.map((tick) => (
+                                                <g key={tick}>
+                                                    <line
+                                                        x1="40"
+                                                        y1={250 - (tick * scaleY)}
+                                                        x2="980"
+                                                        y2={250 - (tick * scaleY)}
+                                                        stroke="#f3f4f6"
+                                                        strokeWidth="1"
+                                                    />
+                                                    <text
+                                                        x="30"
+                                                        y={255 - (tick * scaleY)}
+                                                        textAnchor="end"
+                                                        className="text-[10px] fill-gray-400 font-medium"
+                                                    >
+                                                        {Math.round(tick)}
+                                                    </text>
+                                                </g>
+                                            ))}
+
+                                            {/* Bars */}
+                                            {categoryStats.map((item, index) => {
+                                                const barHeight = (item.count * scaleY);
+                                                const barWidth = 800 / Math.max(categoryStats.length, 5);
+                                                const xPos = 40 + (index * (barWidth + 20));
+
+                                                return (
+                                                    <g key={index} className="group">
+                                                        <rect
+                                                            x={xPos}
+                                                            y={250 - barHeight}
+                                                            width={barWidth}
+                                                            height={barHeight}
+                                                            fill="#1B1555"
+                                                            rx="2"
+                                                            className="transition-all duration-300 group-hover:fill-[#16BCF8]"
+                                                        />
+                                                        <text
+                                                            x={xPos + barWidth / 2}
+                                                            y="275"
+                                                            textAnchor="middle"
+                                                            className="text-[12px] fill-gray-600 font-medium"
+                                                        >
+                                                            {item.name}
+                                                        </text>
+                                                        <text
+                                                            x={xPos + barWidth / 2}
+                                                            y={240 - barHeight}
+                                                            textAnchor="middle"
+                                                            className="text-[10px] fill-gray-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        >
+                                                            {item.count}
+                                                        </text>
+                                                    </g>
+                                                );
+                                            })}
+
+                                            {/* Axis */}
+                                            <line x1="40" y1="250" x2="980" y2="250" stroke="#e5e7eb" strokeWidth="1" />
+                                        </svg>
+                                    );
+                                })()}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
