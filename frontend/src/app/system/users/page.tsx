@@ -309,7 +309,7 @@ export default function UsersPage() {
                     <div className="h-10 w-10 rounded-full overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
                         {row.photo ? (
                             <img
-                                src={getImageUrl(row.photo) || ''}
+                                src={getImageUrl(row.photo) ?? undefined}
                                 alt=""
                                 className="h-full w-full object-cover"
                             />

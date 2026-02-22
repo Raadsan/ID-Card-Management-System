@@ -468,39 +468,58 @@ export default function PrintIdPage() {
                 <style dangerouslySetInnerHTML={{
                     __html: `
                     @media print {
+                        @page { 
+                            size: 86mm 54mm; 
+                            margin: 0 !important; 
+                        }
+                        html, body {
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            width: 86mm !important;
+                            height: 54mm !important;
+                            background: white;
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                        }
                         body * { visibility: hidden; }
                         .print-area, .print-area * { visibility: visible; }
-                        .print-area { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
-                        
-                        /* Standard ID card size for printers - CR80 */
-                        @page { 
-                          size: 86mm 54mm; 
-                          margin: 0; 
+                        .print-area { 
+                            position: absolute !important; 
+                            left: 0 !important; 
+                            top: 0 !important; 
+                            width: 86mm !important; 
+                            height: auto !important;
+                            display: block !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
                         }
                         
                         .id-card-page {
-                            page-break-after: always;
-                            break-after: page;
                             width: 86mm;
                             height: 54mm;
-                            margin: 0;
-                            padding: 0;
-                            display: block;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            display: flex !important;
+                            align-items: center;
+                            justify-content: center;
                             overflow: hidden;
                             position: relative;
+                            page-break-after: always !important;
+                            break-after: page !important;
+                            background: white;
                         }
                         
                         .id-card-page:last-child {
-                            page-break-after: avoid;
-                            break-after: avoid;
+                            page-break-after: avoid !important;
+                            break-after: avoid !important;
                         }
 
-                        /* Ensure the card fills the 86x54mm page */
                         .print-card-container {
                             width: 100%;
                             height: 100%;
                             position: relative;
                             overflow: hidden;
+                            flex-shrink: 0;
                         }
                     }
                 `}} />
@@ -514,13 +533,13 @@ export default function PrintIdPage() {
                                 style={{
                                     width: `${cardToPrint.template?.width || 1000}px`,
                                     height: `${cardToPrint.template?.height || 600}px`,
-                                    transform: `scale(${86 / (cardToPrint.template?.width || 1000) * 3.7795})`, // Convert mm to px roughly
+                                    transform: `scale(${(86 * 3.7795275591) / (cardToPrint.template?.width || 1000)})`,
                                     transformOrigin: 'top left'
                                 }}
                             >
                                 {/* Background Image using <img> for better capture compatibility */}
                                 <img
-                                    src={getImageUrl(cardToPrint.template?.frontBackground) || ""}
+                                    src={getImageUrl(cardToPrint.template?.frontBackground) ?? undefined}
                                     className="absolute inset-0 w-full h-full object-fill"
                                     crossOrigin="anonymous"
                                     alt=""
@@ -554,7 +573,7 @@ export default function PrintIdPage() {
                                                         height: `${pos.photo.height}px`
                                                     }}>
                                                     <img
-                                                        src={getImageUrl(cardToPrint.employee?.photo) || ""}
+                                                        src={getImageUrl(cardToPrint.employee?.photo) ?? undefined}
                                                         className="w-full h-full"
                                                         style={{ objectFit: (pos.photo as any).objectFit || 'cover' }}
                                                         crossOrigin="anonymous"
@@ -673,13 +692,13 @@ export default function PrintIdPage() {
                                 style={{
                                     width: `${cardToPrint.template?.width || 1000}px`,
                                     height: `${cardToPrint.template?.height || 600}px`,
-                                    transform: `scale(${86 / (cardToPrint.template?.width || 1000) * 3.7795})`,
+                                    transform: `scale(${(86 * 3.7795275591) / (cardToPrint.template?.width || 1000)})`,
                                     transformOrigin: 'top left'
                                 }}
                             >
                                 {/* Background Image using <img> for better capture compatibility */}
                                 <img
-                                    src={getImageUrl(cardToPrint.template?.backBackground) || ""}
+                                    src={getImageUrl(cardToPrint.template?.backBackground) ?? undefined}
                                     className="absolute inset-0 w-full h-full object-fill"
                                     crossOrigin="anonymous"
                                     alt=""
@@ -693,19 +712,19 @@ export default function PrintIdPage() {
                                         const qrPos = layout.qrCode || { x: 169, y: 404, width: 90, height: 90 };
 
                                         return (
-                                                <div className="absolute bg-white/80 p-1 rounded-lg"
-                                                    style={{
-                                                        left: `${qrPos.x}px`,
-                                                        top: `${qrPos.y}px`,
-                                                        width: `${qrPos.width}px`,
-                                                        height: `${qrPos.height}px`
-                                                    }}>
-                                                    <QRCodeSVG
-                                                        value={`${window.location.origin}/verify/${cardToPrint.qrCode}`}
-                                                        width="100%"
-                                                        height="100%"
-                                                    />
-                                                </div>
+                                            <div className="absolute bg-white/80 p-1 rounded-lg"
+                                                style={{
+                                                    left: `${qrPos.x}px`,
+                                                    top: `${qrPos.y}px`,
+                                                    width: `${qrPos.width}px`,
+                                                    height: `${qrPos.height}px`
+                                                }}>
+                                                <QRCodeSVG
+                                                    value={`${window.location.origin}/verify/${cardToPrint.qrCode}`}
+                                                    width="100%"
+                                                    height="100%"
+                                                />
+                                            </div>
                                         );
                                     } catch (e) {
                                         return null;

@@ -109,7 +109,7 @@ const ViewIdTemplateModal: React.FC<ViewIdTemplateModalProps> = ({
                                 style={{ aspectRatio: `${template.width} / ${template.height}` }}
                             >
                                 <img
-                                    src={getImageUrl(template.frontBackground) || ""}
+                                    src={getImageUrl(template.frontBackground) ?? undefined}
                                     alt="Front Background"
                                     className="w-full h-full object-cover"
                                 />
@@ -126,7 +126,7 @@ const ViewIdTemplateModal: React.FC<ViewIdTemplateModalProps> = ({
                                     style={{ aspectRatio: `${template.width} / ${template.height}` }}
                                 >
                                     <img
-                                        src={getImageUrl(template.backBackground) || ""}
+                                        src={getImageUrl(template.backBackground) ?? undefined}
                                         alt="Back Background"
                                         className="w-full h-full object-cover"
                                     />

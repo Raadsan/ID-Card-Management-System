@@ -252,7 +252,6 @@ export default function ReadyIdsPage() {
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Category</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Template</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Issue Date</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Expiry Date</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Approved By</th>
                                     <th className="px-6 py-4 text-xs font-bold text-white uppercase tracking-wider">Printed By</th>
@@ -293,12 +292,6 @@ export default function ReadyIdsPage() {
                                                 {card.status === 'printed' ? 'Printed' :
                                                     card.status === 'replaced' ? 'Replaced' : 'Ready to Print'}
                                             </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <Calendar className="h-4 w-4 text-gray-400" />
-                                                {card.issueDate ? new Date(card.issueDate).toLocaleDateString() : 'N/A'}
-                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -409,39 +402,58 @@ export default function ReadyIdsPage() {
                 <style dangerouslySetInnerHTML={{
                     __html: `
                     @media print {
+                        @page { 
+                            size: 86mm 54mm; 
+                            margin: 0 !important; 
+                        }
+                        html, body {
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            width: 86mm !important;
+                            height: 54mm !important;
+                            background: white;
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                        }
                         body * { visibility: hidden; }
                         .print-area, .print-area * { visibility: visible; }
-                        .print-area { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
-                        
-                        /* Standard ID card size for printers - CR80 */
-                        @page { 
-                          size: 86mm 54mm; 
-                          margin: 0; 
+                        .print-area { 
+                            position: absolute !important; 
+                            left: 0 !important; 
+                            top: 0 !important; 
+                            width: 86mm !important; 
+                            height: auto !important;
+                            display: block !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
                         }
                         
                         .id-card-page {
-                            page-break-after: always;
-                            break-after: page;
                             width: 86mm;
                             height: 54mm;
-                            margin: 0;
-                            padding: 0;
-                            display: block;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            display: flex !important;
+                            align-items: center;
+                            justify-content: center;
                             overflow: hidden;
                             position: relative;
+                            page-break-after: always !important;
+                            break-after: page !important;
+                            background: white;
                         }
                         
                         .id-card-page:last-child {
-                            page-break-after: avoid;
-                            break-after: avoid;
+                            page-break-after: avoid !important;
+                            break-after: avoid !important;
                         }
 
-                        /* Ensure the card fills the 86x54mm page */
                         .print-card-container {
                             width: 100%;
                             height: 100%;
                             position: relative;
                             overflow: hidden;
+                            flex-shrink: 0;
                         }
                     }
                 `}} />
@@ -455,13 +467,16 @@ export default function ReadyIdsPage() {
                                 style={{
                                     width: `${cardToPrint.template?.width || 1000}px`,
                                     height: `${cardToPrint.template?.height || 600}px`,
-                                    transform: `scale(${86 / (cardToPrint.template?.width || 1000) * 3.7795})`, // Convert mm to px roughly
-                                    transformOrigin: 'top left'
+                                    transform: `scale(${Math.max(
+                                        (86 * 3.7795275591) / (cardToPrint.template?.width || 1000),
+                                        (54 * 3.7795275591) / (cardToPrint.template?.height || 600)
+                                    )})`,
+                                    transformOrigin: 'center center'
                                 }}
                             >
                                 {/* Background Image using <img> for better capture compatibility */}
                                 <img
-                                    src={getImageUrl(cardToPrint.template?.frontBackground) || ""}
+                                    src={getImageUrl(cardToPrint.template?.frontBackground) ?? undefined}
                                     className="absolute inset-0 w-full h-full object-fill"
                                     crossOrigin="anonymous"
                                     alt=""
@@ -495,7 +510,7 @@ export default function ReadyIdsPage() {
                                                         height: `${pos.photo.height}px`
                                                     }}>
                                                     <img
-                                                        src={getImageUrl(cardToPrint.employee?.photo) || ""}
+                                                        src={getImageUrl(cardToPrint.employee?.photo) ?? undefined}
                                                         className="w-full h-full"
                                                         style={{ objectFit: (pos.photo as any).objectFit || 'cover' }}
                                                         crossOrigin="anonymous"
@@ -614,13 +629,16 @@ export default function ReadyIdsPage() {
                                 style={{
                                     width: `${cardToPrint.template?.width || 1000}px`,
                                     height: `${cardToPrint.template?.height || 600}px`,
-                                    transform: `scale(${86 / (cardToPrint.template?.width || 1000) * 3.7795})`,
-                                    transformOrigin: 'top left'
+                                    transform: `scale(${Math.max(
+                                        (86 * 3.7795275591) / (cardToPrint.template?.width || 1000),
+                                        (54 * 3.7795275591) / (cardToPrint.template?.height || 600)
+                                    )})`,
+                                    transformOrigin: 'center center'
                                 }}
                             >
                                 {/* Background Image using <img> for better capture compatibility */}
                                 <img
-                                    src={getImageUrl(cardToPrint.template?.backBackground) || ""}
+                                    src={getImageUrl(cardToPrint.template?.backBackground) ?? undefined}
                                     className="absolute inset-0 w-full h-full object-fill"
                                     crossOrigin="anonymous"
                                     alt=""

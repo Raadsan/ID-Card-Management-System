@@ -118,7 +118,7 @@ const ViewEmployeeModal: React.FC<ViewEmployeeModalProps> = ({ isOpen, onClose, 
                     }}
                 >
                     <img
-                        src={getImageUrl(isFront ? idCard.template?.frontBackground : idCard.template?.backBackground) || ''}
+                        src={getImageUrl(isFront ? idCard.template?.frontBackground : idCard.template?.backBackground) ?? undefined}
                         alt=""
                         className="absolute inset-0 w-full h-full object-cover"
                     />

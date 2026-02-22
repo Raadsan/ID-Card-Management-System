@@ -372,7 +372,7 @@ export default function EmployeesPage() {
                         <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white shadow-sm ring-1 ring-gray-100 bg-gray-50 flex items-center justify-center">
                             {getImageUrl(row.photo) ? (
                                 <img
-                                    src={getImageUrl(row.photo) || ""}
+                                    src={getImageUrl(row.photo) ?? undefined}
                                     className="h-full w-full object-cover"
                                     onError={(e) => { (e.target as any).src = "/placeholder-user.png"; }}
                                 />
